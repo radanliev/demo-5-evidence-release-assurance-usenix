@@ -1,0 +1,7 @@
+policy_name: USENIX Security Fail-Closed Release Gate Policy
+version: 1.0.0
+release_conditions:
+  require_signed_evidence: true
+  min_passing_tests_pct: 100
+  allowed_drift_findings: 0
+  fail_closed_default: true
