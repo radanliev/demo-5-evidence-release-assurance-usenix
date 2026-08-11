@@ -1,0 +1,218 @@
+{
+  "timestamp": "2026-08-11T22:54:26Z",
+  "merkle_scaling": [
+    {
+      "trace_count": 10,
+      "packaging_latency_ms": 0.433,
+      "merkle_tree_build_ms": 0.007,
+      "merkle_tree_depth": 5,
+      "bundle_size_kb": 4.1,
+      "packaging_overhead_pct": 2.8853
+    },
+    {
+      "trace_count": 100,
+      "packaging_latency_ms": 0.266,
+      "merkle_tree_build_ms": 0.037,
+      "merkle_tree_depth": 8,
+      "bundle_size_kb": 23.97,
+      "packaging_overhead_pct": 0.1773
+    },
+    {
+      "trace_count": 1000,
+      "packaging_latency_ms": 1.927,
+      "merkle_tree_build_ms": 0.366,
+      "merkle_tree_depth": 11,
+      "bundle_size_kb": 222.6,
+      "packaging_overhead_pct": 0.1284
+    },
+    {
+      "trace_count": 10000,
+      "packaging_latency_ms": 18.256,
+      "merkle_tree_build_ms": 3.888,
+      "merkle_tree_depth": 15,
+      "bundle_size_kb": 2208.93,
+      "packaging_overhead_pct": 0.1217
+    },
+    {
+      "trace_count": 100000,
+      "packaging_latency_ms": 177.863,
+      "merkle_tree_build_ms": 39.776,
+      "merkle_tree_depth": 18,
+      "bundle_size_kb": 22072.21,
+      "packaging_overhead_pct": 0.1186
+    }
+  ],
+  "parallel_throughput": {
+    "workers_1": {
+      "num_workers": 1,
+      "total_evaluations": 1000,
+      "elapsed_seconds": 0.6849,
+      "throughput_ops_sec": 1460.14,
+      "mean_latency_per_eval_ms": 0.6849
+    },
+    "workers_2": {
+      "num_workers": 2,
+      "total_evaluations": 1000,
+      "elapsed_seconds": 0.3876,
+      "throughput_ops_sec": 2580.12,
+      "mean_latency_per_eval_ms": 0.3876
+    },
+    "workers_4": {
+      "num_workers": 4,
+      "total_evaluations": 1000,
+      "elapsed_seconds": 0.2387,
+      "throughput_ops_sec": 4189.77,
+      "mean_latency_per_eval_ms": 0.2387
+    },
+    "workers_8": {
+      "num_workers": 8,
+      "total_evaluations": 1000,
+      "elapsed_seconds": 0.1709,
+      "throughput_ops_sec": 5850.09,
+      "mean_latency_per_eval_ms": 0.1709
+    }
+  },
+  "tamper_resilience": {
+    "total_vectors": 12,
+    "blocked_vectors": 12,
+    "fail_closed_block_rate_pct": 100.0,
+    "vector_details": [
+      {
+        "id": "V1",
+        "name": "Unsigned Evidence Payload",
+        "category": "Authentication",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Unsigned evidence bundle rejected."
+        ],
+        "eval_latency_ms": 0.017
+      },
+      {
+        "id": "V2",
+        "name": "Tampered Trace Digest (Merkle Root Mismatch)",
+        "category": "Integrity",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Merkle root mismatch! Claimed: 03126da41433..., Recalculated: 4ebda4503c01..."
+        ],
+        "eval_latency_ms": 0.223
+      },
+      {
+        "id": "V3",
+        "name": "Forged Signature",
+        "category": "Authenticity",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Invalid or forged HMAC signature.",
+          "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
+        ],
+        "eval_latency_ms": 0.025
+      },
+      {
+        "id": "V4",
+        "name": "Replayed Evidence Nonce",
+        "category": "Replay",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Replayed evidence nonce detected (1a2335af-cd23-4c2a-a97f-ecad34a9d1b4)."
+        ],
+        "eval_latency_ms": 0.196
+      },
+      {
+        "id": "V5",
+        "name": "Expired Evidence Timestamp",
+        "category": "Freshness",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Evidence timestamp expired (7200s > max 3600s)."
+        ],
+        "eval_latency_ms": 0.171
+      },
+      {
+        "id": "V6",
+        "name": "Unresolved Security Drift",
+        "category": "Policy Violation",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Unresolved drift findings present (3 > allowed 0)."
+        ],
+        "eval_latency_ms": 0.176
+      },
+      {
+        "id": "V7",
+        "name": "Sub-threshold Test Pass Rate",
+        "category": "Quality Gate",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Sub-threshold test pass rate (85.5% < min required 100.0%)."
+        ],
+        "eval_latency_ms": 0.176
+      },
+      {
+        "id": "V8",
+        "name": "Forged Merkle Root Digest",
+        "category": "Integrity",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Merkle root mismatch! Claimed: b6427a237933..., Recalculated: 03126da41433..."
+        ],
+        "eval_latency_ms": 0.17
+      },
+      {
+        "id": "V9",
+        "name": "Revoked Key ID Usage",
+        "category": "Key Governance",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Key ID 'KEY-REVOKED-9999' has been revoked!",
+          "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
+        ],
+        "eval_latency_ms": 0.006
+      },
+      {
+        "id": "V10",
+        "name": "JSON Key Malleability Payload Injection",
+        "category": "Serialization",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Invalid or forged Ed25519 signature.",
+          "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1).",
+          "POLICY_VIOLATION: Sub-threshold test pass rate (99.9% < min required 100.0%)."
+        ],
+        "eval_latency_ms": 0.181
+      },
+      {
+        "id": "V11",
+        "name": "Post-Dated Future Clock Skew",
+        "category": "Freshness",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Timestamp post-dated in the future (skew: 3599s > max 30s)."
+        ],
+        "eval_latency_ms": 0.181
+      },
+      {
+        "id": "V12",
+        "name": "Truncated Partial Merkle Proof Path",
+        "category": "Integrity",
+        "passed": false,
+        "blocked": true,
+        "violations": [
+          "POLICY_VIOLATION: Merkle root mismatch! Claimed: 03126da41433..., Recalculated: ea0fc203ee8f..."
+        ],
+        "eval_latency_ms": 0.157
+      }
+    ]
+  }
+}

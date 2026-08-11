@@ -7,3 +7,17 @@ venv/
 dist/
 build/
 .DS_Store
+.cursor/
+
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+

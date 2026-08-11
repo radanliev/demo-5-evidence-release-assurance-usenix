@@ -1,0 +1,107 @@
+{
+  "timestamp": "2026-08-11T22:14:49Z",
+  "summary": {
+    "ci_exit_code_block_rate_pct": 0.0,
+    "opa_schema_block_rate_pct": 25.0,
+    "sigstore_cosign_block_rate_pct": 25.0,
+    "demo5_assurance_block_rate_pct": 100.0
+  },
+  "details": [
+    {
+      "vector_id": "V1",
+      "vector_name": "Unsigned Evidence Payload",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": true,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V2",
+      "vector_name": "Tampered Trace Digest (Merkle Root Mismatch)",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V3",
+      "vector_name": "Forged Signature",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V4",
+      "vector_name": "Replayed Evidence Nonce",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V5",
+      "vector_name": "Expired Evidence Timestamp",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V6",
+      "vector_name": "Unresolved Security Drift",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": true,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V7",
+      "vector_name": "Sub-threshold Test Pass Rate",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": true,
+      "sigstore_cosign_blocked": true,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V8",
+      "vector_name": "Forged Merkle Root Digest",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V9",
+      "vector_name": "Revoked Key ID Usage",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V10",
+      "vector_name": "JSON Key Malleability Payload Injection",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": true,
+      "sigstore_cosign_blocked": true,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V11",
+      "vector_name": "Post-Dated Future Clock Skew",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V12",
+      "vector_name": "Truncated Partial Merkle Proof Path",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    }
+  ]
+}
