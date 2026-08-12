@@ -108,6 +108,11 @@ def main() -> int:
     ap.add_argument("--render", action="store_true", help="export page PNGs for visual QA")
     ap.add_argument("--json", action="store_true", help="print findings JSON to stdout")
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--fail-on", choices=("blocker", "major", "any", "never"),
+                    default="major",
+                    help="which severity makes the exit code non-zero. CI uses "
+                         "'blocker' so a known backlog of MAJORs does not paint "
+                         "every run red; the loop uses the default.")
     args = ap.parse_args()
 
     cfg = load_config(args.root or find_repo_root())
@@ -165,6 +170,12 @@ def main() -> int:
         print(f"BLOCKER {s['BLOCKER']}  MAJOR {s['MAJOR']}  MINOR {s['MINOR']}  "
               f"INFO {s['INFO']}   gated: {summary['gated_actionable']}")
         print(f"report: {cfg.state_dir / 'FINDINGS.md'}")
+
+    s = summary["by_severity"]
+    if args.fail_on == "never":
+        return 0
+    if args.fail_on == "blocker":
+        return 3 if s["BLOCKER"] else 0
 
     gated_bad = [f for f in findings if f.gated and f.severity in ("BLOCKER", "MAJOR")]
     if gated_bad:

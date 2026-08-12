@@ -22,7 +22,9 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pyyaml
+          # assurance/crypto.py imports `cryptography`; without it every
+          # test errors at collection and the job fails in seconds.
+          pip install pytest pyyaml cryptography
 
       - name: Run Test Suite
         run: |
