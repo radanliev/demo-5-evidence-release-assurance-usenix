@@ -21,3 +21,6 @@ build/
 *.fdb_latexmk
 *.synctex.gz
 
+.env
+.env.*
+.paperloop/state/pages/
