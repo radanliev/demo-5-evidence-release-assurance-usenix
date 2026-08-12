@@ -2,14 +2,14 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-12 12:40
+**Run:** 2026-08-12 15:41
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 6 |
 | MAJOR | 8 |
-| MINOR | 4 |
-| INFO | 2 |
+| MINOR | 5 |
+| INFO | 3 |
 
 Gated (human sign-off required): **4**
 
@@ -99,6 +99,15 @@ paper is well under the 13-page budget
 - **remedy:** Expand evaluation, threat model, or related work; reviewers read a short paper as an underdeveloped one.
 - **id:** `6cfb9be7880c8171`
 
+### [MINOR] refs.bibfield
+
+only 0 of 16 cited works carry a DOI
+
+- **found:** `0/16`
+- **expected:** a DOI on every reference that has one
+- **remedy:** Add DOIs from the publisher's page or Crossref. They let a reviewer check a reference in one click, and let this gate verify it exactly rather than by fuzzy title match.
+- **id:** `8f7321233eb2d505`
+
 ### [MINOR] refs.bibfield `docs/usenix_paper_manuscript.blg`
 
 bibtex: Warning--can't use both volume and number fields in bernstein2012high
@@ -175,6 +184,14 @@ percentage without an explicit denominator
 ## Measurements
 
 Recorded for the round log; no action implied.
+
+### [INFO] refs.unverified
+
+Crossref and OpenAlex are unreachable — citations not verified
+
+- **expected:** network access to api.crossref.org and api.openalex.org
+- **remedy:** Add both to the network allowlist, then re-run. Offline, citation existence cannot be checked at all.
+- **id:** `7b862c54c1971489`
 
 ### [INFO] science.artifact_missing
 

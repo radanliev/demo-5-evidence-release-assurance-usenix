@@ -62,6 +62,8 @@ GATED_CATEGORIES = {
     "science.claim_unsupported",
     "science.artifact_missing",
     "science.stale_artifact",
+    "refs.unverified",
+    "refs.doi_mismatch",
 }
 
 

@@ -22,12 +22,14 @@ sys.path.insert(0, str(HERE))
 
 from lib.common import (Finding, load_config, find_repo_root, run,  # noqa: E402
                         sort_findings, summarize, write_findings)
-from checks import check_venue, check_science, check_figures, check_refs  # noqa: E402
+from checks import (check_venue, check_science, check_figures, check_refs,  # noqa: E402
+                    check_citations)
 
 CHECKS = [
     ("venue", check_venue.check),
     ("figures", check_figures.check),
     ("refs", check_refs.check),
+    ("citations", check_citations.check),
     ("science", check_science.check),
 ]
 

@@ -2,17 +2,17 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-12T12:40:20"
+    "generated": "2026-08-12T15:41:23"
   },
   "summary": {
-    "total": 20,
+    "total": 22,
     "by_severity": {
       "BLOCKER": 6,
       "MAJOR": 8,
-      "MINOR": 4,
-      "INFO": 2
+      "MINOR": 5,
+      "INFO": 3
     },
-    "actionable": 18,
+    "actionable": 19,
     "gated_actionable": 4,
     "clean": false
   },
@@ -228,6 +228,21 @@
       "autofixable": true
     },
     {
+      "check": "citations",
+      "category": "refs.bibfield",
+      "severity": "MINOR",
+      "message": "only 0 of 16 cited works carry a DOI",
+      "file": null,
+      "line": null,
+      "page": null,
+      "evidence": "0/16",
+      "expected": "a DOI on every reference that has one",
+      "remedy": "Add DOIs from the publisher's page or Crossref. They let a reviewer check a reference in one click, and let this gate verify it exactly rather than by fuzzy title match.",
+      "fingerprint": "8f7321233eb2d505",
+      "gated": false,
+      "autofixable": true
+    },
+    {
       "check": "refs",
       "category": "refs.bibfield",
       "severity": "MINOR",
@@ -284,6 +299,21 @@
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
       "fingerprint": "6b592df853780a61",
+      "gated": true,
+      "autofixable": false
+    },
+    {
+      "check": "citations",
+      "category": "refs.unverified",
+      "severity": "INFO",
+      "message": "Crossref and OpenAlex are unreachable \u2014 citations not verified",
+      "file": null,
+      "line": null,
+      "page": null,
+      "evidence": null,
+      "expected": "network access to api.crossref.org and api.openalex.org",
+      "remedy": "Add both to the network allowlist, then re-run. Offline, citation existence cannot be checked at all.",
+      "fingerprint": "7b862c54c1971489",
       "gated": true,
       "autofixable": false
     },
