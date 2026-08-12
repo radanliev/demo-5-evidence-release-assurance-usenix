@@ -5,8 +5,11 @@ tell a real paper from a plausible-looking one. That distinction matters: a
 fabricated or misremembered reference is the failure mode reviewers punish
 hardest, and LLM-assisted writing produces them readily.
 
-No API key. Crossref and OpenAlex both operate a "polite pool" that only wants
-a contact email in the User-Agent, which is set from `venue.yaml`.
+Crossref needs no key — a contact email in the User-Agent puts you in its polite
+pool. OpenAlex is different: since 2026-02-13 it requires an API key on EVERY
+request. The key is free from https://openalex.org/settings/api and is passed as
+the `api_key` query parameter. Without it only Crossref is queried, which misses
+preprints and some CS venues.
 
 Offline behaviour is deliberate: unreachable APIs produce INFO ("unverified"),
 never MAJOR. A network failure must not look like a bad citation.
@@ -14,6 +17,7 @@ never MAJOR. A network failure must not look like a bad citation.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
@@ -57,10 +61,40 @@ def _save_cache(cfg: Config, cache: dict) -> None:
         pass
 
 
+def _openalex_key() -> str | None:
+    """OpenAlex has required an API key for ALL requests since 2026-02-13.
+
+    Free from https://openalex.org/settings/api. Passed as the `api_key` query
+    parameter; no header is used. Read from the environment so it never has to
+    live in a repository.
+    """
+    for var in ("OPENALEX_API_KEY", "OPENALEX_KEY"):
+        v = os.environ.get(var, "").strip()
+        if v:
+            return v
+    # fall back to the shared key file, which sits outside every repo
+    for cand in (Path.home() / "Projects" / ".paperloop-env",
+                 Path.cwd() / ".paperloop-env",
+                 Path.cwd().parent / ".paperloop-env"):
+        try:
+            if cand.exists():
+                m = re.search(r'^export\s+OPENALEX_API_KEY="?([^"\n]+)"?',
+                              cand.read_text(), re.MULTILINE)
+                if m:
+                    return m.group(1).strip()
+        except Exception:
+            pass
+    return None
+
+
 def _get(url: str, mailto: str) -> dict | None:
-    """Return parsed JSON, or None if the API is unreachable."""
+    """Return parsed JSON, or None if the API is unreachable or rejects us."""
     sep = "&" if "?" in url else "?"
     full = f"{url}{sep}mailto={urllib.parse.quote(mailto)}"
+    if "openalex.org" in url:
+        key = _openalex_key()
+        if key:
+            full += f"&api_key={urllib.parse.quote(key)}"
     req = urllib.request.Request(
         full, headers={"User-Agent": f"paperloop/1.0 (mailto:{mailto})",
                        "Accept": "application/json"})
@@ -174,6 +208,16 @@ def check(cfg: Config) -> list[Finding]:
     for _, _, t in read_tex(cfg.manuscript):
         for m in re.finditer(r"\\cite[a-zA-Z]*\*?(?:\[[^\]]*\])*\{([^}]+)\}", t):
             cited.update(k.strip() for k in m.group(1).split(",") if k.strip())
+
+    if not _openalex_key():
+        out.append(Finding(
+            "citations", "refs.unverified", "MINOR",
+            "no OPENALEX_API_KEY — OpenAlex has required a key for all requests "
+            "since 2026-02-13, so only Crossref is being queried",
+            expected="OPENALEX_API_KEY set",
+            remedy="Free key at https://openalex.org/settings/api, then "
+                   "./set-key.sh OPENALEX_API_KEY. Crossref alone misses "
+                   "preprints and some CS venues, so coverage is reduced."))
 
     cache = _load_cache(cfg)
     reachable = None
