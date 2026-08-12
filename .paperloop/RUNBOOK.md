@@ -6,12 +6,18 @@ Manuscript: `docs/usenix_paper_manuscript.tex`
 ## One command
 
 ```bash
-python3 .paperloop/loop.py --rounds 6 --push --pr
+python3 .paperloop/loop.py --forever --push --pr
 ```
 
-Build → measure → fix → rebuild → re-measure → commit, repeated until it converges,
-hits a gated science finding, stalls, or spends its round budget. It works on the
-branch `paperloop/autofix`, commits each round, and opens a PR at the end.
+Each round: **measure → evaluate → write**. Deterministic gates, then a reviewer
+agent that reads the paper, then the writer. The reviewer rotates every round
+(venue compliance, science, adversarial peer review, literature) so no single
+blind spot persists. Works on `paperloop/autofix`, commits each round, opens a PR.
+
+It does not stop when it gets stuck. A stall rotates to a different reviewer and
+re-frames the work order. A science finding is parked for you while the loop
+carries on with everything else. Only a build it cannot compile takes it out of
+the rotation. Use `--rounds 6` instead of `--forever` for a bounded run.
 
 **You do not approve each round.** The loop finds an agent CLI on PATH and launches
 it in headless mode. Check what it detected:
@@ -95,8 +101,9 @@ Conference rules move between years — when they do, correct the skill and
 
 Formatting is fixed automatically. **Science is not.** A wrong number, a stale
 result, an unsupported claim — the writer drafts a proposal in
-`.paperloop/state/proposals/` and the loop halts for you. Nothing edits a number to
-make a check go green, because a gate you can silence that way is not a gate.
+`.paperloop/state/proposals/` for you to decide on, while the loop keeps working on
+everything else. Nothing edits a number to make a check go green, because a gate you
+can silence that way is not a gate.
 
 ## Tuning
 
