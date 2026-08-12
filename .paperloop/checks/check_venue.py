@@ -90,11 +90,42 @@ def _is_furniture(word: dict, page_w: float, page_h: float) -> bool:
     return False
 
 
+def _repeated_bands(doc, tol: float = 2.0, min_share: float = 0.5):
+    """Find y-positions where text repeats across most pages.
+
+    Running heads and footers are the same height on every page by construction.
+    Detecting them by repetition is reliable in a way that guessing a margin
+    strip is not: a NeurIPS running head sits well inside the nominal top
+    margin, and treating it as body content reports every page as violating.
+    """
+    from collections import Counter
+    n = len(doc.pages)
+    if n < 3:
+        return []
+    band = Counter()
+    for page in doc.pages:
+        seen = set()
+        try:
+            words = page.extract_words()
+        except Exception:
+            continue
+        for w in words:
+            key = round(float(w["top"]) / tol)
+            if key not in seen:
+                seen.add(key)
+                band[key] += 1
+    return [k * tol for k, c in band.items() if c >= n * min_share]
+
+
 def _page_geometry(pdf: Path):
     """Return per-page (width, height, content bbox) in points using pdfplumber."""
     import pdfplumber
     pages = []
     with pdfplumber.open(str(pdf)) as doc:
+        repeated = _repeated_bands(doc)
+        top_furniture = [y for y in repeated if y < 1.2 * PT_PER_IN]
+        bot_furniture = [y for y in repeated
+                         if y > (doc.pages[0].height - 1.2 * PT_PER_IN)] if doc.pages else []
         for pno, page in enumerate(doc.pages, 1):
             xs0, xs1, ys0, ys1 = [], [], [], []
             try:
@@ -104,6 +135,9 @@ def _page_geometry(pdf: Path):
             for w in words:
                 if _is_furniture(w, page.width, page.height):
                     continue
+                wtop = float(w["top"])
+                if any(abs(wtop - y) <= 2.5 for y in top_furniture + bot_furniture):
+                    continue        # running head / footer, not body content
                 xs0.append(float(w["x0"])); xs1.append(float(w["x1"]))
                 ys0.append(float(w["top"])); ys1.append(float(w["bottom"]))
             for obj in list(page.images) + list(page.rects) + list(page.curves):

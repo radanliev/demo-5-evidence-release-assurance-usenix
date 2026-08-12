@@ -2,11 +2,11 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-12 18:01
+**Run:** 2026-08-12 18:17
 
 | Severity | Count |
 |---|---|
-| BLOCKER | 6 |
+| BLOCKER | 4 |
 | MAJOR | 8 |
 | MINOR | 5 |
 | INFO | 3 |
@@ -17,41 +17,23 @@ Gated (human sign-off required): **4**
 
 The writer agent applies these directly. Formatting, layout, figures, references, venue compliance — no interpretation of results required.
 
-### [BLOCKER] layout.overfull `docs/usenix_paper_manuscript.tex`:113
+### [BLOCKER] venue.margins p.6
 
-content sticks 20.8pt past the column/text width (0.289in into the margin)
+bottom margin violated on p.6
 
-- **found:** `Overfull \hbox 20.8pt`
-- **expected:** no overfull hbox above 1.0pt
-- **remedy:** Usually an unbreakable token: a long URL (use \url or \sloppy), a wide table (use \resizebox or \small on the tabular only), code/identifier (add \allowbreak), or a figure wider than \columnwidth (set width=\columnwidth).
-- **id:** `17d50fc73aceffe4`
-
-### [BLOCKER] venue.margins p.1
-
-bottom margin violated on p.1
-
-- **found:** `0.720in`
+- **found:** `0.806in`
 - **expected:** >= 0.9in (tolerance 0.02in)
-- **remedy:** Content intrudes into the bottom margin on p.1. Usually a wide table, figure, algorithm block, or unbroken URL. Wrap it, scale it to \columnwidth, or rebreak the line — do not move the margin.
-- **id:** `6000516d72902832`
+- **remedy:** Content intrudes into the bottom margin on p.6. Usually a wide table, figure, algorithm block, or unbroken URL. Wrap it, scale it to \columnwidth, or rebreak the line — do not move the margin.
+- **id:** `fafd8337772fe930`
 
-### [BLOCKER] venue.margins p.2
+### [BLOCKER] venue.margins p.3
 
-right margin violated on p.2
+top margin violated on p.3
 
-- **found:** `0.462in`
-- **expected:** >= 0.7in (tolerance 0.02in)
-- **remedy:** Content intrudes into the right margin on p.2. Usually a wide table, figure, algorithm block, or unbroken URL. Wrap it, scale it to \columnwidth, or rebreak the line — do not move the margin.
-- **id:** `7122301b5e6fad3f`
-
-### [BLOCKER] venue.margins p.4
-
-top margin violated on p.4
-
-- **found:** `0.731in`
+- **found:** `0.806in`
 - **expected:** >= 0.9in (tolerance 0.02in)
-- **remedy:** Content intrudes into the top margin on p.4. Usually a wide table, figure, algorithm block, or unbroken URL. Wrap it, scale it to \columnwidth, or rebreak the line — do not move the margin.
-- **id:** `2a4189e5b25dbf93`
+- **remedy:** Content intrudes into the top margin on p.3. Usually a wide table, figure, algorithm block, or unbroken URL. Wrap it, scale it to \columnwidth, or rebreak the line — do not move the margin.
+- **id:** `fe213610cc6f77e1`
 
 ### [MAJOR] refs.bibfield
 
@@ -127,59 +109,59 @@ bibtex: Warning--can't use both volume and number fields in bernstein2012high
 
 **The writer agent must not touch these.** Changing a number to make a gate pass converts a data error into a published claim. Each one gets a proposed diff in `.paperloop/state/proposals/`, and the loop halts.
 
-### [BLOCKER] science.number_mismatch `docs/usenix_paper_manuscript.tex`:54
+### [BLOCKER] science.number_mismatch `docs/usenix_paper_manuscript.tex`:59
 
 manuscript says 5,981 but the nearest recorded result is 5850.09 — likely a stale number from an earlier run
 
 - **found:** `…A/Sigstore) while processing policy gate evaluations at up to \textbf{5,981 operations/second} across 8 parallel cores, scaling Merkle tree const…`
 - **expected:** 5850.09  (source: results/benchmark_summary.json::parallel_throughput.workers_8.throughput_ops_sec)
 - **remedy:** Do NOT edit the paper to match blindly. Re-run the producing script, confirm which value is current, then update the manuscript AND state in the round log which artifact it came from.
-- **id:** `61a2fc7bbac40f52`
+- **id:** `2fd6adae9200cb5b`
 
-### [BLOCKER] science.number_mismatch `docs/usenix_paper_manuscript.tex`:54
+### [BLOCKER] science.number_mismatch `docs/usenix_paper_manuscript.tex`:59
 
-manuscript says 0.123 but the nearest recorded result is 0.1217 — likely a stale number from an earlier run
+manuscript says 0.123% but the nearest recorded result is 0.1217 — likely a stale number from an earlier run
 
-- **found:** `…traces in under   (representing a negligible packaging overhead of **0.123…`
+- **found:** `…s in under   (representing a negligible packaging overhead of \textbf{0.123\%}) with   sparse proof compression. Finally, we provide structured cou…`
 - **expected:** 0.1217  (source: results/benchmark_summary.json::merkle_scaling[3].packaging_overhead_pct)
 - **remedy:** Do NOT edit the paper to match blindly. Re-run the producing script, confirm which value is current, then update the manuscript AND state in the round log which artifact it came from.
-- **id:** `32e53341de974461`
+- **id:** `74e3ae47ab977fa9`
 
-### [MAJOR] science.number_mismatch `docs/usenix_paper_manuscript.tex`:48
+### [MAJOR] science.number_mismatch `docs/usenix_paper_manuscript.tex`:53
 
 manuscript says 227 but the nearest recorded result is 222.6 — likely a stale number from an earlier run
 
 - **found:** `…Submission ID: 227…`
 - **expected:** 222.6  (source: results/benchmark_summary.json::merkle_scaling[2].bundle_size_kb)
 - **remedy:** Do NOT edit the paper to match blindly. Re-run the producing script, confirm which value is current, then update the manuscript AND state in the round log which artifact it came from.
-- **id:** `c5f92562f9e22192`
+- **id:** `01fbb8df52498919`
 
-### [MAJOR] science.number_mismatch `docs/usenix_paper_manuscript.tex`:115
+### [MAJOR] science.number_mismatch `docs/usenix_paper_manuscript.tex`:123
 
 manuscript says 22.0 but the nearest recorded result is 22.4 — likely a stale number from an earlier run
 
 - **found:** `…For   traces, transmitting raw trace logs requires ~22.0 MB of storage. Demo 5 provides sparse Merkle proof compression, trans…`
 - **expected:** 22.4  (source: corpus/agent_trace_corpus.json::profiles[3].traces[1].duration_ms)
 - **remedy:** Do NOT edit the paper to match blindly. Re-run the producing script, confirm which value is current, then update the manuscript AND state in the round log which artifact it came from.
-- **id:** `7eee4a0d870591c0`
+- **id:** `8dc81da3044a2ea9`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:288
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:296
 
 percentage without an explicit denominator
 
 - **found:** `\item \textbf{V7 (Sub-threshold Pass Rate)}: Rejects releases with unit test thresholds below 100\%.`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `5e53cebf7ba2135b`
+- **id:** `17fab7afe06863cc`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:297
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:305
 
 percentage without an explicit denominator
 
 - **found:** `Figure~\ref{fig:comparative} compares Demo 5 against standard CI exit code gates, OPA schema validators, and Sigstore/Cosign container gates. Demo 5 achieves 100.0\% detection, whe`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `6b592df853780a61`
+- **id:** `5e6f6c9b4a31a6d7`
 
 ## Measurements
 

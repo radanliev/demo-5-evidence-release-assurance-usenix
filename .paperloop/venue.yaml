@@ -26,6 +26,12 @@ review:
   - ANONYMOUS
   - Anonymous
   - anon.
+# min_margins_in are NOT from the CFP -- USENIX publishes a text-block size,
+# not per-page margins. Calibration check: this manuscript has zero geometry
+# overrides and its median top/bottom margin is 0.999/1.198in, but two pages
+# reach 0.806in. That is either a legitimately-placed float or real bleed;
+# only looking at the rendered page settles it. Run venue-compliance-auditor
+# with --render before treating those two as violations.
 format:
   page_size: letter
   body_font_pt: 10.0
