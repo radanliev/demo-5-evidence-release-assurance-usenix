@@ -1,0 +1,64 @@
+# Venue rules for the deterministic gate.
+# `verified: false` means the year-specific limits below were seeded from the
+# stable template spec, NOT from this year's CFP. literature-venue-verifier
+# confirms them against the official call and corrects this file.
+# Correcting a wrong value is expected. Relaxing a correct one to make a
+# failing paper pass is not.
+
+name: USENIX Security 2027
+short: usenix-sec
+official_cfp: https://www.usenix.org/conference/usenixsecurity27/call-for-papers
+verified: true
+verified_on: '2026-08-12'
+notes: Grayscale legibility required. Mandatory registration 1 week before with fixed
+  title/authors/ORCIDs. Max 7 papers per author per cycle. Ethics appendix encouraged,
+  not mandatory.
+template:
+  documentclass: article
+  required_options:
+  - 10pt
+  - twocolumn
+  forbidden_options: []
+review:
+  double_blind: true
+  anonymity_allowlist:
+  - ANONYMOUS
+  - Anonymous
+  - anon.
+format:
+  page_size: letter
+  body_font_pt: 10.0
+  min_any_font_pt: 6.0
+  min_margins_in:
+    left: 0.7
+    right: 0.7
+    top: 0.9
+    bottom: 0.9
+  margin_tolerance_in: 0.02
+  min_raster_dpi: 300
+  forbid_margin_hacks: true
+  require_embedded_fonts: true
+  overfull_hbox_pt_threshold: 1.0
+limits:
+  body_pages: 13
+  excludes_references: true
+  excludes_appendix: true
+  warn_under: 11
+  min_references: 30
+structure:
+  required_sections:
+  - Ethics
+  - Introduction
+  - Conclusion
+  - Open Science
+science:
+  match_relative_tolerance: 0.005
+  drift_relative_tolerance: 0.03
+  provenance_required_sections:
+  - abstract
+  - result
+  - evaluation
+  - experiment
+  - measurement
+  - finding
+  - introduction

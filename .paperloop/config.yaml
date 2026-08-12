@@ -1,0 +1,34 @@
+# fixer.command: null means AUTO-DETECT. The loop looks for an agent CLI on
+# PATH and launches it in its documented headless mode, so the loop runs
+# without stopping to ask. Check what it found:
+#
+#     python3 .paperloop/loop.py --list-fixers
+#
+# autonomy: 'edits' auto-accepts file edits but the CLI may still pause
+#           before shell commands.
+#           'full' asks for nothing — use it for unattended overnight runs.
+# Precedence: $PAPERLOOP_FIXER > fixer.command > auto-detection.
+
+paths:
+  manuscript_tex: docs/usenix_paper_manuscript.tex
+  manuscript_pdf: docs/usenix_paper_manuscript.pdf
+  bibliography:
+  - docs/references.bib
+  figure_dirs:
+  - docs/figures
+  - docs
+  result_globs:
+  - results/**/*.json
+  - benchmark/**/*.json
+  - corpus/**/*.json
+  - governance/**/*.json
+  - governance/**/*.yaml
+  - assurance/**/*.json
+build:
+  command: python3 scripts/generate_paper_pdf.py
+git:
+  branch: paperloop/autofix
+fixer:
+  command: null
+  autonomy: edits
+  run_on_gated: true

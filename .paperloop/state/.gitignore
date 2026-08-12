@@ -1,0 +1,7 @@
+*
+!.gitignore
+!FINDINGS.md
+!LOOP_SUMMARY.md
+!disputed.md
+!proposals/
+!proposals/**
