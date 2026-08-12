@@ -9,10 +9,11 @@ Manuscript: `docs/usenix_paper_manuscript.tex`
 python3 .paperloop/loop.py --forever --push --pr
 ```
 
-Each round: **measure → evaluate → write**. Deterministic gates, then a reviewer
-agent that reads the paper, then the writer. The reviewer rotates every round
-(venue compliance, science, adversarial peer review, literature) so no single
-blind spot persists. Works on `paperloop/autofix`, commits each round, opens a PR.
+Each round: **measure → evaluate + analyze → write**. Deterministic gates, then a
+read-only reviewer and a separate read-only analytical auditor run in parallel,
+then the writer receives both reports. The reviewer rotates every round (venue
+compliance, science, adversarial peer review, literature) so no single blind spot
+persists. Works on `paperloop/autofix`, commits each round, opens a PR.
 
 It does not stop when it gets stuck. A stall rotates to a different reviewer and
 re-frames the work order. A science finding is parked for you while the loop
@@ -57,12 +58,18 @@ export PAPERLOOP_FIXER='codex exec --dangerously-bypass-approvals-and-sandbox -'
 export PAPERLOOP_FIXER='<your cli> --prompt-file {prompt_file}'   # anything else
 ```
 
-Precedence is `$PAPERLOOP_FIXER` → `fixer.command` → auto-detection.
+For each role, precedence is the role-specific environment variable →
+`agents.<role>.command` → `$PAPERLOOP_FIXER` → `fixer.command` → auto-detection.
+
+For separate role commands, use `PAPERLOOP_REVIEWER`, `PAPERLOOP_ANALYST`, and
+`PAPERLOOP_WRITER`, or set `agents.*.command` in `.paperloop/config.yaml`. If
+unset, all three roles fall back to the fixer command. The reviewer and analyst
+run concurrently by default and write separate reports before the writer starts.
 
 In a chat UI with no CLI (ChatGPT, Kimi web, Claude desktop), run:
 
 ```bash
-python3 .paperloop/run_gates.py --build --gates-only
+python3 .paperloop/loop.py --gates-only --render
 ```
 
 then paste `.paperloop/state/WORK_ORDER.md` into the chat. It is written as a
@@ -75,12 +82,16 @@ complete, self-contained instruction — mandate, prohibitions, and findings.
 | `venue-compliance-auditor` | read | USENIX Security 2027 rules the gate can't measure: figure legibility, caption quality, live CFP |
 | `science-auditor` | read | claim ledger, re-derives headline numbers, statistics, reproduction |
 | `paper-evaluator` | read | adversarial peer review, the reviewer you don't want |
+| `analytical-auditor` | read + analytical tools | independently recomputes results, checks statistics, and requests missing data |
 | `literature-venue-verifier` | read | citations, novelty, missing seminal work, official venue requirements |
 | `paper-writer` | **write** | applies the auto-fix mandate; proposes, never applies, on science |
 | `loop-orchestrator` | write | drives rounds, decides when to stop and when to escalate |
 
 Same definitions in `.cursor/agents/`, `.claude/agents/`, and `AGENTS.md`, so Cursor,
 Claude Code, Codex, Antigravity, Kimi, Zed and the rest all run the same loop.
+
+Copy/paste prompts and the full handoff contract are in
+`docs/AGENT_WORKFLOW.md`.
 
 ## Skills
 

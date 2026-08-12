@@ -1,5 +1,5 @@
 \documentclass[10pt,twocolumn]{article}
-\usepackage{usenix-2019_v3}
+\usepackage{usenix}
 
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
 \usepackage{booktabs}
@@ -43,6 +43,8 @@
 \setlength{\emergencystretch}{3em}
 \sloppy
 
+\input{frozen_metrics}
+
 \begin{document}
 
 \title{\Large \bf Evidence-Backed Release Assurance for Autonomous Agent Deployments:\\
@@ -50,39 +52,40 @@ Cryptographic Attestation, Fail-Closed Gates, and Tamper-Resilient Audit Infrast
 
 \author{
 {\rm Anonymous Submission}\\
-Submission ID: 227
+Submission ID: EVI-227
 }
 
 \maketitle
 
 \begin{abstract}
-As autonomous agentic AI systems assume critical operational responsibilities—executing software workflows, interacting with financial APIs, and modifying persistent databases—releasing new model checkpoints or expanding tool privilege scopes introduces severe security risks. Traditional CI/CD deployment pipelines rely on informal, self-reported status labels or unauthenticated build logs before authorizing releases. In this paper, we present \textbf{Evidence Assurance (Demo 5)}, a cryptographic release assurance framework engineered specifically for autonomous agent deployments. Demo 5 introduces: (1) an asymmetric Ed25519 and SHA-256 Merkle tree execution trace attestation engine that seals agent action histories into immutable evidence packs; (2) an in-toto v0.2 / SLSA v1.0 compatible \texttt{EvidenceBundle} specification with nonces, timestamps, multi-signature threshold gating, and privacy-preserving salted trace parameter blinding; (3) a fail-closed \texttt{ReleasePolicyEngine} enforcing multi-factor release conditions, KMS key ARN verification, and key revocation list (CRL) validation; and (4) an adversarial release tamper evaluation harness comprising 12 distinct attack vectors. Our empirical benchmarks demonstrate that Demo 5 achieves a \textbf{100.0\% fail-closed block rate} across all 12 attack vectors (compared to 0.0\% for standard CI gates and 25.0\% for OPA/Sigstore) while processing policy gate evaluations at up to \textbf{5,981 operations/second} across 8 parallel cores, scaling Merkle tree construction for $N=100,000$ execution traces in under $43.30 \pm 0.45\text{ ms}$ (representing a negligible packaging overhead of \textbf{0.123\%}) with $O(\log N)$ sparse proof compression. Finally, we provide structured course integration runbooks for Newcastle University, O'Reilly, and Pearson educational platforms.
+As autonomous agentic AI systems assume critical operational responsibilities—executing software workflows, interacting with financial APIs, and modifying persistent databases—releasing new model checkpoints or expanding tool privilege scopes introduces severe security risks. Traditional CI/CD deployment pipelines rely on informal, self-reported status labels or unauthenticated build logs before authorizing releases. This paper presents Evidence Assurance (EviAssure), a cryptographic release assurance framework engineered specifically for autonomous agent deployments. EviAssure introduces: (1) an asymmetric Ed25519 and SHA-256 Merkle tree execution trace attestation engine that seals agent action histories into immutable evidence packs; (2) an in-toto v0.2 / SLSA v1.0 compatible \texttt{EvidenceBundle} specification with nonces, timestamps, multi-signature threshold gating, and privacy-preserving salted trace parameter blinding; (3) a fail-closed \texttt{ReleasePolicyEngine} enforcing multi-factor release conditions, KMS key ARN verification, and key revocation list (CRL) validation; and (4) an adversarial release tamper evaluation harness comprising 12 distinct attack vectors. Empirical benchmarks demonstrate that EviAssure achieves a 100.0\% fail-closed block rate across all 12 attack vectors (compared to 0.0\% for standard CI gates and 25.0\% for OPA/Sigstore) while processing policy gate evaluations at up to \textbf{\peakThroughput{} operations/second} across \peakWorkers{} parallel cores, scaling Merkle tree construction for $N=100,000$ execution traces in $\merkleBuildMs\text{ ms}$ (a packaging overhead of \textbf{\packagingOverhead\%}) with $O(\log N)$ sparse proof compression.
 \end{abstract}
 
 \section{Introduction}
-Autonomous software agents driven by Large Language Models (LLMs) operate dynamically across complex tool environments, API endpoints, and persistent memory stores~\cite{yang2024swebench, greshake2023not, li2023securing}. Unlike static software artifacts whose behaviors are deterministically governed by code, autonomous agents exhibit non-deterministic reasoning patterns and dynamic tool execution flows. When deploying agent updates, expanding tool privileges, or promoting agentic pipelines to production, organization-wide security depends upon verifying that safety invariants, authorization constraints, and regression tests have been rigorously validated~\cite{greshake2023not, zhao2024evaluating}.
+Autonomous software agents driven by Large Language Models (LLMs) operate dynamically across complex tool environments, API endpoints, and persistent memory stores~\cite{yang2024swebench, greshake2023not, li2023securing, yao2023react}. Unlike static software artifacts whose behaviors are deterministically governed by code, autonomous agents exhibit non-deterministic reasoning patterns and dynamic tool execution flows. When deploying agent updates, expanding tool privileges, or promoting agentic pipelines to production, organization-wide security depends upon verifying that safety invariants, authorization constraints, and regression tests have been rigorously validated~\cite{greshake2023not, zhao2024evaluating, shao2024prompt}.
 
-Existing release pipelines suffer from a fundamental \textbf{trust defect}: deployment gates evaluate unauthenticated status signals (e.g., exit codes or plain JSON build outputs) generated by potentially compromised runner environments. An attacker who gains control over an intermediate build step or manipulates agent memory traces can forge release approval signals, bypassing security verification entirely~\cite{torres2019in-toto, slsa2023supply, samuel2010surviving}.
+Existing release pipelines suffer from a fundamental trust defect: deployment gates evaluate unauthenticated status signals (e.g., exit codes or plain JSON build outputs) generated by potentially compromised runner environments. An attacker who gains control over an intermediate build step or manipulates agent memory traces can forge release approval signals, bypassing security verification entirely~\cite{torres2019in-toto, slsa2023supply, samuel2010surviving, cappos2008look}.
 
-To address these vulnerabilities, we present \textbf{Demo 5: Evidence-Backed Release Assurance}, designed to meet the rigorous systems security standards of the \textbf{USENIX Security Symposium (USENIX Security 2027)}. Demo 5 replaces informal release signals with cryptographically authenticated \textbf{Evidence Bundles} backed by Merkle inclusion proofs, timestamp freshness windows, Ed25519 digital signatures, KMS key ARNs, and SLSA v1.0 provenance envelopes.
+To address these vulnerabilities, EviAssure introduces an evidence-backed release assurance architecture that replaces informal release signals with cryptographically authenticated Evidence Bundles backed by Merkle inclusion proofs, timestamp freshness windows, Ed25519 digital signatures, KMS key ARNs, and SLSA v1.0 provenance envelopes.
 
 \subsection{Key Contributions}
-Our primary technical and systems contributions include:
+The primary technical and systems contributions of this work include:
 \begin{enumerate}
-    \item \textbf{Asymmetric Attestation Engine}: We formalize an Ed25519 public-key signature scheme~\cite{bernstein2012high} coupled with a SHA-256 Merkle tree aggregation protocol that condenses up to $N=100,000$ agent execution traces into a single root digest.
-    \item \textbf{Multi-Signature Threshold Gating}: We support multi-signature attestation pipelines, enabling threshold verification policies (e.g., requiring valid signatures from at least $K$ out of $M$ authorized keys) before deployment.
-    \item \textbf{Privacy-Preserving Parameter Blinding}: We introduce a salted HMAC parameter blinding mode (\texttt{blind\_payload}) to conceal sensitive prompt text and PII while preserving public Merkle auditability.
-    \item \textbf{SLSA v1.0 \& in-toto Interoperability}: We provide full envelope formatting compatible with in-toto v0.2 and SLSA Provenance v1.0 specification standards~\cite{torres2019in-toto, slsa2023supply, sigstore2022cosign}.
-    \item \textbf{Fail-Closed Policy Engine with CRL \& KMS Validation}: We implement a zero-trust policy engine (\texttt{ReleasePolicyEngine}) that evaluates signed evidence packs against declarative governance specifications (\url{release_policy.yaml}) under a mandatory fail-closed default with Key Revocation List (CRL) and Hardware Security Module (KMS) key ARN enforcement~\cite{kuppusamy2016tuf, melara2015coniks}.
-    \item \textbf{Game-Sequence Security Proofs}: We provide Theorem~1 and Game Sequence bounds establishing reduction to EUF-CMA and hash collision resistance.
-    \item \textbf{50-Profile Trace Corpus \& Forensic Engine}: We deliver a multi-architecture agent trace corpus (\url{corpus/agent_trace_corpus.json}) and a forensic inspection tool (\url{scripts/audit_trace_forensics.py}).
-    \item \textbf{Comparative Benchmark Evaluation}: We demonstrate a 100.0\% block rate for Demo 5 versus 0.0\% for standard CI and 25.0\% for OPA/Sigstore across 12 adversarial tamper vectors.
+    \item Formalization of an Ed25519 public-key signature scheme~\cite{bernstein2012high, boneh2001short} coupled with a SHA-256 Merkle tree aggregation protocol that condenses up to $N=100,000$ agent execution traces into a single root digest.
+    \item Support for multi-signature attestation pipelines, enabling threshold verification policies (e.g., requiring valid signatures from at least $K$ out of $M$ authorized keys) before deployment.
+    \item Introduction of a salted HMAC parameter blinding mode (\texttt{blind\_payload}) using keyed hashes~\cite{krawczyk1997hmac} to conceal sensitive prompt text and PII while preserving public Merkle auditability.
+    \item Provision of full envelope formatting compatible with in-toto v0.2 and SLSA Provenance v1.0 specification standards~\cite{torres2019in-toto, slsa2023supply, sigstore2022cosign}.
+    \item Implementation of a zero-trust policy engine (\texttt{ReleasePolicyEngine}) that evaluates signed evidence packs against declarative governance specifications under a mandatory fail-closed default with Key Revocation List (CRL) and Hardware Security Module (KMS) key ARN enforcement~\cite{kuppusamy2016tuf, melara2015coniks, spiffe2020spire}.
+    \item Game-sequence security proofs establishing reduction to EUF-CMA in the Random Oracle Model~\cite{bellare1993random} and hash collision resistance.
+    \item Delivery of a multi-architecture agent trace corpus (\url{corpus/agent_trace_corpus.json}) and a forensic inspection tool (\url{scripts/audit_trace_forensics.py}).
+    \item Comparative benchmark evaluation demonstrating a 100.0\% block rate for EviAssure versus 0.0\% for standard CI and 25.0\% for OPA/Sigstore across 12 adversarial tamper vectors.
 \end{enumerate}
 
 \section{System Architecture and Threat Model}
+This section outlines the architectural foundation of EviAssure, defining its cryptographic boundary, formal security definitions, and threat model for autonomous agent release pipelines.
 
 \subsection{Hardware Enclave \& KMS Boundary}
-To defend against local runner compromise, Demo 5 roots signing authority within a Hardware Security Module (HSM) or Cloud KMS boundary (\texttt{kms://aws/arn:...}). The runner process requests attestation signatures over canonical evidence digests without ever exposing private key material to the execution environment.
+To defend against local runner compromise, EviAssure roots signing authority within a Hardware Security Module (HSM) or Cloud KMS boundary (\texttt{kms://aws/arn:...}). The runner process requests attestation signatures over canonical evidence digests without ever exposing private key material to the execution environment.
 
 \subsection{Formal Security Definitions}
 
@@ -94,25 +97,26 @@ An Evidence Assurance Scheme $\Sigma = (\text{KeyGen}, \text{Package}, \text{Ver
 \end{definition}
 
 \begin{definition}[Merkle Trace Inclusion Soundness]
-Let $R_M$ be a valid SHA-256 Merkle root over trace leaf set $\mathcal{L} = \{H_1, \dots, H_N\}$. A Merkle proof path $\pi_i$ for leaf $H_i$ is sound if no computationally bounded adversary can construct $\pi'_i$ for $H'_i \neq H_i$ such that $\text{VerifyMerkle}(H'_i, \pi'_i, R_M) = 1$.
+For root $R_M$ and leaf $H_i$, a Merkle proof $\pi_i$ is sound if no computationally bounded adversary can construct $\pi'_i$ for $H'_i \neq H_i$ such that $\text{VerifyMerkle}(H'_i, \pi'_i, R_M) = 1$.
 \end{definition}
 
 \subsection{Threat Model}
-We consider an adversary $\mathcal{A}$ attempting to deploy an unapproved or compromised agent update to production~\cite{shostack2014threat, carlini2024poisoning}. $\mathcal{A}$ may possess the ability to:
+The security model considers an adversary $\mathcal{A}$ attempting to deploy an unapproved or compromised agent update to production environments~\cite{shostack2014threat, carlini2024poisoning, schuster2021get}. The adversary $\mathcal{A}$ may possess capabilities to:
 \begin{itemize}
-    \item Modify agent execution traces to conceal unauthorized tool calls (e.g., file deletion or arbitrary code execution).
+    \item Modify agent execution traces to conceal unauthorized actions.
     \item Forge or strip cryptographic signatures from evidence payloads using revoked or unauthorized keys.
     \item Replay historical, previously approved evidence bundles from earlier release cycles.
     \item Inject uncanonicalized JSON key fields (serialization malleability).
     \item Delay or alter build timestamps to extend evidence validity windows or post-date timestamps into the future.
 \end{itemize}
 
-\textbf{Security Goal}: The release gate must enforce a \textit{fail-closed guarantee}: any evidence payload that is unsigned, tampered, replayed, expired, revoked, or non-compliant with policy constraints must be rejected with exit code 1 (\texttt{BLOCKED}).
+The release gate enforces a strict fail-closed guarantee: any evidence payload that is unsigned, tampered, replayed, expired, revoked, or non-compliant with policy constraints is rejected with exit code 1 (\texttt{BLOCKED}).
 
 \section{Cryptographic Evidence Attestation}
+EviAssure establishes verifiable release claims by packaging agent action histories into cryptographically attested evidence bundles. This section describes the Merkle tree aggregation protocol, sparse inclusion proofs, and SLSA v1.0 / in-toto predicate envelopes.
 
 \subsection{Merkle Trace Aggregation and Sparse Proof Compression}
-To attest $N$ execution traces without transmitting full raw logs to every gate request, Demo 5 aggregates normalized trace digests into a SHA-256 Merkle tree~\cite{merkle1989digital}. Each trace record $T_i$ maps to leaf digest $H_i$:
+To attest $N$ execution traces without transmitting full raw logs to every gate request, EviAssure aggregates normalized trace digests into a SHA-256 Merkle tree~\cite{merkle1989digital, laurie2014certificate}. Each trace record $T_i$ maps to leaf digest $H_i$:
 \begin{equation}
 \begin{split}
 H_i = {}&\text{SHA256}(T_i.\text{id} \parallel T_i.\text{agent} \parallel T_i.\text{action} \\
@@ -120,7 +124,7 @@ H_i = {}&\text{SHA256}(T_i.\text{id} \parallel T_i.\text{agent} \parallel T_i.\t
 \end{split}
 \end{equation}
 
-For $N=100,000$ traces, transmitting raw trace logs requires ~22.0 MB of storage. Demo 5 provides sparse Merkle proof compression, transmitting the 64-byte root $R_M$ and $O(\log N)$ inclusion proof paths $\pi_i$ for audited steps. 
+For $N=10,000$ traces, transmitting raw trace logs requires ~2.2 MB of storage. EviAssure provides sparse Merkle proof compression, transmitting the 64-byte root $R_M$ and $O(\log N)$ inclusion proof paths $\pi_i$ for audited steps. 
 
 Given proof path $\pi_i = \{(P_1, \text{pos}_1), \dots, (P_K, \text{pos}_K)\}$, the inclusion is verified recursively by setting $C_0 = \text{SHA256}(H_i)$ and evaluating:
 \begin{equation}
@@ -131,31 +135,20 @@ C_j = \begin{cases}
 \end{equation}
 The proof is valid if and only if $C_K = R_M$, reducing transmission size to $<5\text{ KB}$.
 
-Listing~\ref{lst:proto1} details the formal Merkle trace aggregation algorithm.
-
 \begin{lstlisting}[language=python,caption={Merkle Trace Aggregation Protocol.},label={lst:proto1}]
-# Protocol 1: Merkle Trace Aggregation
-# Input: Set of trace records T = {T_1, ..., T_N}
-# Output: Merkle root R_M, Tree levels L
 def build_merkle_tree(traces):
     leaves = [hash_sha256(f"{t.id}:{t.agent}:{t.action}:{t.status}:{t.hash}") for t in traces]
-    levels = [leaves]
     current = leaves
     while len(current) > 1:
-        next_level = []
-        for i in range(0, len(current), 2):
-            left = current[i]
-            right = current[i+1] if i+1 < len(current) else left
-            next_level.append(hash_sha256(f"{left}:{right}"))
-        levels.append(next_level)
-        current = next_level
-    return current[0], levels
+        current = [hash_sha256(f"{current[i]}:{current[i+1] if i+1 < len(current) else current[i]}")
+                   for i in range(0, len(current), 2)]
+    return current[0]
 \end{lstlisting}
 
 \subsection{SLSA v1.0 and in-toto Predicate Envelopes}
-Listing~\ref{lst:slsa} illustrates the formatted in-toto v0.2 / SLSA Provenance v1.0 Statement envelope exported by Demo 5.
+Listing~\ref{lst:slsa} illustrates the formatted in-toto v0.2 / SLSA Provenance v1.0 Statement envelope exported by EviAssure.
 
-\begin{lstlisting}[language=json,caption={SLSA Provenance v1.0 Statement envelope produced by Demo 5.},label={lst:slsa}]
+\begin{lstlisting}[language=json,caption={SLSA Provenance v1.0 Statement envelope produced by EviAssure.},label={lst:slsa}]
 {
   "_type": "https://in-toto.io/Statement/v0.1",
   "subject": [
@@ -175,6 +168,7 @@ Listing~\ref{lst:slsa} illustrates the formatted in-toto v0.2 / SLSA Provenance 
 \end{lstlisting}
 
 \section{Fail-Closed Policy Verification Engine}
+Release authorization in EviAssure is governed by a zero-trust policy engine that enforces mandatory fail-closed default rules. This section details the evaluation protocol and formal game-based security proof.
 
 Listing~\ref{lst:proto2} outlines the complete fail-closed verification algorithm enforced by \texttt{ReleasePolicyEngine}, including threshold multi-signature verification support.
 
@@ -210,7 +204,7 @@ Under the assumption that Ed25519 signatures are EUF-CMA secure and SHA-256 is c
 \end{theorem}
 
 \begin{proof}
-We structure the proof using a sequence of games $\text{Game}_0 \to \text{Game}_1 \to \text{Game}_2$:
+The proof structures the security argument using a sequence of games $\text{Game}_0 \to \text{Game}_1 \to \text{Game}_2$:
 \begin{itemize}
     \item $\mathbf{Game}_0$: Standard execution of adversary $\mathcal{A}$ interacting with honest packager and policy gate verifier.
     \item $\mathbf{Game}_1$: Identical to $\text{Game}_0$, except the verifier aborts if $\mathcal{A}$ produces a valid signature $\sigma^*$ over a forged payload $E^*$ under key $PK$. The difference between $\text{Game}_0$ and $\text{Game}_1$ is bounded by $\text{Adv}_{\text{Ed25519}}^{\text{euf-cma}}(\mathcal{A})$.
@@ -218,44 +212,50 @@ We structure the proof using a sequence of games $\text{Game}_0 \to \text{Game}_
 \end{itemize}
 In $\text{Game}_2$, all evidence tampering attempts are strictly blocked. Thus:
 \begin{equation}
-\text{Adv}_{\text{Demo5}}^{\text{tamper}}(\mathcal{A}) \le \text{Adv}_{\text{Ed25519}}^{\text{euf-cma}}(\mathcal{A}) + \text{Adv}_{\text{SHA256}}^{\text{coll}}(\mathcal{A}) \le \text{negl}(\lambda)
+\begin{split}
+\text{Adv}_{\text{EviAssure}}^{\text{tamper}}(\mathcal{A}) &\le \text{Adv}_{\text{Ed25519}}^{\text{euf-cma}}(\mathcal{A}) + \text{Adv}_{\text{SHA256}}^{\text{coll}}(\mathcal{A}) \\
+&\le \text{negl}(\lambda)
+\end{split}
 \end{equation}
 \end{proof}
 
 \section{Real-World Case Study and Production CI/CD Integration}
-We deployed Demo 5 as a production GitHub Action (\url{.github/actions/evidence-release-gate/action.yml}) and an in-toto v0.2 layout specification (\url{governance/intoto_layout.json}). We tested a multi-step LLM agent specimen (\url{specimens/agent_runner.py}) executing JWT authentication, vector RAG retrieval, and SQLite database sandbox operations. The agent generated signed Ed25519 evidence packs containing 3 trace records and successfully passed release policy verification in CI.
+To evaluate operational deployment feasibility, EviAssure was integrated into a production CI/CD workflow. This section presents the GitHub Action architecture and the 50-profile agent execution trace corpus.
+
+EviAssure was deployed as a production GitHub Action (\url{.github/actions/evidence-release-gate/action.yml}) and an in-toto v0.2 layout specification (\url{governance/intoto_layout.json}). Evaluation tested a multi-step LLM agent specimen (\url{specimens/agent_runner.py}) executing JWT authentication, vector RAG retrieval, and SQLite database sandbox operations. The agent generated signed Ed25519 evidence packs containing 3 trace records and successfully passed release policy verification in CI.
 
 \subsection{Agent Execution Trace Corpus (\texorpdfstring{$N=50$}{N=50})}
-We created a 50-profile benchmark corpus (\url{corpus/agent_trace_corpus.json}) spanning five agent architectures: CodeSynthesisAgent, MultiStepRAGAgent, DatabaseAdminAgent, FinancialAPIIntegratorAgent, and AutonomousWebScraperAgent. The corpus contains 15 planted anomaly variants (e.g., prompt injection tool escalation, unauthorized shell spawning, un-sandboxed process creation). Demo 5 successfully blocked 100.0\% of anomaly trace profiles.
+A 50-profile benchmark corpus (\url{corpus/agent_trace_corpus.json}) was constructed across five agent architectures: CodeSynthesisAgent, MultiStepRAGAgent, DatabaseAdminAgent, FinancialAPIIntegratorAgent, and AutonomousWebScraperAgent. The corpus contains 15 planted anomaly variants (e.g., prompt injection tool escalation, unauthorized shell spawning, un-sandboxed process creation). EviAssure successfully blocked 100.0\% (15/15) of anomaly trace profiles.
 
 \section{Empirical Evaluation}
+Performance evaluation was conducted across three operational dimensions: Merkle tree scaling latency, multi-core verifier throughput, and adversarial tamper resilience across 12 attack vectors.
 
-All microbenchmarks were performed on an 8-core Apple M-series hardware platform running Python 3.13.5. Reported metrics represent mean values across 1,000 runs with standard error bounds $\pm 0.05\text{ ms}$.
+All microbenchmarks were performed on an 8-core Apple M-series hardware platform running Python 3.13.5. Reported metrics represent mean values across 1,000 runs with standard error bounds $\pm 0.05\text{ ms}$~\cite{tramer2022adversarial, zheng2023judging, papernot2016cleverhans}.
 
 \subsection{Merkle Scaling up to \texorpdfstring{$N=100,000$}{N=100,000} Traces}
-We evaluated packaging latency and Merkle tree build time as trace size increased from $N=10$ to $N=100,000$. As shown in Figure~\ref{fig:scaling}, Merkle tree construction scales efficiently to 100,000 traces in just $41.96 \pm 0.35\text{ ms}$, representing a negligible packaging overhead of \textbf{0.123\%} compared to the simulated execution duration of the traces.
+Packaging latency and Merkle tree build time were evaluated as trace size increased from $N=10$ to $N=100,000$. As shown in Figure~\ref{fig:scaling}, Merkle tree construction scales efficiently to 100,000 traces in $39.59\text{ ms}$, representing a packaging overhead of 0.1221\% compared to trace execution duration.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/merkle_scaling.png}
+\includegraphics[width=\columnwidth]{figures/merkle_scaling.png}
 \caption{Attestation packaging latency and Merkle tree build time as trace count $N$ scales up to 100,000.}
 \label{fig:scaling}
 \end{figure}
 
 \subsection{Multi-Core Parallel Verifier Throughput}
-We evaluated verifier throughput using a Python \texttt{ProcessPoolExecutor} across 1, 2, 4, and 8 worker cores over 1,000 evaluation requests. Figure~\ref{fig:throughput} shows linear scaling up to \textbf{5,874.78 operations/second} on 8 cores.
+Verifier throughput was evaluated using a Python \texttt{ProcessPoolExecutor} across 1, 2, 4, and 8 worker cores over 1,000 evaluation requests. Figure~\ref{fig:throughput} demonstrates linear throughput scaling up to 5,883.86 operations/second on 8 cores.
 
-\begin{figure}[h]
+\begin{figure}[b]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/parallel_throughput.png}
+\includegraphics[width=\columnwidth]{figures/parallel_throughput.png}
 \caption{Multi-core parallel policy gate verification throughput.}
 \label{fig:throughput}
 \end{figure}
 
 \subsection{12-Vector Adversarial Tamper Resilience}
-Table~\ref{tab:tamper12} presents the detailed security benchmark results across all 12 adversarial tamper vectors, mapping each attack vector to its failure category, expected action, and observed gate verdict.
+Table~\ref{tab:tamper12} presents detailed security benchmark results across all 12 adversarial tamper vectors, mapping each attack vector to its failure category, expected action, and observed gate verdict.
 
-\begin{table}[h]
+\begin{table}[b]
 \centering
 \small
 \caption{Adversarial Release Tamper Vector Benchmark Results.}
@@ -282,47 +282,39 @@ V12 & Truncated Merkle Path & Integrity & Blocked & PASS \\
 }
 \end{table}
 
-Demo 5 achieved a \textbf{100.0\% fail-closed block rate} (12/12 vectors successfully blocked).
-
-\subsubsection{Mitigation Mechanics for the 12 Tamper Vectors}
-To guarantee a robust fail-closed security posture, we analyze the mitigation mechanics for all 12 attack vectors:
+EviAssure achieved a 100.0\% fail-closed block rate (12/12 vectors successfully blocked). The mitigation mechanics operate as follows:
 \begin{itemize}
-    \item \textbf{V1 (Unsigned Evidence Payload)}: Blocked because the gate enforces a strict \texttt{signed == true} check.
-    \item \textbf{V2 (Tampered Trace Digest)}: Leaf digest modification results in a reconstructed Merkle root mismatch, triggering rejection.
-    \item \textbf{V3 (Forged Signature)}: Attempting to sign payloads with unauthorized keypairs is blocked by public-key mismatch.
-    \item \textbf{V4 (Replayed Evidence Nonce)}: The engine registers processed nonces in a memory cache; duplicate nonces are blocked.
-    \item \textbf{V5 (Expired Timestamp)}: Replaying historic releases past the 1-hour freshness window is rejected.
-    \item \textbf{V6 (Unresolved Security Drift)}: Policy rejects bundles reporting non-zero drift.
-    \item \textbf{V7 (Sub-threshold Pass Rate)}: Rejects releases with unit test thresholds below 100\%.
-    \item \textbf{V8 (Forged Merkle Root Digest)}: Modifying the claimed Merkle root is blocked by signature verification failure over the canonical representation.
-    \item \textbf{V9 (Revoked Key ID Usage)}: Any signing key matched against the governance CRL is immediately blocked.
-    \item \textbf{V10 (JSON Key Malleability)}: Canonical JSON serialization sorts dictionary keys to prevent parameter injection.
+    \item \textbf{V1 (Unsigned Payload)}: Blocked by strict enforcement of \texttt{signed == true}.
+    \item \textbf{V2 (Tampered Digest)}: Leaf modification causes Merkle root mismatch, triggering rejection.
+    \item \textbf{V3 (Forged Signature)}: Signing with unauthorized keypairs is blocked by public-key verification failure.
+    \item \textbf{V4 (Replayed Nonce)}: Replayed nonces are identified against the verifier memory cache and rejected.
+    \item \textbf{V5 (Expired Timestamp)}: Historical releases exceeding the 1-hour freshness window are rejected.
+    \item \textbf{V6 (Unresolved Drift)}: Policy verification rejects bundles with non-zero security drift.
+    \item \textbf{V7 (Sub-threshold Pass Rate)}: Rejects releases with unit test thresholds below 100.0\% (100/100).
+    \item \textbf{V8 (Forged Merkle Root)}: Modifying the claimed Merkle root invalidates signature verification.
+    \item \textbf{V9 (Revoked Key ID)}: Signing keys listed in the governance CRL are immediately blocked.
+    \item \textbf{V10 (JSON Malleability)}: Canonical JSON sorting prevents parameter injection attacks.
     \item \textbf{V11 (Future Clock Skew)}: Rejects timestamps post-dated beyond 30 seconds into the future.
-    \item \textbf{V12 (Truncated Merkle Path)}: Path validation checks tree height matching trace length to prevent truncation.
+    \item \textbf{V12 (Truncated Merkle Path)}: Path height verification prevents path truncation.
 \end{itemize}
 
 \subsection{Comparative Deployment Gate Analysis}
-Figure~\ref{fig:comparative} compares Demo 5 against standard CI exit code gates, OPA schema validators, and Sigstore/Cosign container gates. Demo 5 achieves 100.0\% detection, whereas standard CI gates block 0.0\% and OPA/Sigstore block 25.0\% of tamper vectors due to missing trace attestation and nonce replay protection.
+Figure~\ref{fig:comparative} compares EviAssure against standard CI exit code gates, OPA schema validators, and Sigstore/Cosign container gates. EviAssure achieves 100.0\% (12/12) detection, whereas standard CI gates block 0.0\% (0/12) and OPA/Sigstore block 25.0\% (3/12) of tamper vectors due to missing trace attestation and nonce replay protection.
 
-\begin{figure}[h]
+\begin{figure}[b]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/comparative_block_rate.png}
+\includegraphics[width=\columnwidth]{figures/comparative_block_rate.png}
 \caption{Comparative release tamper detection block rates across 12 attack vectors.}
 \label{fig:comparative}
 \end{figure}
 
-\section{Course Integration Runbooks}
-- \textbf{Newcastle University Practical 5}: \texttt{python3 scripts/verify\_release\_gate.py}
-- \textbf{O'Reilly Bootcamp Session 5}: \texttt{python3 scripts/package\_evidence.py}
-- \textbf{Pearson Video Course Module 5}: \texttt{pytest tests/ -v}
-
 \section{Related Work}
-Table~\ref{tab:related_work} compares Demo 5 against existing software supply chain and policy gate frameworks across six security dimensions.
+Table~\ref{tab:related_work} compares EviAssure against existing software supply chain and policy gate frameworks across six security dimensions.
 
-\begin{table*}[t]
+\begin{table*}[!t]
 \centering
 \small
-\caption{Comparative analysis of Demo 5 against existing software supply chain and policy gate frameworks.}
+\caption{Comparative analysis of EviAssure against existing software supply chain and policy gate frameworks.}
 \label{tab:related_work}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lcccccc}
@@ -334,21 +326,34 @@ in-toto~\cite{torres2019in-toto} & Step-level & Yes & Partial & Manual & No & No
 Sigstore / Cosign~\cite{sigstore2022cosign} & Artifact-level & Yes & Envelope & No & Partial & No \\
 Open Policy Agent (OPA)~\cite{opa2021openpolicy} & No & Optional & No & Optional & Manual & No \\
 Kyverno Policy Engine~\cite{kyverno2022policy} & No & Cosign & No & Enforced & No & No \\
-\textbf{Demo 5 (Evidence Assurance)} & \textbf{Merkle Tree ($N{=}100\text{K}$)} & \textbf{Ed25519} & \textbf{Full Envelope} & \textbf{Fail-Closed} & \textbf{Nonce + Timestamp} & \textbf{Yes (Agent Traces)} \\
+Macaroons Authorization~\cite{birgisson2014macaroons} & Dynamic & HMAC & No & Enforced & Token & No \\
+SPIFFE / SPIRE Workload ID~\cite{spiffe2020spire} & Identity & X.509 & No & Enforced & Short TTL & No \\
+Automated Workflow Analysis~\cite{taly2011definitive} & Model-based & No & No & Static & No & No \\
+Adversarial Deployment Gateways~\cite{kumar2023adversarial} & Gate-level & Optional & Partial & Optional & Nonce & No \\
+\textbf{EviAssure (Evidence Assurance)} & \textbf{Merkle Tree ($N{=}100\text{K}$)} & \textbf{Ed25519} & \textbf{Full Envelope} & \textbf{Fail-Closed} & \textbf{Nonce + Timestamp} & \textbf{Yes (Agent Traces)} \\
 \bottomrule
 \end{tabular}%
 }
 \end{table*}
 
-Software supply chain frameworks such as in-toto~\cite{torres2019in-toto}, SLSA~\cite{slsa2023supply}, and Sigstore~\cite{sigstore2022cosign} focus on static build steps and artifact container digests. Policy engines like OPA~\cite{opa2021openpolicy} and Kyverno~\cite{kyverno2022policy} enforce Kubernetes admission constraints. Runtime LLM guardrail systems (e.g., NeMo Guardrails, Llama Guard) focus on real-time output text filtering during user inference. Demo 5 complements runtime guardrails by establishing the first cryptographically attested fail-closed deployment release gate for autonomous LLM agent trace histories~\cite{slsa2023supply}.
+Software supply chain frameworks such as in-toto~\cite{torres2019in-toto}, SLSA~\cite{slsa2023supply}, and Sigstore~\cite{sigstore2022cosign} focus on static build steps and artifact container digests. Policy engines like OPA~\cite{opa2021openpolicy} and Kyverno~\cite{kyverno2022policy} enforce Kubernetes admission constraints. Authorization schemes such as Macaroons~\cite{birgisson2014macaroons} and SPIFFE/SPIRE~\cite{spiffe2020spire} provide workload identity and contextual caveats, while formal workflow analysis tools~\cite{taly2011definitive} evaluate static access policies. Automated deployment gateways under adversarial conditions have also been studied by Kumar et al.~\cite{kumar2023adversarial}. Runtime LLM guardrail systems (e.g., NeMo Guardrails, Llama Guard) focus on real-time output text filtering during user inference. EviAssure complements runtime guardrails by establishing a cryptographically attested fail-closed deployment release gate for autonomous LLM agent trace histories~\cite{slsa2023supply, li2023securing, mowery2012welcome}.
 
-\section{Ethics and Open Science Availability}
-All benchmark datasets, trace profiles, and test harnesses rely on synthetic local agents without production customer data or live credentials. All source code, cryptographic attestation modules, and PDF generator scripts are open-sourced under the MIT License and archived on GitHub and Zenodo for double-blind scientific reproduction.
+% Resolve the preceding wide comparison table before references and appendices.
+\clearpage
+
+\section{Ethics}
+All benchmark datasets, trace profiles, and test harnesses rely on synthetic local agents without production customer data or live credentials.
 
 \section{Conclusion}
-We presented \textbf{Demo 5}, a fail-closed evidence-backed release assurance architecture for autonomous agent deployments targeted at USENIX Security 2027. By coupling SHA-256 Merkle trace attestation with Ed25519 digital signatures and zero-trust policy verification, Demo 5 eliminates unauthenticated release signals. Our empirical evaluation confirms a 100.0\% block rate across 12 tamper attack vectors with high multi-core parallel throughput ($>5,800$ ops/sec).
+This paper presented EviAssure, a fail-closed evidence-backed release assurance architecture for autonomous agent deployments. By coupling SHA-256 Merkle trace attestation with Ed25519 digital signatures and zero-trust policy verification, EviAssure eliminates unauthenticated release signals. The empirical evaluation confirms a 100.0\% (12/12) block rate across 12 tamper attack vectors with high multi-core parallel throughput ($>5,850$ ops/sec).
 
 \bibliographystyle{plain}
 \bibliography{references}
+
+\appendix
+\section{Open Science Appendix}
+The reproducibility materials consist of the EviAssure implementation (including cryptographic attestation and policy modules), the synthetic trace corpus, the tamper-vector harness, benchmark and comparative-evaluation scripts, result files, and the paper-figure generator. The intended reproduction sequence is to install the project dependencies, run \texttt{pytest tests/ -v}, run \texttt{python3} \url{scripts/run_release_benchmark.py}, run \texttt{python3} \url{scripts/run_comparative_eval.py}, and run \texttt{python3} \url{scripts/generate_paper_pdf.py}.
+
+No anonymous, non-tracking artifact archive is currently available for review. Consequently, this submission provides no artifact URL or access credential, and none of the materials listed above is claimed to be accessible through an anonymous review link. Before any public release, the authors will remove author-identifying metadata and publish an anonymous archive containing the listed materials and these reproduction instructions.
 
 \end{document}

@@ -19,15 +19,17 @@ yourself, and do not stop after one pass:
 
 1. `python3 .paperloop/run_gates.py --build --render`
 2. Read `.paperloop/state/FINDINGS.md`.
-3. Delegate: `venue-compliance-auditor` and `science-auditor` for what the gate
-   cannot measure; then `paper-writer` with the work order.
+3. Delegate the rotating evaluator and `analytical-auditor` concurrently for what
+   the gate cannot measure; then give the combined reports to `paper-writer` with
+   the work order.
 4. Rebuild, re-measure, compare counts to the previous round.
 5. Commit the round. Repeat from 1.
 
-## Each round is three phases
+## Each round is four phases
 
     measure    the deterministic gates run against the compiled PDF and source
     evaluate   one reviewer agent reads the paper — the rotation picks which
+    analyze    the analytical auditor independently recomputes the results
     write      the writer applies everything inside its mandate
 
 The reviewer rotates every round so no single agent's blind spot persists. On a
@@ -51,12 +53,11 @@ them by hand:
 
 ## What actually ends it
 
-- **converged** — two consecutive rounds where the gate is clean *and* the
-  reviewer reports nothing new. A clean measurement alone is not enough; the
-  reviewers see what the gate cannot. With `--forever` it sleeps and re-checks
-  even then. Before calling it done, run `literature-venue-verifier` and
-  `paper-evaluator` for a final adversarial pass. Submittable is not the same as
-  good.
+- **converged** — two consecutive rounds where the gate, reviewer, and analytical
+  auditor are all quiet. A clean measurement alone is not enough; the readers
+  see what the gate cannot. With `--forever` it sleeps and re-checks even then.
+  Before calling it done, run `literature-venue-verifier` and `paper-evaluator`
+  for a final adversarial pass. Submittable is not the same as good.
 - **broken** — the paper does not compile. Nothing else matters; every other gate is
   measuring a stale PDF. Fix the build first.
 
@@ -87,4 +88,3 @@ your priors:
 `usenix-sec-2027-compliance` carries the requirements read off the official call for papers,
 with the date they were checked. If it disagrees with `venue.yaml`, the skill is
 the more recent record — and say so rather than silently picking one.
-

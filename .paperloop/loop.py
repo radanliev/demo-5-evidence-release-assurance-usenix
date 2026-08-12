@@ -4,15 +4,17 @@
     python3 .paperloop/loop.py --forever --push --pr     # never stops
     python3 .paperloop/loop.py --rounds 6 --push --pr    # bounded
 
-Each round has three phases:
+Each round has four phases:
 
     measure    deterministic gates gate the compiled PDF and the source
     evaluate   an LLM reviewer reads the paper and reports what a script cannot
+    analyze    an independent agent recomputes the quantitative claims
     write      the writer agent applies everything it is allowed to apply
 
-The reviewer rotates every round — venue compliance, science, adversarial peer
-review, literature — so no single agent's blind spot survives, and a stall jumps
-the rotation to get genuinely different eyes on whatever is stuck.
+    The reviewer rotates every round — venue compliance, science, adversarial peer
+    review, literature — while an independent analytical auditor recomputes the
+    results in parallel. No single agent's blind spot survives, and a stall jumps
+    the rotation to get genuinely different eyes on whatever is stuck.
 
 The loop does not stop when it gets stuck and it does not stop when a science
 finding appears. A stall re-frames the work order with a new reviewer. A science
@@ -28,6 +30,7 @@ OpenCode, Crush, Aider, Kimi — auto-detected and launched headless.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import datetime as dt
 import json
 import os
@@ -143,7 +146,8 @@ dropped. Then write a two-line summary of what you changed to
 """
 
 
-def compose_work_order(cfg, round_no: int, reviews: list[str] | None = None) -> Path:
+def compose_work_order(cfg, round_no: int, reviews: list[str] | None = None,
+                       analyses: list[str] | None = None) -> Path:
     data = json.loads((cfg.state_dir / "findings.json").read_text())
     findings = data["findings"]
     auto = [f for f in findings if f["severity"] in ("BLOCKER", "MAJOR", "MINOR")
@@ -175,6 +179,13 @@ def compose_work_order(cfg, round_no: int, reviews: list[str] | None = None) -> 
                  "Apply the same split: `science.*` are gated and you may only propose; "
                  "everything else is yours to fix.\n"]
         body += reviews
+    if analyses:
+        body += ["\n## ANALYTICAL AUDIT (independent recomputation)\n",
+                 "These findings come from the read-only analytical agent. Treat every "
+                 "`science.*` item as gated: do not change numbers, statistics, datasets, "
+                 "or experimental claims. You may repair only `repro.*`, `figure.*`, "
+                 "and other non-scientific presentation/documentation items.\n"]
+        body += analyses
 
     text = WORK_ORDER.format(
         repo=cfg.root.name,
@@ -194,6 +205,25 @@ def compose_work_order(cfg, round_no: int, reviews: list[str] | None = None) -> 
 # ---------------------------------------------------------------------------
 def resolve_fixer(cfg, autonomy: str) -> tuple[str | None, str]:
     return fixers.resolve(cfg.raw.get("fixer", {}).get("command"), autonomy)
+
+
+def resolve_role(cfg, role: str, autonomy: str) -> tuple[str | None, str]:
+    """Resolve a reviewer, analyst, or writer command.
+
+    A role-specific environment/config entry wins. The legacy fixer setting is
+    the fallback so existing projects keep working unchanged.
+    """
+    env_name = {
+        "reviewer": "PAPERLOOP_REVIEWER",
+        "analyst": "PAPERLOOP_ANALYST",
+        "writer": "PAPERLOOP_WRITER",
+    }[role]
+    if os.environ.get(env_name):
+        return os.environ[env_name], f"${env_name}"
+    configured = (cfg.raw.get("agents", {}).get(role, {}) or {}).get("command")
+    if configured:
+        return configured, f"agents.{role}.command in config.yaml"
+    return resolve_fixer(cfg, autonomy)
 
 
 def invoke_fixer(cfg, cmd: str, prompt_path: Path, timeout: int) -> tuple[bool, str]:
@@ -321,6 +351,92 @@ honest empty round is more useful than invented work.
 """
 
 
+ANALYST_PROMPT = """\
+You are the **analytical methods agent** for `{repo}`, targeting **{venue}**.
+
+Your job is to independently verify the paper's quantitative and technical
+analysis. You are read-only with respect to the manuscript, source code,
+results, benchmark outputs, tests, figures, and governance files. You may write
+only the report at `{outfile}`. Never edit a result to make it agree with the
+paper, and never edit the manuscript to hide a discrepancy.
+
+## Context
+
+- Current measured findings: `.paperloop/state/FINDINGS.md`
+- Machine-readable findings: `.paperloop/state/findings.json`
+- Manuscript: `{manuscript}`
+- Previous analytical reports: `.paperloop/state/analysis-round-*.md`
+- Previous evaluator reports: `.paperloop/state/review-round-*.md`
+
+Read the previous analytical reports first. Do not repeat an item that was
+actually fixed; if it persists, re-check it and explain why the prior remedy did
+not resolve the evidence problem.
+
+## Required work — complete all passes
+
+1. **Provenance pass.** Build a claim-to-evidence table for every headline
+   number and technical result: exact manuscript sentence/section, artifact and
+   JSON key, producing script/function, input data, and exact regeneration
+   command. Mark any missing link as a finding.
+2. **Independent recomputation pass.** Read raw artifacts and rerun the
+   smallest reproducible commands. Recompute denominators, percentages, means,
+   percentiles, scaling slopes, throughput, latency, and attack block rates
+   independently. Do not trust README tables or already-aggregated summaries.
+3. **Methods/statistics pass.** Check sample size, run count, seeds, warm-up,
+   timing methodology, variance/uncertainty, confidence intervals or other
+   dispersion, exclusions/timeouts, independence, multiple comparisons, and
+   whether the reported precision is justified. For security experiments,
+   check that each attack vector tests the stated mechanism and that the
+   baseline comparison is fair and deterministic.
+4. **Robustness/negative-space pass.** Identify the most plausible falsifier for
+   each central claim, test it when the repository permits, and report missing
+   controls, sensitivity analyses, ablations, or failed runs. Separate a
+   limitation from evidence that the claim is false.
+5. **Reproduction pass.** Execute the documented benchmark/test path end to end
+   where feasible. Record command, exit status, runtime, and any environment
+   limitation. If the result cannot be reproduced, classify it as a blocker.
+6. **Independent re-check.** Revisit every BLOCKER/MAJOR item and confirm it
+   from a second file, calculation, or command. Do not stop at the first issue.
+
+Use the project-specific tools and scripts, including Python/pytest and the
+benchmark scripts. Prefer small, auditable calculations over speculative
+modeling. If additional data is required, do not invent it: add a `DATA_REQUIRED`
+item naming the exact file, schema, rows/runs, and analysis it would unlock.
+
+## Output contract
+
+Write a self-contained Markdown report to `{outfile}` with these sections:
+
+1. `# Analytical audit — round {round}`
+2. `## Executive decision` — one of `SUPPORTED`, `SUPPORTED WITH LIMITATIONS`,
+   `NOT YET SUPPORTED`, or `NOT REPRODUCIBLE`, with a two-sentence rationale.
+3. `## Claim ledger` — a compact table with claim, source, recomputation,
+   result, and status.
+4. `## Independent calculations` — formulas, denominators, commands, and
+   observed outputs for the most important numbers.
+5. `## Findings` — one bullet per finding in exactly this shape:
+
+   `- [SEVERITY] (category) file:line or artifact-key — what is wrong`
+   `  evidence: independently observed evidence`
+   `  remedy: the smallest specific next action`
+
+   Use `science.*` for numbers, statistics, experimental design, data quality,
+   causal/mechanistic claims, or any result that would change the conclusion.
+   Use `repro.*` for missing commands/provenance that does not change a result.
+   Use `figure.*` only for a chart/plot representation problem. All `science.*`
+   findings are gated: the writer may propose a correction but must not apply
+   it without human approval.
+6. `## Data required` — exact requests, or `none`.
+7. `## Commands run` — command, exit status, and relevant output.
+
+Severity: BLOCKER means the claim is unsupported, contradicted, or not
+reproducible; MAJOR means a competent reviewer would require the repair before
+acceptance; MINOR means reporting or robustness hygiene. If there are no new
+findings, write `no new findings` and list what you checked. An empty report is
+not acceptable.
+"""
+
+
 def run_evaluator(cfg, cmd: str, agent: str, brief: str, rnd: int,
                   timeout: int) -> tuple[bool, Path]:
     outfile = cfg.state_dir / f"review-round-{rnd}-{agent}.md"
@@ -341,6 +457,25 @@ def run_evaluator(cfg, cmd: str, agent: str, brief: str, rnd: int,
     return True, outfile
 
 
+def run_analyst(cfg, cmd: str, rnd: int, timeout: int) -> tuple[bool, Path]:
+    outfile = cfg.state_dir / f"analysis-round-{rnd}.md"
+    prompt = ANALYST_PROMPT.format(
+        repo=cfg.root.name,
+        venue=cfg.venue.get("name", "the venue"),
+        manuscript=cfg.raw["paths"]["manuscript_tex"],
+        outfile=outfile.relative_to(cfg.root),
+        round=rnd)
+    ppath = cfg.state_dir / f"analysis-prompt-round-{rnd}.md"
+    ppath.write_text(prompt)
+    ok, tail = invoke_fixer(cfg, cmd, ppath, timeout)
+    if not outfile.exists():
+        if tail.strip():
+            outfile.write_text(f"# Analytical audit — round {rnd} (captured from stdout)\n\n{tail}")
+        else:
+            return False, outfile
+    return True, outfile
+
+
 def review_findings(cfg) -> list[str]:
     """Unresolved reviewer findings, most recent round first."""
     out = []
@@ -349,6 +484,20 @@ def review_findings(cfg) -> list[str]:
         if text and "no new findings" not in text.lower():
             out.append(f"### from {p.name}\n\n{text}")
     return out
+
+
+def analysis_findings(cfg) -> list[str]:
+    """Unresolved analytical reports, most recent round first."""
+    out = []
+    for p in sorted(cfg.state_dir.glob("analysis-round-*.md"), reverse=True)[:3]:
+        text = p.read_text().strip()
+        if text and "no new findings" not in text.lower():
+            out.append(f"### from {p.name}\n\n{text}")
+    return out
+
+
+def report_is_quiet(path: Path | None) -> bool:
+    return bool(path and path.exists() and "no new findings" in path.read_text().lower())
 
 
 # ---------------------------------------------------------------------------
@@ -403,14 +552,22 @@ def main() -> int:
 
     autonomy = args.autonomy or cfg.raw.get("fixer", {}).get("autonomy", "edits")
     if args.fixer:
-        fixer_cmd, how = args.fixer, "--fixer"
+        reviewer_cmd = analyst_cmd = writer_cmd = args.fixer
+        reviewer_how = analyst_how = writer_how = "--fixer"
     else:
-        fixer_cmd, how = resolve_fixer(cfg, autonomy)
-    if fixer_cmd:
-        say(f"writer: {fixer_cmd}")
-        say(f"        via {how}, autonomy={autonomy}")
-    else:
-        say(f"writer: none — {how}")
+        reviewer_cmd, reviewer_how = resolve_role(cfg, "reviewer", autonomy)
+        analyst_cmd, analyst_how = resolve_role(cfg, "analyst", autonomy)
+        writer_cmd, writer_how = resolve_role(cfg, "writer", autonomy)
+    for role, cmd, how in (
+        ("reviewer", reviewer_cmd, reviewer_how),
+        ("analyst", analyst_cmd, analyst_how),
+        ("writer", writer_cmd, writer_how),
+    ):
+        if cmd:
+            say(f"{role}: {cmd}")
+            say(f"        via {how}, autonomy={autonomy}")
+        else:
+            say(f"{role}: none — {how}")
 
     base_branch = None
     if use_git:
@@ -448,7 +605,7 @@ def main() -> int:
             # A broken build is the one thing worth pausing on: every downstream
             # measurement is of a stale PDF, so more rounds would be fiction.
             say("    the manuscript does not compile")
-            if not fixer_cmd:
+            if not writer_cmd:
                 outcome = "broken"
                 break
             say("    sending the build error to the writer and continuing")
@@ -458,7 +615,7 @@ def main() -> int:
             compose_work_order(cfg, rnd)
             say("    work order written; --gates-only, so stopping here")
             break
-        if not fixer_cmd:
+        if not writer_cmd:
             outcome = "no-fixer"
             compose_work_order(cfg, rnd)
             say(f"    no writer CLI available; work order at "
@@ -485,23 +642,54 @@ def main() -> int:
         else:
             agent, brief = EVALUATORS[(rnd - 1) % len(EVALUATORS)]
         last_used[agent] = rnd
-        say(f"--- round {rnd} · evaluate ({agent})")
-        ev_ok, ev_file = run_evaluator(cfg, fixer_cmd, agent, brief, rnd, args.timeout)
-        if ev_ok and ev_file.exists():
+        say(f"--- round {rnd} · evaluate ({agent}) + analyze")
+        ev_file: Path | None = None
+        analysis_file: Path | None = None
+        ev_ok = analysis_ok = False
+        parallel_readers = cfg.raw.get("workflow", {}).get("parallel_readers", True)
+        if parallel_readers:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+                futures = {}
+                if reviewer_cmd:
+                    futures["reviewer"] = pool.submit(
+                        run_evaluator, cfg, reviewer_cmd, agent, brief, rnd, args.timeout)
+                if analyst_cmd:
+                    futures["analyst"] = pool.submit(
+                        run_analyst, cfg, analyst_cmd, rnd, args.timeout)
+                if "reviewer" in futures:
+                    ev_ok, ev_file = futures["reviewer"].result()
+                if "analyst" in futures:
+                    analysis_ok, analysis_file = futures["analyst"].result()
+        else:
+            if reviewer_cmd:
+                ev_ok, ev_file = run_evaluator(
+                    cfg, reviewer_cmd, agent, brief, rnd, args.timeout)
+            if analyst_cmd:
+                analysis_ok, analysis_file = run_analyst(
+                    cfg, analyst_cmd, rnd, args.timeout)
+
+        if ev_ok and ev_file and ev_file.exists():
             head = ev_file.read_text().strip().splitlines()
             n = len([l for l in head if l.strip().startswith("- [")])
             say(f"    {agent}: {n} finding(s) -> {ev_file.name}")
         else:
             say(f"    {agent} produced no report this round")
+        if analysis_ok and analysis_file and analysis_file.exists():
+            head = analysis_file.read_text().strip().splitlines()
+            n = len([l for l in head if l.strip().startswith("- [")])
+            say(f"    analytical audit: {n} finding(s) -> {analysis_file.name}")
+        else:
+            say("    analytical audit produced no report this round")
 
         # ------------------------------------------------------------ WRITE
         reviews = review_findings(cfg)
-        wo = compose_work_order(cfg, rnd, reviews)
+        analyses = analysis_findings(cfg)
+        wo = compose_work_order(cfg, rnd, reviews, analyses)
         if n_gated:
             say(f"    {n_gated} science finding(s) parked for you — the writer will "
                 f"propose, not edit, and the loop continues on everything else")
         say(f"--- round {rnd} · write")
-        ok, tail = invoke_fixer(cfg, fixer_cmd, wo, args.timeout)
+        ok, tail = invoke_fixer(cfg, writer_cmd, wo, args.timeout)
         (cfg.state_dir / f"round-{rnd}-fixer.log").write_text(tail)
         if not ok:
             say("    writer exited non-zero; re-measuring anyway")
@@ -524,14 +712,13 @@ def main() -> int:
         # "Clean" is not a reason to stop on its own: the reviewers may still
         # find something a measurement cannot. Require the gate to be clean AND
         # the reviewer to report nothing new, twice running.
-        quiet_review = (not ev_file.exists()
-                        or "no new findings" in ev_file.read_text().lower())
+        quiet_review = report_is_quiet(ev_file) and report_is_quiet(analysis_file)
         if rc == 0 and quiet_review:
             clean_streak += 1
-            say(f"    clean gate + quiet review ({clean_streak}/2)")
+            say(f"    clean gate + quiet review + analysis ({clean_streak}/2)")
             if clean_streak >= 2:
                 outcome = "converged"
-                say("    two consecutive clean rounds across gate and review")
+                say("    two consecutive clean rounds across gate, review, and analysis")
                 if not args.forever:
                     break
                 say("    --forever: sleeping, will re-check")

@@ -1,1 +1,83 @@
-writer ran
+sentation and compliance fixes
+[ ] Build manuscript and record round summary
+[0m
+[0m→ [0mRead .paperloop/state/FINDINGS.md
+[0m→ [0mRead docs/usenix_paper_manuscript.tex[90m [offset=1, limit=430][0m
+[0m✱ [0mGrep "comparative_block_rate|Demo 5 Assurance|EviAssure"[90m in . · 2 matches[0m
+[0m→ [0mRead .paperloop/venue.yaml
+[0m→ [0mRead scripts/generate_paper_pdf.py[90m [offset=55, limit=110][0m
+[0m
+[0m$ [0mgit status --short
+M .claude/agents/loop-orchestrator.md
+ M .claude/agents/paper-writer.md
+ M .cursor/agents/loop-orchestrator.md
+ M .cursor/agents/paper-review-runner.md
+ M .cursor/agents/paper-writer.md
+ M .paperloop/RUNBOOK.md
+ M .paperloop/config.yaml
+ M .paperloop/loop.py
+ M .paperloop/state/FINDINGS.md
+ M .paperloop/state/WORK_ORDER-round-1.md
+ M .paperloop/state/WORK_ORDER-round-2.md
+ M .paperloop/state/WORK_ORDER.md
+ M .paperloop/state/findings.json
+ M .paperloop/state/loop.log
+ M .paperloop/state/review-round-1-venue-compliance-auditor.md
+ M .paperloop/state/review-round-2-science-auditor.md
+ M .paperloop/state/round-1-fixer.log
+ M .paperloop/venue.yaml
+ M AGENTS.md
+ M README.md
+ M docs/figures/comparative_block_rate.png
+ M docs/figures/merkle_scaling.png
+ M docs/figures/parallel_throughput.png
+ M docs/references.bib
+ M docs/usenix_paper_manuscript.pdf
+ M docs/usenix_paper_manuscript.tex
+ M results/benchmark_summary.json
+ M results/comparative_evaluation.json
+ M scripts/generate_paper_pdf.py
+?? .claude/agents/analytical-auditor.md
+?? .paperloop/state/disputed.md
+?? .paperloop/state/proposals/science-attack-construct-validity.md
+?? .paperloop/state/proposals/science-baseline-validity.md
+?? .paperloop/state/proposals/science-complete-mediation.md
+?? .paperloop/state/proposals/science-corpus-provenance.md
+?? .paperloop/state/proposals/science-linear-throughput-scaling.md
+?? .paperloop/state/proposals/science-methods-statistics.md
+?? .paperloop/state/proposals/science-performance-precision.md
+?? .paperloop/state/proposals/science-technical-accuracy-merkle.md
+?? docs/AGENT_WORKFLOW.md
+[0m
+[0m→ [0mRead .paperloop/state/disputed.md
+[0m
+[0m# [0mTodos
+[✓] Inspect findings, manuscript, and figure generation
+[✓] Apply eligible presentation and compliance fixes
+[•] Build manuscript and record round summary
+[0m
+[0m$ [0mpython3 .paperloop/run_gates.py --build
+[BLOCKER] science.number_mismatch docs/usenix_paper_manuscript.tex:59 — manuscript says 0.1221% but the nearest recorded result is 0.1243 — likely a stale number from an earlier run
+    found:    …ion for   execution traces in   (representing a packaging overhead of 0.1221\%) with   sparse proof compression.…
+    expected: 0.1243  (source: results/benchmark_summary.json::merkle_scaling[4].packaging_overhead_pct)
+    remedy:   Do NOT edit the paper to match blindly. Re-run the producing script, confirm which value is current, then update the manuscript AND state in the round log which artifact it came from.
+[MAJOR] science.stale_artifact — 2 result artifact(s) changed after the manuscript was last edited
+    found:    results/benchmark_summary.json; results/comparative_evaluation.json
+    expected: manuscript newer than the data it reports
+    remedy:   Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.
+[MINOR] venue.template — could not measure PDF geometry: No module named 'pdfplumber'
+
+--------------------------------------------------------------------
+BLOCKER 1  MAJOR 1  MINOR 1  INFO 2   gated: 2
+report: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/.paperloop/state/FINDINGS.md
+[0m
+[0m→ [0mRead .paperloop/state/FINDINGS.md
+[0m→ [0mRead .paperloop/state/proposals/science-performance-precision.md
+[0m→ [0mRead .paperloop/state/proposals/science-methods-statistics.md
+[0m% [0mPatch 3 files
+[0m
+[0m# [0mTodos
+[✓] Inspect findings, manuscript, and figure generation
+[✓] Apply eligible presentation and compliance fixes
+[✓] Build manuscript and record round summary
+[0m

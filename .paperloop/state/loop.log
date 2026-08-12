@@ -31,3 +31,53 @@
 [11:33:03]     4 science finding(s) parked for you — the writer will propose, not edit, and the loop continues on everything else
 [11:33:03] --- round 3 · write
 [11:33:04] === exhausted after 3 round(s): BLOCKER 6 MAJOR 8 MINOR 4 ===
+[19:58:02] === paperloop demo-5-evidence-release-assurance-usenix -> USENIX Security 2027 ===
+[19:58:02] reviewer: opencode run
+[19:58:02]         via auto-detected OpenCode (opencode); also available: kimi, autonomy=edits
+[19:58:02] analyst: opencode run
+[19:58:02]         via auto-detected OpenCode (opencode); also available: kimi, autonomy=edits
+[19:58:02] writer: opencode run
+[19:58:02]         via auto-detected OpenCode (opencode); also available: kimi, autonomy=edits
+[19:58:02] --- round 1/6 · measure
+[19:58:07]     BLOCKER 0  MAJOR 0  MINOR 1  gated 0
+[19:58:07] --- round 1 · evaluate (venue-compliance-auditor) + analyze
+[20:02:06]     venue-compliance-auditor: 4 finding(s) -> review-round-1-venue-compliance-auditor.md
+[20:02:06]     analytical audit: 8 finding(s) -> analysis-round-1.md
+[20:02:06] --- round 1 · write
+[20:05:04] --- round 2/6 · measure
+[20:05:08]     BLOCKER 0  MAJOR 0  MINOR 1  gated 0
+[20:05:08]     no change in measured findings (1 round(s) running)
+[20:05:08] --- round 2 · evaluate (science-auditor) + analyze
+[20:08:20]     science-auditor: 6 finding(s) -> review-round-2-science-auditor.md
+[20:08:20]     analytical audit: 9 finding(s) -> analysis-round-2.md
+[20:08:20] --- round 2 · write
+[20:09:36] --- round 3/6 · measure
+[20:09:40]     BLOCKER 1  MAJOR 1  MINOR 1  gated 2
+[20:09:40] --- round 3 · evaluate (paper-evaluator) + analyze
+[20:12:48]     paper-evaluator: 8 finding(s) -> review-round-3-paper-evaluator.md
+[20:12:48]     analytical audit: 8 finding(s) -> analysis-round-3.md
+[20:12:48]     2 science finding(s) parked for you — the writer will propose, not edit, and the loop continues on everything else
+[20:12:48] --- round 3 · write
+[20:14:25] --- round 4/6 · measure
+[20:14:29]     BLOCKER 1  MAJOR 1  MINOR 1  gated 2
+[20:14:29]     no change in measured findings (1 round(s) running)
+[20:14:29] --- round 4 · evaluate (literature-venue-verifier) + analyze
+[20:17:37]     literature-venue-verifier: 6 finding(s) -> review-round-4-literature-venue-verifier.md
+[20:17:37]     analytical audit: 10 finding(s) -> analysis-round-4.md
+[20:17:37]     2 science finding(s) parked for you — the writer will propose, not edit, and the loop continues on everything else
+[20:17:37] --- round 4 · write
+[20:22:47] --- round 5/6 · measure
+[20:22:52]     BLOCKER 3  MAJOR 1  MINOR 0  gated 1
+[20:22:52] --- round 5 · evaluate (venue-compliance-auditor) + analyze
+[20:25:49]     venue-compliance-auditor: 3 finding(s) -> review-round-5-venue-compliance-auditor.md
+[20:25:49]     analytical audit: 10 finding(s) -> analysis-round-5.md
+[20:25:49]     1 science finding(s) parked for you — the writer will propose, not edit, and the loop continues on everything else
+[20:25:49] --- round 5 · write
+[20:26:55] --- round 6/6 · measure
+[20:27:00]     BLOCKER 4  MAJOR 2  MINOR 0  gated 3
+[20:27:00] --- round 6 · evaluate (science-auditor) + analyze
+[20:29:56]     science-auditor: 8 finding(s) -> review-round-6-science-auditor.md
+[20:29:56]     analytical audit: 10 finding(s) -> analysis-round-6.md
+[20:29:56]     3 science finding(s) parked for you — the writer will propose, not edit, and the loop continues on everything else
+[20:29:56] --- round 6 · write
+[20:34:03] === exhausted after 6 round(s): BLOCKER 2 MAJOR 1 MINOR 0 ===

@@ -64,8 +64,9 @@ generator named in `build.command` instead, then rebuild.
 
 Re-run `python3 .paperloop/run_gates.py --build` yourself and confirm the actionable
 count dropped. If a fix did not take, say so rather than reporting success. Write two
-lines on what you changed to `.paperloop/state/round-<N>-writer.md`. Then hand back
-to `loop-orchestrator`.
+lines on what you changed to `.paperloop/state/round-<N>-writer.md`. Also classify
+every work-order item as `FIXED`, `PROPOSED`, `BLOCKED`, or `DISPUTED`, with the
+file and evidence for that status. Then hand back to `loop-orchestrator`.
 
 ## Skills available to you
 
@@ -84,4 +85,3 @@ your priors:
 `usenix-sec-2027-compliance` carries the requirements read off the official call for papers,
 with the date they were checked. If it disagrees with `venue.yaml`, the skill is
 the more recent record — and say so rather than silently picking one.
-

@@ -32,3 +32,20 @@ fixer:
   command: null
   autonomy: edits
   run_on_gated: true
+
+# Role-specific commands are optional. When they are null, each role falls back
+# to the fixer command above (or to automatic CLI detection). Set these when
+# the analytical reader and manuscript writer should use different models,
+# sandboxes, or tool permissions.
+agents:
+  reviewer:
+    command: null
+  analyst:
+    command: null
+  writer:
+    command: null
+
+workflow:
+  # The evaluator and analyst are read-only and write to different state files,
+  # so they can run concurrently before the writer receives either report.
+  parallel_readers: true

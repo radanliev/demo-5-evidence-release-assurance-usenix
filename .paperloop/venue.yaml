@@ -13,7 +13,8 @@ verified: true
 verified_on: '2026-08-12'
 notes: Grayscale legibility required. Mandatory registration 1 week before with fixed
   title/authors/ORCIDs. Max 7 papers per author per cycle. Ethics appendix encouraged,
-  not mandatory.
+  not mandatory. An Open Science Appendix is mandatory; any review artifact link must
+  be anonymous and non-tracking, or the appendix must explain unavailable materials.
 template:
   documentclass: article
   required_options:
@@ -57,7 +58,11 @@ structure:
   - Ethics
   - Introduction
   - Conclusion
-  - Open Science
+  required_appendices:
+  - Open Science Appendix
+  open_science:
+    require_anonymous_nontracking_access: true
+    allow_unavailable_materials_with_scope_explanation: true
 science:
   match_relative_tolerance: 0.005
   drift_relative_tolerance: 0.03

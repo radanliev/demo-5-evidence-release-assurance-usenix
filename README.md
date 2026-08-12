@@ -92,6 +92,13 @@ Autonomous agentic deployments require reproducible, cryptographically verifiabl
    # Outputs compiled PDF to docs/usenix_paper_manuscript.pdf
    ```
 
+## 🤝 Multi-Agent Paper Workflow
+
+The paperloop can run a read-only evaluator and an independent analytical
+auditor in parallel before the writer receives their combined work order. The
+role contracts, Antigravity copy/paste prompts, human data handoff, and stopping
+criteria are in [`docs/AGENT_WORKFLOW.md`](docs/AGENT_WORKFLOW.md).
+
 ---
 
 ## 📄 Academic Citation & Paper
