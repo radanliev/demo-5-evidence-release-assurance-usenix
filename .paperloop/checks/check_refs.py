@@ -40,6 +40,12 @@ def check(cfg: Config) -> list[Finding]:
     out: list[Finding] = []
     rel = lambda p: str(Path(p).relative_to(cfg.root))
 
+    lines = read_tex(cfg.manuscript)
+    bibitem_keys: set[str] = set()
+    for _f, _n, _t in lines:
+        for _m in re.finditer(r"\\bibitem\s*(?:\[[^\]]*\])?\s*\{([^}]+)\}", _t):
+            bibitem_keys.add(_m.group(1).strip())
+
     # ---- build log signals ------------------------------------------------
     for logp, label in ((cfg.log, "log"), (cfg.log.with_suffix(".blg"), "blg")):
         if not logp.exists():
@@ -47,6 +53,8 @@ def check(cfg: Config) -> list[Finding]:
         text = logp.read_text(errors="replace")
         for m in re.finditer(r"(?:LaTeX )?Warning: Citation ['`\"]?([^'\"` ]+)['`\"]? "
                              r"(?:on page \d+ )?undefined", text):
+            if m.group(1) in bibitem_keys:
+                continue
             out.append(Finding("refs", "refs.undefined", "BLOCKER",
                                f"undefined citation \\cite{{{m.group(1)}}} — renders as [?]",
                                file=rel(logp), evidence=m.group(1),
@@ -73,7 +81,6 @@ def check(cfg: Config) -> list[Finding]:
                                    remedy="Fill the missing bibliography field."))
 
     # ---- cite keys vs bib -------------------------------------------------
-    lines = read_tex(cfg.manuscript)
     cited: dict[str, tuple[str, int]] = {}
     for f, n, t in lines:
         for m in re.finditer(r"\\cite[a-zA-Z]*\*?(?:\[[^\]]*\])*\{([^}]+)\}", t):
@@ -87,9 +94,20 @@ def check(cfg: Config) -> list[Finding]:
         if b.exists():
             entries.update(parse_bib(b))
 
+    # A manual \begin{thebibliography} with \bibitem entries is a complete
+    # bibliography. Treating those keys as undefined because there is no .bib
+    # file reports a correct paper as broken.
+    if bibitem_keys and not entries:
+        out.append(Finding("refs", "refs.bibfield", "INFO",
+                           f"manuscript uses a manual thebibliography with "
+                           f"{len(bibitem_keys)} \\bibitem entries",
+                           remedy="Field-level checks are skipped for manual "
+                                  "bibliographies; verify entries by eye or move "
+                                  "to BibTeX."))
+
     if entries:
         for key, (f, n) in sorted(cited.items()):
-            if key not in entries:
+            if key not in entries and key not in bibitem_keys:
                 out.append(Finding("refs", "refs.undefined", "BLOCKER",
                                    f"\\cite{{{key}}} has no entry in the bibliography",
                                    file=rel(f), line=n, evidence=key,

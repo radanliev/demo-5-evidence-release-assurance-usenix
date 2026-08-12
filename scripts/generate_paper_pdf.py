@@ -4,6 +4,7 @@ USENIX Security Paper PDF Builder & Multi-Plot Figure Generator for Demo 5.
 """
 
 import sys
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -99,8 +100,8 @@ def generate_benchmark_figures(docs_dir: Path):
 
 def compile_latex_pdf(docs_dir: Path) -> Path:
     tex_file = docs_dir / "usenix_paper_manuscript.tex"
-    pdflatex_bin = "/Library/TeX/texbin/pdflatex"
-    bibtex_bin = "/Library/TeX/texbin/bibtex"
+    pdflatex_bin = (shutil.which("pdflatex") or (shutil.which("pdflatex") or "/Library/TeX/texbin/pdflatex"))
+    bibtex_bin = (shutil.which("bibtex") or "/Library/TeX/texbin/bibtex")
 
     print(f"[*] Compiling LaTeX manuscript: {tex_file.name} using pdflatex...")
 

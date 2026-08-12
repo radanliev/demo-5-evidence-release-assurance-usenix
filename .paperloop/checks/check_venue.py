@@ -53,7 +53,13 @@ IDENTITY_PATTERNS = [
     (r"github\.com/(?!\s*ANONYM)[A-Za-z0-9._-]+", "de-anonymising GitHub URL"),
     (r"\b(?:doi\.org/10\.5281/zenodo\.\d+)", "Zenodo DOI may de-anonymise"),
     (r"\\orcid\{", "ORCID identifier"),
-    (r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", "email address"),
+    # Deliberately anonymous placeholders are the CORRECT state for a
+    # double-blind submission, so they must not be reported as leaks.
+    # Not every user@host.tld is an email. LaTeX internals are full of
+    # things like \csname ver@hyperxmp.sty\endcsname, and reporting those
+    # as anonymity leaks trains people to ignore the check.
+    (r"(?<![\\\w])(?!anonymous@|anon@|noreply@|ver@|Gin@|c@|g@)[A-Za-z0-9._%+-]+@(?!example\.(?:org|com)\b|anonymous\b)[A-Za-z0-9.-]+\.(?!sty\b|cls\b|tex\b|def\b|cfg\b|clo\b|fd\b)[A-Za-z]{2,}",
+     "email address"),
     (r"\\(?:institution|affiliation|acmAffiliation)\s*\{(?![^}]*[Aa]nonymous)[^}]{3,}",
      "institution/affiliation named"),
     (r"\b(?:our (?:previous|prior|earlier) (?:work|paper|study)) \\cite",

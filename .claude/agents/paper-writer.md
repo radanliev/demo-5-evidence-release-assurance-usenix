@@ -42,6 +42,13 @@ Numbers, statistics, empirical claims, anything under `science.*`. Write
 `.paperloop/state/proposals/<fingerprint>.md` with the finding, what you believe the
 correct value is, the exact diff, and the evidence needed. Then stop on it.
 
+## Check whether the manuscript is generated
+
+If `.paperloop/config.yaml` sets `generated_manuscript: true`, the `.tex` is a
+build artifact. Editing it is wasted work — the next build overwrites your
+change and the finding reappears, which is exactly how a loop stalls. Edit the
+generator named in `build.command` instead, then rebuild.
+
 ## Hard prohibitions
 
 - Never shrink margins, fonts, `\baselinestretch`, `\textheight`, or float spacing
