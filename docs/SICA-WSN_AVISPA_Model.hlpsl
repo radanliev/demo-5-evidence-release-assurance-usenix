@@ -1,0 +1,194 @@
+%% =====================================================================
+%% SICA-WSN_AVISPA_Model.hlpsl
+%%
+%% Dolev-Yao HLPSL specification of the CORRECTED SICA-WSN authentication
+%% and session-key agreement phase (Section V.E / Eq. 3 of
+%% SICA-WSN_IEEE_Transactions_Revised.tex). This models Msg1..Msg5 of
+%% AuthSkGeneration + CheckAuthSkGeneration between User (ui), Sensor
+%% node (sn), and Gateway node (gn).
+%%
+%% Elliptic-curve scalar multiplication xP is modelled, as is standard
+%% AVISPA practice for EC/Diffie-Hellman-style protocols, with the
+%% abstract function mul(X,P) satisfying the Dolev-Yao free algebra
+%% (mul is not given any algebraic properties beyond term equality, so
+%% this is a symbolic, not a numeric, verification of the elliptic-curve
+%% arithmetic -- it checks the protocol's authentication and secrecy
+%% logic, not the ECDH hardness assumption itself, which is argued
+%% separately by the reduction proof in Theorem 1 of the manuscript).
+%%
+%% STATUS: this file has NOT been executed against the OFMC/CL-AtSe
+%% backends in the environment used to prepare the manuscript (no
+%% avispa/ofmc/span binary was available -- see
+%% SICA-WSN_AVISPA_Result.txt for exact run instructions and for the
+%% explicit statement of what has and has not been checked).
+%% =====================================================================
+
+role user(Ui, GN, SN : agent,
+          P           : text,               %% EC base point
+          PkGN        : text,                %% GN's public key = GNSecK . P
+          Xci, Xcj    : text,                %% Xc_i, Xc_j (shared with GN/SN out of band)
+          Certi, Certj, Certk : text,
+          Bi          : text,                %% beta_i, shared secret established at registration
+          H, H1, H2   : hash_func,
+          Snd, Rcv    : channel(dy))
+played_by Ui
+def=
+  local State : nat,
+        E, Gi, PSeci, K1, K2, NSj, Srci, Ecc, EccBar, Sigmai, TS1 : text,
+        TS4, Ri, Rj, Eslt, NSi, Srcj, GammaUi, GammaSNj, SK, Eij, Cij, TS5 : text
+  const sec_sk, auth_ui_gn, auth_gn_ui : protocol_id
+  init  State := 0
+  transition
+    %% ---- Step 1: Ui -> GN : Msg1 = {sigma_i, Ecc_bar, TS1} ----
+    1. State = 0 /\ Rcv(start) =|>
+       State' := 1
+       /\ E'      := new()
+       /\ Ecc'    := mul(E', P)
+       /\ Gi'     := H1(Bi.Ecc'.Certi.Certk)
+       /\ EccBar' := mul(H1(Gi'.E'), P)              %% abstracts (e.Gi + Bi).P
+       /\ PSeci'  := mul(H1(Gi'.E'), PkGN)            %% abstracts (e.Gi + Bi).PkGN
+       /\ K1'     := H2(PSeci'.EccBar'.Certi.Certk)
+       /\ K2'     := H2(PSeci'.EccBar'.Certi.Certk)
+       /\ Srci'   := new()
+       /\ NSj'    := xor(Xcj, Srci')
+       /\ TS1'    := new()
+       /\ Sigmai' := {Certi.Certj.Ecc'.NSj'.TS1'}_K1'
+       /\ Snd(Sigmai'.EccBar'.TS1')
+       /\ secret(Srci', sec_srci, {Ui})
+       /\ witness(Ui, GN, auth_ui_gn, EccBar')
+
+    %% ---- Step 5: on Msg4 from GN, Ui verifies and sends Msg5 ----
+    2. State = 1 /\ Rcv(GammaSNj'.GammaUi'.TS4') =|>
+       State'  := 2
+       /\ SK'   := H(Ri'.mul(E,Eslt').Rj'.Srci.Srcj')     %% e . Eslt = e.b.P shared value
+       /\ Eij'  := add(Eslt', Ecc)
+       /\ Cij'  := {Eij'}_SK'
+       /\ TS5'  := new()
+       /\ Snd(Cij'.GammaSNj.TS5')
+       /\ request(GN, Ui, auth_gn_ui, GammaUi')
+       /\ secret(SK', sec_sk, {Ui, SN})
+end role
+
+role sensor(SN, Ui, GN : agent,
+            P          : text,
+            PkGN       : text,
+            Xci, Xcj   : text,
+            Certi, Certj, Certk : text,
+            Bj         : text,
+            H, H1, H2  : hash_func,
+            Snd, Rcv   : channel(dy))
+played_by SN
+def=
+  local State : nat,
+        M1, AuRk, TS2, Ecc, B, Eslt, Gj, EsltBar, PSecj, K3, K4 : text,
+        Sigmaj, NSi, Srcj, TS3, GammaSNj, TS4, TS5, SK, Cij, Eij, Ri, Rj, Srci : text
+  const sec_sk2 : protocol_id
+  init  State := 3
+  transition
+    %% ---- Step 3: on Msg2 from GN, SN replies with Msg3 ----
+    1. State = 3 /\ Rcv(M1'.TS2'.Ecc') =|>
+       State'   := 4
+       /\ AuRk'  := H(Bj.Certj.Ecc'.TS2')
+       /\ B'     := new()
+       /\ Eslt'  := mul(B', P)
+       /\ Gj'    := H1(Bj.Eslt'.Certj.Certi.Certk)
+       /\ EsltBar' := mul(H1(Gj'.B'), P)
+       /\ PSecj' := mul(H1(Gj'.B'), PkGN)
+       /\ K3'    := H2(PSecj'.EsltBar'.Certj.Certk)
+       /\ K4'    := H2(PSecj'.EsltBar'.Certj.Certk)
+       /\ Srcj'  := new()
+       /\ NSi'   := xor(Xci, Srcj')
+       /\ TS3'   := new()
+       /\ Sigmaj' := {Certj.Certi.Eslt'.NSi'.TS3'}_K3'
+       /\ Snd(Sigmaj'.EsltBar'.TS3')
+       /\ secret(Srcj', sec_srcj, {SN})
+       /\ witness(SN, GN, auth_sn_gn, EsltBar')
+
+    %% ---- Step 6: on Msg5 from Ui, SN accepts and finalises SK ----
+    2. State = 4 /\ Rcv(Cij'.GammaSNj'.TS5') =|>
+       State' := 5
+       /\ SK'  := H(Ri.mul(B,Ecc).Rj.Srci'.Srcj)
+       /\ request(Ui, SN, auth_ui_sn, Cij')
+       /\ secret(SK', sec_sk2, {Ui, SN})
+end role
+
+role gwnode(GN, Ui, SN : agent,
+            P, GNSecK  : text,
+            PkGN       : text,
+            Bi, Bj     : text,
+            Certi, Certj, Certk : text,
+            H, H1, H2  : hash_func,
+            Snd, Rcv   : channel(dy))
+played_by GN
+def=
+  local State : nat,
+        Sigmai, EccBar, TS1, PSeci, K1, K2, Certi2, Certj2, Ecc, NSj, TS2 : text,
+        GiStar, EccBarStar, AuRk, M1, Sigmaj, EsltBar, TS3, PSecj, K3, K4, GjStar, EsltBarStar : text,
+        NSi, Ri, Rj, GammaSNj, GammaUi, TS4 : text
+  init  State := 6
+  transition
+    %% ---- Step 2: on Msg1 from Ui, verify Eq. (3), forward Msg2 to SN ----
+    1. State = 6 /\ Rcv(Sigmai'.EccBar'.TS1') =|>
+       State'  := 7
+       /\ PSeci' := mul(GNSecK, EccBar')
+       /\ K1'    := H2(PSeci'.EccBar'.Certi.Certk)
+       /\ GiStar'      := H1(Bi.Ecc.Certi.Certk)
+       /\ EccBarStar'  := add(mul(GiStar', Ecc), mul(Bi, P))     %% corrected Eq. (3): Gi*.Ecc + Bi.P
+       /\ AuRk'  := H(Bj.Certj.EccBar'.TS2')
+       /\ M1'    := {xor(Certj,Certj)}_AuRk'   %% placeholder ciphertext of NSj re-encrypted for SN
+       /\ TS2'   := new()
+       /\ Snd(M1'.TS2'.EccBar')
+       /\ request(Ui, GN, auth_ui_gn, EccBar')
+       /\ witness(GN, SN, auth_gn_sn, EccBar')
+
+    %% ---- Step 4: on Msg3 from SN, verify, forward Msg4 to Ui ----
+    2. State = 7 /\ Rcv(Sigmaj'.EsltBar'.TS3') =|>
+       State'  := 8
+       /\ PSecj' := mul(GNSecK, EsltBar')
+       /\ K3'    := H2(PSecj'.EsltBar'.Certj.Certk)
+       /\ GjStar'     := H1(Bj.EsltBar'.Certj.Certi.Certk)
+       /\ EsltBarStar' := add(mul(GjStar', EsltBar'), mul(Bj, P))
+       /\ Ri'    := new()
+       /\ Rj'    := new()
+       /\ GammaSNj' := {Ri'.EccBar.Rj'.TS4'}_K4
+       /\ GammaUi'  := {Ri'.EsltBar'.Rj'.NSi.TS4'}_K2
+       /\ TS4'   := new()
+       /\ Snd(GammaSNj'.GammaUi'.TS4')
+       /\ request(SN, GN, auth_sn_gn, EsltBar')
+       /\ witness(GN, Ui, auth_gn_ui, GammaUi')
+end role
+
+role session(Ui, SN, GN : agent,
+             P, PkGN, GNSecK, Xci, Xcj, Certi, Certj, Certk, Bi, Bj : text,
+             H, H1, H2 : hash_func)
+def=
+  local SU, RU, SS, RS, SG, RG : channel(dy)
+  composition
+      user(Ui, GN, SN, P, PkGN, Xci, Xcj, Certi, Certj, Certk, Bi, H, H1, H2, SU, RU)
+   /\ sensor(SN, Ui, GN, P, PkGN, Xci, Xcj, Certi, Certj, Certk, Bj, H, H1, H2, SS, RS)
+   /\ gwnode(GN, Ui, SN, P, GNSecK, PkGN, Bi, Bj, Certi, Certj, Certk, H, H1, H2, SG, RG)
+end role
+
+role environment()
+def=
+  const ui, sn, gn, i : agent,
+        p, pkgn, gnseck, xci, xcj, certi, certj, certk, bi, bj : text,
+        h, h1, h2 : hash_func,
+        sec_sk, sec_sk2, sec_srci, sec_srcj : protocol_id,
+        auth_ui_gn, auth_gn_ui, auth_sn_gn, auth_gn_sn, auth_ui_sn : protocol_id
+  intruder_knowledge = {ui, sn, gn, p, pkgn, h, h1, h2}
+  composition
+      session(ui, sn, gn, p, pkgn, gnseck, xci, xcj, certi, certj, certk, bi, bj, h, h1, h2)
+   /\ session(i, sn, gn, p, pkgn, gnseck, xci, xcj, certi, certj, certk, bi, bj, h, h1, h2)
+end role
+
+goal
+  secrecy_of sec_sk, sec_sk2, sec_srci, sec_srcj
+  authentication_on auth_ui_gn
+  authentication_on auth_gn_ui
+  authentication_on auth_sn_gn
+  authentication_on auth_gn_sn
+  authentication_on auth_ui_sn
+end goal
+
+environment()
