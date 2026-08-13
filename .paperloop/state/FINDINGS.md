@@ -2,14 +2,14 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-13 12:00
+**Run:** 2026-08-13 12:06
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
 | MAJOR | 0 |
 | MINOR | 0 |
-| INFO | 4 |
+| INFO | 5 |
 
 Gated (human sign-off required): **0**
 
@@ -29,6 +29,13 @@ Gated (human sign-off required): **0**
 ## Measurements
 
 Recorded for the round log; no action implied.
+
+### [INFO] figure.clipping
+
+rendered 0 page images for visual QA
+
+- **found:** `/Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/.paperloop/state/pages`
+- **id:** `9cf707a2e8e178df`
 
 ### [INFO] refs.unverified
 

@@ -2,21 +2,36 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-13T12:00:59"
+    "generated": "2026-08-13T12:06:00"
   },
   "summary": {
-    "total": 4,
+    "total": 5,
     "by_severity": {
       "BLOCKER": 0,
       "MAJOR": 0,
       "MINOR": 0,
-      "INFO": 4
+      "INFO": 5
     },
     "actionable": 0,
     "gated_actionable": 0,
     "clean": true
   },
   "findings": [
+    {
+      "check": "figures",
+      "category": "figure.clipping",
+      "severity": "INFO",
+      "message": "rendered 0 page images for visual QA",
+      "file": null,
+      "line": null,
+      "page": null,
+      "evidence": "/Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/.paperloop/state/pages",
+      "expected": null,
+      "remedy": null,
+      "fingerprint": "9cf707a2e8e178df",
+      "gated": false,
+      "autofixable": true
+    },
     {
       "check": "citations",
       "category": "refs.unverified",

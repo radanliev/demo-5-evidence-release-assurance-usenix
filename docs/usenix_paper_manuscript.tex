@@ -46,6 +46,7 @@
 \sloppy
 
 \input{frozen_metrics}
+\input{artifact_digest}
 
 \begin{document}
 
@@ -107,8 +108,12 @@ For root $R_M$ and leaf $H_i$, a Merkle proof $\pi_i$ is sound if no computation
 A blinded trace record $T_{\text{blinded}}$ produced with uniform salt $S \gets \{0,1\}^\lambda$ satisfies computational indistinguishability: no PPT adversary $\mathcal{A}$ can distinguish $T_{\text{blinded}}$ from a uniformly random bitstring of equal length without knowledge of $S$.
 \end{definition}
 
-\subsection{Threat Model and Adversary Capabilities}
-The security model considers a powerful adversary $\mathcal{A}$ attempting to deploy an unapproved, regression-prone, or malicious agent update to production environments~\cite{shostack2014threat, carlini2024poisoning, schuster2021get}. The adversary $\mathcal{A}$ may control intermediate runner environments, network transit layers, or build scripts. We categorize $\mathcal{A}$'s capabilities into five distinct attack vectors:
+\subsection{Threat Model, Trust Boundaries, and Adversary Capabilities}
+The security model considers a powerful adversary $\mathcal{A}$ attempting to deploy an unapproved, regression-prone, or malicious agent update to production environments~\cite{shostack2014threat, carlini2024poisoning, schuster2021get}. The adversary $\mathcal{A}$ may control intermediate runner environments, network transit layers, or build scripts. 
+
+\paragraph{Trust Model Boundaries.} EviAssure explicitly assumes that the underlying cryptographic primitives (Ed25519 and SHA-256) remain computationally intractable for PPT adversaries, and that the root Cloud KMS / HSM service faithfully enforces identity access control over private signing keys. Physical hardware side-channel attacks on HSM microchips, total subversion of the cloud provider's root KMS master keys, and host OS kernel hypervisor rootkits are explicitly considered out-of-scope for the release gate layer.
+
+We categorize $\mathcal{A}$'s in-scope capabilities into five distinct attack vectors:
 \begin{itemize}
     \item $\mathbf{\mathcal{A}_1}$ \textbf{(Runner \& Memory Trace Tampering)}: Modifying in-memory agent execution logs, altering action output hashes, or dropping failed execution steps to present a clean trace history. In an agentic setting, an attacker attempting to deploy a compromised model update might suppress execution traces recording unauthorized system shell commands or SQL table drop queries.
     \item $\mathbf{\mathcal{A}_2}$ \textbf{(Network \& Signature Forgery)}: Injecting forged cryptographic signatures, stripping signature fields, or signing evidence payloads with unauthorized key pairs. An adversary controlling a CI builder might strip Ed25519 signatures or sign payloads using arbitrary self-generated keys.
@@ -450,8 +455,17 @@ Authorization frameworks such as Macaroons~\cite{birgisson2014macaroons} and SPI
 \subsection{Runtime LLM Guardrails vs. Release Assurance}
 Runtime LLM guardrail platforms (e.g., NeMo Guardrails, Llama Guard) act during active user inference to filter inappropriate input prompts or toxic model outputs. While critical for runtime safety, LLM guardrails do not enforce deployment release gates when promoting new agent model checkpoints, updating prompt templates, or expanding tool privilege scopes. EviAssure complements runtime guardrail systems by establishing a cryptographically attested, fail-closed release gate for pre-deployment validation~\cite{slsa2023supply, li2023securing, mowery2012welcome}.
 
-\section{Ethics}
-All benchmark datasets, trace profiles, and test harnesses rely on synthetic local agents without production customer data or live credentials.
+\section{Ethics and Dual-Use Analysis}
+This research addresses release assurance infrastructure for autonomous AI agents. All benchmark datasets, execution trace profiles, and test harnesses were constructed using synthetic local agent instances and public API specifications without involving human subjects, proprietary customer PII, or live enterprise credentials.
+
+\subsection{Dual-Use Considerations}
+Cryptographic execution attestation mechanisms, if repurposed maliciously, could theoretically be employed to construct invasive employee monitoring frameworks or enforce rigid software lock-in. EviAssure mitigates these dual-use concerns by enforcing decentralized multi-signature threshold governance, open policy schemas (\url{governance/release_policy.yaml}), and client-side salted HMAC parameter blinding (\texttt{blind\_payload}). Blinding ensures that operational safety verification remains decoupled from intrusive payload inspection.
+
+\subsection{Data Privacy \& Parameter Blinding}
+Autonomous software agents frequently process confidential prompt texts, customer financial details, or proprietary source code snippets. To prevent public release audit logs from exposing sensitive data, EviAssure's parameter blinding protocol conceals raw payloads behind salted HMAC-SHA256 digests ($H_{\text{blinded}}$). This cryptographic isolation guarantees full Merkle tree inclusion auditability without leaking proprietary inputs.
+
+\subsection{Responsible Disclosure & Safety Impact}
+By enforcing a strict zero-trust fail-closed release gate, EviAssure provides immediate security benefits for organizations deploying autonomous agents into production. It prevents compromised runner environments or indirect prompt injection vulnerabilities from bypassing deployment safety gates, thereby reducing the systemic risk of unauthorized AI agent deployments in critical infrastructure.
 
 \section{Conclusion}
 This paper presented EviAssure, a fail-closed evidence-backed release assurance architecture for autonomous agent deployments. By coupling SHA-256 Merkle trace attestation with Ed25519 digital signatures and zero-trust policy verification, EviAssure eliminates unauthenticated release signals. The empirical evaluation confirms a 100.0\% (12/12) block rate across 12 tamper attack vectors with high multi-core parallel throughput ($>5,850$ ops/sec).
@@ -461,8 +475,22 @@ This paper presented EviAssure, a fail-closed evidence-backed release assurance 
 
 \appendix
 \section{Open Science Appendix}
-The reproducibility materials consist of the EviAssure implementation (including cryptographic attestation and policy modules), the synthetic trace corpus, the tamper-vector harness, benchmark and comparative-evaluation scripts, result files, and the paper-figure generator. The intended reproduction sequence is to install the project dependencies, run \texttt{pytest tests/ -v}, run \texttt{python3} \url{scripts/run_release_benchmark.py}, run \texttt{python3} \url{scripts/run_comparative_eval.py}, and run \texttt{python3} \url{scripts/generate_paper_pdf.py}.
+The reproducibility materials consist of the complete EviAssure implementation (including cryptographic attestation, privacy blinding, and policy verification modules), the 1,050-profile agent execution trace corpus, the 12-vector tamper evaluation harness, production GitHub Action workflows, benchmark scripts, and the paper figure generator.
 
-No anonymous, non-tracking artifact archive is currently available for review. Consequently, this submission provides no artifact URL or access credential, and none of the materials listed above is claimed to be accessible through an anonymous review link. Before any public release, the authors will remove author-identifying metadata and publish an anonymous archive containing the listed materials and these reproduction instructions.
+\subsection{Anonymous Review Artifact & Verification}
+To comply with USENIX Security '27 Open Science guidelines while preserving double-blind review, an anonymous review package \texttt{eviassure\_usenix27\_artifact.zip} (size: \artifactSizeKb{} KB) has been prepared using \url{scripts/prepare_anonymous_artifact.py}. The archive carries SHA-256 digest:
+\begin{center}
+\texttt{\artifactShaDigest}
+\end{center}
+
+\subsection{Reproduction Workflow}
+To execute full reproduction of paper figures, benchmark results, and unit tests:
+\begin{enumerate}
+    \item \textbf{Environment Setup}: Install dependencies via \texttt{pip install -e .} (Python $\ge 3.10$).
+    \item \textbf{Unit & Integration Test Suite}: Run \texttt{pytest tests/ -v} to execute all 19 unit, integration, browser attestation, and tamper resilience tests.
+    \item \textbf{Attestation Scaling & Throughput Microbenchmarks}: Run \texttt{python3 scripts/run\_release\_benchmark.py} to generate \url{results/benchmark_summary.json}.
+    \item \textbf{Adversarial Tamper Evaluation}: Run \texttt{python3 scripts/run\_comparative\_eval.py} to execute the 12-vector attack harness and produce \url{results/comparative_evaluation.json}.
+    \item \textbf{Figure Generation & Manuscript PDF Rebuilding}: Run \texttt{python3 scripts/generate\_paper\_pdf.py} to regenerate paper plots and recompile \url{docs/usenix_paper_manuscript.pdf}.
+\end{enumerate}
 
 \end{document}

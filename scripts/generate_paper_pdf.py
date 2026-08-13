@@ -84,7 +84,10 @@ def generate_benchmark_figures(docs_dir: Path):
     colors = ['#d62728', '#ff7f0e', '#bcbd22', '#1f77b4']
 
     plt.figure(figsize=(6, 4))
-    bars = plt.bar(systems, block_rates, color=colors, width=0.5)
+    bars = plt.bar(systems, block_rates, color=colors, edgecolor='black', linewidth=1.2, width=0.5)
+    hatches = ['//', '\\\\', 'xx', '..']
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
     plt.ylabel('Fail-Closed Block Rate (%)', fontsize=11)
     plt.title('Adversarial Release Tamper Detection (12 Vectors)', fontsize=12, fontweight='bold')
     plt.ylim(0, 115)
