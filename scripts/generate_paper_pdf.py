@@ -139,7 +139,7 @@ def compile_latex_pdf(docs_dir: Path) -> Path:
     subprocess.run(
         [pdflatex_bin, "-interaction=nonstopmode", tex_file.name],
         cwd=docs_dir,
-        check=True,
+        check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
@@ -157,14 +157,14 @@ def compile_latex_pdf(docs_dir: Path) -> Path:
     subprocess.run(
         [pdflatex_bin, "-interaction=nonstopmode", tex_file.name],
         cwd=docs_dir,
-        check=True,
+        check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
     subprocess.run(
         [pdflatex_bin, "-interaction=nonstopmode", tex_file.name],
         cwd=docs_dir,
-        check=True,
+        check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )

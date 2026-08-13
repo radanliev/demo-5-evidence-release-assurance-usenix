@@ -81,3 +81,15 @@
 [20:29:56]     3 science finding(s) parked for you — the writer will propose, not edit, and the loop continues on everything else
 [20:29:56] --- round 6 · write
 [20:34:03] === exhausted after 6 round(s): BLOCKER 2 MAJOR 1 MINOR 0 ===
+[12:00:51] === paperloop demo-5-evidence-release-assurance-usenix -> USENIX Security 2027 ===
+[12:00:51] reviewer: opencode run
+[12:00:51]         via auto-detected OpenCode (opencode); also available: kimi, autonomy=edits
+[12:00:51] analyst: opencode run
+[12:00:51]         via auto-detected OpenCode (opencode); also available: kimi, autonomy=edits
+[12:00:51] writer: opencode run
+[12:00:51]         via auto-detected OpenCode (opencode); also available: kimi, autonomy=edits
+[12:00:51] working on branch paperloop/autofix (base main)
+[12:00:51] --- round 1/6 · measure
+[12:00:55]     BLOCKER 0  MAJOR 0  MINOR 0  gated 0
+[12:00:55]     work order written; --gates-only, so stopping here
+[12:00:59] === gates-only after 1 round(s): BLOCKER 0 MAJOR 0 MINOR 0 ===

@@ -62,6 +62,24 @@ class ExecutionTraceRecord:
         return hash_sha256(raw)
 
 
+@dataclass
+class BrowserActionTraceRecord:
+    trace_id: str
+    agent_id: str
+    action: str  # "click", "navigate", "type", "screenshot"
+    status: str
+    duration_ms: float
+    url: str
+    element_selector: str
+    dom_state_hash: str
+    screenshot_sha256: Optional[str] = None
+
+    def to_hash(self) -> str:
+        raw = f"{self.trace_id}:{self.agent_id}:{self.action}:{self.status}:{self.url}:{self.element_selector}:{self.dom_state_hash}:{self.screenshot_sha256 or ''}"
+        return hash_sha256(raw)
+
+
+
 _SENTINEL = object()
 
 
@@ -111,7 +129,7 @@ class EvidenceBundle:
         self.signature = sign_payload_hmac(payload, secret_key)
         self.signed = True
 
-    def sign_ed25519(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:123456789:key/usenix-release-gate") -> None:
+    def sign_ed25519(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:000000000000:key/usenix-release-gate") -> None:
         self.sig_alg = "ed25519"
         self.public_key = pub_key_b64
         self.key_id = compute_key_id(pub_key_b64)
@@ -132,7 +150,7 @@ class EvidenceBundle:
         })
         self.signed = True
 
-    def sign_ed25519_multi(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:123456789:key/usenix-release-gate") -> None:
+    def sign_ed25519_multi(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:000000000000:key/usenix-release-gate") -> None:
         """Append an Ed25519 signature to the signatures list."""
         k_id = compute_key_id(pub_key_b64)
         payload = self.payload_for_signing(sig_alg_override="ed25519", key_id_override=k_id, kms_arn_override=kms_arn)

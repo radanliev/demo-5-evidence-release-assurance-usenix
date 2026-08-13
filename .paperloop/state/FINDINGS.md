@@ -2,29 +2,29 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-12 20:38
+**Run:** 2026-08-13 12:00
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 1 |
+| MAJOR | 0 |
 | MINOR | 0 |
-| INFO | 3 |
+| INFO | 4 |
 
 Gated (human sign-off required): **0**
 
-## Auto-fix mandate
+<details><summary>Build output (tail)</summary>
 
-The writer agent applies these directly. Formatting, layout, figures, references, venue compliance — no interpretation of results required.
+```
+=== USENIX Security Paper PDF Builder & Figure Generator ===
+[+] Benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
+[*] Froze headline metrics -> frozen_metrics.tex (throughput=5,919, overhead=0.116%)
+[*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
+[SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
 
-### [MAJOR] venue.pagecount
-
-paper is well under the 13-page budget
-
-- **found:** `8 body pages`
-- **expected:** competitive submissions use 11-13 pages
-- **remedy:** Expand evaluation, threat model, or related work; reviewers read a short paper as an underdeveloped one.
-- **id:** `6cfb9be7880c8171`
+[+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
+```
+</details>
 
 ## Measurements
 
@@ -40,9 +40,9 @@ Crossref and OpenAlex are unreachable — citations not verified
 
 ### [INFO] science.artifact_missing
 
-indexed 66 distinct values from 5 artifacts
+indexed 101 distinct values from 5 artifacts
 
-- **id:** `2df7050383de2842`
+- **id:** `24182eedce03f588`
 
 ### [INFO] venue.font
 
@@ -51,4 +51,12 @@ body font size correct
 - **found:** `9.96pt`
 - **expected:** 10.0pt
 - **id:** `4c59ff54d5e8d91e`
+
+### [INFO] venue.pagecount
+
+page count within limit
+
+- **found:** `11 body pages / 11 total`
+- **expected:** <= 13
+- **id:** `1f0cf72111de700b`
 

@@ -30,7 +30,7 @@ def _eval_worker(task: Tuple[str, Dict[str, Any]]) -> bool:
 
 def measure_merkle_scaling() -> List[Dict[str, Any]]:
     results = []
-    trace_counts = [10, 100, 1000, 10000, 100000]
+    trace_counts = [10, 100, 1000, 10000, 100000, 1000000]
 
     for count in trace_counts:
         traces = [
@@ -71,7 +71,7 @@ def measure_parallel_throughput() -> Dict[str, Any]:
     bundle = create_evidence_pack(use_ed25519=True, signed=True)
     b_dict = bundle.to_dict()
 
-    workers_list = [1, 2, 4, 8]
+    workers_list = [1, 2, 4, 8, 16]
     total_evals = 1000
     parallel_results = {}
 
