@@ -91,7 +91,7 @@ The primary technical and systems contributions of this work include:
 This section outlines the architectural foundation of EviAssure, defining its cryptographic boundary, formal security definitions, and threat model for autonomous agent release pipelines.
 
 \subsection{Hardware Enclave \& KMS Boundary}
-To defend against local runner compromise, EviAssure roots signing authority within a Hardware Security Module (HSM) or Cloud KMS boundary (\url{kms://aws/arn:aws:kms:us-east-1:000000000000:key/usenix-release-gate}). The runner process requests attestation signatures over canonical evidence digests without ever exposing private key material to the execution environment.
+To defend against local runner compromise, EviAssure roots signing authority within a Hardware Security Module (HSM) or Cloud KMS boundary (\url{kms://aws/arn:aws:kms:us-east-1:000000000000:key/usenix-release-gate}). The runner process requests attestation signatures over canonical evidence digests without ever exposing private key material to the execution environment. The research prototype signs locally with a pinned demo key; production deployments root the private half in the KMS/HSM, and the gate enforces the ARN boundary (\texttt{kms\_key\_arn\_pattern}) at verification time regardless of where signing occurred.
 
 \subsection{Formal Security Definitions}
 
@@ -115,7 +115,7 @@ The security model considers a powerful adversary $\mathcal{A}$ attempting to de
 
 \paragraph{Trust Model Boundaries.} EviAssure explicitly assumes that the underlying cryptographic primitives (Ed25519 and SHA-256) remain computationally intractable for PPT adversaries, and that the root Cloud KMS / HSM service faithfully enforces identity access control over private signing keys. Physical hardware side-channel attacks on HSM microchips, total subversion of the cloud provider's root KMS master keys, and host OS kernel hypervisor rootkits are explicitly considered out-of-scope for the release gate layer.
 
-We categorize $\mathcal{A}$'s in-scope capabilities into five distinct attack vectors:
+We categorize $\mathcal{A}$'s in-scope capabilities into five adversary capability classes:
 \begin{itemize}
     \item $\mathbf{\mathcal{A}_1}$ \textbf{(Runner \& Memory Trace Tampering)}: Modifying in-memory agent execution logs, altering action output hashes, or dropping failed execution steps to present a clean trace history. In an agentic setting, an attacker attempting to deploy a compromised model update might suppress execution traces recording unauthorized system shell commands or SQL table drop queries.
     \item $\mathbf{\mathcal{A}_2}$ \textbf{(Network \& Signature Forgery)}: Injecting forged cryptographic signatures, stripping signature fields, or signing evidence payloads with unauthorized key pairs. An adversary controlling a CI builder might strip Ed25519 signatures or sign payloads using arbitrary self-generated keys.
@@ -207,7 +207,10 @@ Release authorization in EviAssure is governed by a zero-trust policy engine (\t
 \subsection{Declarative Policy Governance Rules}
 A release policy specification $P$ defines strict quantitative safety thresholds and cryptographic verification conditions:
 \begin{equation}
-P = (P_{\text{min\_pass}}, P_{\text{max\_drift}}, P_{\text{min\_sigs}}, P_{\text{valid\_window}}, \mathcal{K}_{\text{rev}}, \mathcal{A}_{\text{KMS}})
+\begin{split}
+P = (\,P_{\text{min\_pass}},\ &P_{\text{max\_drift}}, P_{\text{min\_sigs}}, P_{\text{valid\_window}},\\
+&\mathcal{K}_{\text{trusted}}, \mathcal{K}_{\text{rev}}, \mathcal{A}_{\text{KMS}})
+\end{split}
 \end{equation}
 where:
 \begin{itemize}
@@ -215,6 +218,7 @@ where:
     \item $P_{\text{max\_drift}}$: Maximum allowable unresolved security drift findings (default: $0$).
     \item $P_{\text{min\_sigs}}$: Required threshold number of valid signatures from authorized keys (default: $K=1$).
     \item $P_{\text{valid\_window}}$: Evidence timestamp freshness validity window $\Delta T_{\text{max}} = 3,600\text{ s}$ ($1\text{ hour}$) with a maximum future clock skew tolerance of $\delta_{\text{skew}} = 30\text{ s}$.
+    \item $\mathcal{K}_{\text{trusted}}$: Trusted key registry pinning authorized signing key IDs to their Ed25519 public keys (\url{governance/trusted_keys.yaml}). Signature verification uses the pinned key, never a public key supplied inside a submitted bundle; unregistered key IDs are rejected.
     \item $\mathcal{K}_{\text{rev}}$: Key Revocation List (CRL) tracking compromised or deprecated key identifiers.
     \item $\mathcal{A}_{\text{KMS}}$: Required Cloud KMS or HSM key ARN boundary pattern matching.
 \end{itemize}
@@ -232,8 +236,10 @@ def evaluate_release_gate(E, P, K_rev, N_seen):
     # 1. Signature & Key Governance Verification
     valid_sigs = 0
     for s_entry in E.signatures:
-        if s_entry.key_id in K_rev:
-            continue
+        if s_entry.key_id in K_rev or s_entry.key_id not in K_trusted:
+            continue   # revoked or unregistered key
+        if s_entry.pub_key != K_trusted[s_entry.key_id]:
+            continue   # spoofed key_id under an attacker key
         if s_entry.kms_arn and not match_kms_arn(s_entry.kms_arn, P.kms_pattern):
             continue
         if verify_signature(s_entry):
@@ -281,7 +287,7 @@ The proof structures the security argument using a formal sequence of games $\te
     \begin{equation}
     |\text{Pr}[G_1] - \text{Pr}[G_2]| \le \text{Adv}_{\text{SHA256}}^{\text{coll}}(\mathcal{A})
     \end{equation}
-    \item $\mathbf{Game}_3$: Identical to $\text{Game}_2$, except the verifier aborts if $\mathcal{A}$ submits a replayed evidence nonce $N^* \in N_{\text{seen}}$. Since nonces are recorded in the state memory $N_{\text{seen}}$, the probability of reuse acceptance in $\text{Game}_3$ is identically zero.
+    \item $\mathbf{Game}_3$: Identical to $\text{Game}_2$, except the verifier aborts if $\mathcal{A}$ submits a replayed evidence nonce $N^* \in N_{\text{seen}}$. Nonces are recorded in the state memory $N_{\text{seen}}$ over the validity window, so the probability of within-window reuse acceptance in $\text{Game}_3$ is identically zero; replays after expiry are rejected by the freshness check of $\text{Game}_0$'s policy evaluation.
     \item $\mathbf{Game}_4$: Identical to $\text{Game}_3$, except the verifier aborts if $\mathcal{A}$ uses a revoked key $K^* \in \mathcal{K}_{\text{rev}}$ or an out-of-bounds KMS ARN. Rejection in $\text{Game}_4$ is deterministic.
 \end{itemize}
 Combining the game hops, the total advantage of adversary $\mathcal{A}$ is strictly bounded:
@@ -324,7 +330,7 @@ Performance evaluation was conducted across three operational dimensions: Merkle
 All measurements are wall-clock timings recorded by \url{scripts/run_release_benchmark.py} into \url{results/benchmark_summary.json} on an Apple M-series platform with 14 logical cores (10 performance, 4 efficiency) running Python 3.14.6. Each scaling point is a single-run measurement; per-worker throughput aggregates 1,000 policy evaluations; tamper vectors are evaluated once each~\cite{zheng2023judging, papernot2016cleverhans}.
 
 \subsection{Merkle Scaling up to \texorpdfstring{$N=1,000,000$}{N=1,000,000} Traces}
-Packaging latency and Merkle tree build time were evaluated as trace size increased from $N=10$ up to $N=1,000,000$. As shown in Figure~\ref{fig:scaling}, Merkle tree construction scales efficiently to 1,000,000 traces in $415.24\text{ ms}$ (and $\merkleBuildMs\text{ ms}$ for $N=100,000$), representing a negligible packaging overhead of \packagingOverhead\% compared to trace execution duration.
+Packaging latency and Merkle tree build time were evaluated as trace size increased from $N=10$ up to $N=1,000,000$. As shown in Figure~\ref{fig:scaling}, Merkle tree construction scales efficiently to 1,000,000 traces in $415.24\text{ ms}$ (and $\merkleBuildMs\text{ ms}$ for $N=100,000$), a packaging overhead of \packagingOverhead\% relative to trace execution duration under the benchmark's synthetic 1.5\text{ ms} per-step execution time.
 
 \begin{figure}[h]
 \centering
@@ -344,7 +350,7 @@ Verifier throughput was evaluated using a Python \texttt{ProcessPoolExecutor} ac
 \end{figure}
 
 \subsection{Sparse Merkle Inclusion Proof Compression \& Audit Latency}
-In enterprise release auditing, security reviewers frequently require verification of individual high-risk agent steps (e.g., database schema alterations or financial API calls) without re-processing full multi-gigabyte trace logs. EviAssure's $O(\log N)$ sparse Merkle inclusion proof generator extracts compact verification paths for target leaf indices. For $N=1,000,000$ traces (tree depth 21), proof path generation requires $0.009\text{ ms}$, yielding a 1.93 KB proof payload containing 20 SHA-256 node digests. Inclusion verification against root $R_M$ requires $0.010\text{ ms}$, a bandwidth reduction exceeding $99.99\%$ compared to full log transmission (1.93 KB vs.\ 220,705 KB).
+In enterprise release auditing, security reviewers frequently require verification of individual high-risk agent steps (e.g., database schema alterations or financial API calls) without re-processing full trace logs (220,705 KB at $N=1{,}000{,}000$). EviAssure's $O(\log N)$ sparse Merkle inclusion proof generator extracts compact verification paths for target leaf indices. For $N=1,000,000$ traces (tree depth 21), proof path generation requires $0.009\text{ ms}$, yielding a 1.93 KB proof payload containing 20 SHA-256 node digests. Inclusion verification against root $R_M$ requires $0.010\text{ ms}$, a bandwidth reduction exceeding $99.99\%$ compared to full log transmission (1.93 KB vs.\ 220,705 KB).
 
 \subsection{Salted Trace Parameter Blinding Performance}
 To evaluate the runtime overhead of privacy-preserving parameter blinding (\texttt{blind\_payload}), 10,000 execution traces containing sensitive prompt texts and PII strings were processed using keyed HMAC-SHA256 hashes with a 256-bit salt. Parameter blinding added $0.0015\text{ ms}$ of latency per trace record ($15.4\text{ ms}$ total for $N=10,000$), demonstrating that privacy protection imposes negligible performance overhead.
@@ -385,20 +391,20 @@ EviAssure achieved a 100.0\% fail-closed block rate (12/12 vectors successfully 
 \begin{itemize}
     \item \textbf{V1 (Unsigned Payload)}: Blocked by strict enforcement of \texttt{signed == true}.
     \item \textbf{V2 (Tampered Digest)}: Leaf modification causes Merkle root mismatch, triggering rejection.
-    \item \textbf{V3 (Forged Signature)}: Signing with unauthorized keypairs is blocked by public-key verification failure.
+    \item \textbf{V3 (Forged Signature)}: Bundles signed by attacker-generated keypairs are blocked by trusted-key-registry enforcement: unregistered key IDs are rejected, and spoofing a registered key ID fails the pinned-key comparison.
     \item \textbf{V4 (Replayed Nonce)}: Replayed nonces are identified against the verifier memory cache and rejected.
     \item \textbf{V5 (Expired Timestamp)}: Historical releases exceeding the 1-hour freshness window are rejected.
     \item \textbf{V6 (Unresolved Drift)}: Policy verification rejects bundles with non-zero security drift.
     \item \textbf{V7 (Sub-threshold Pass Rate)}: Rejects releases with unit test thresholds below 100.0\% (100/100).
     \item \textbf{V8 (Forged Merkle Root)}: Modifying the claimed Merkle root invalidates signature verification.
     \item \textbf{V9 (Revoked Key ID)}: Signing keys listed in the governance CRL are immediately blocked.
-    \item \textbf{V10 (JSON Malleability)}: Canonical JSON sorting prevents parameter injection attacks.
+    \item \textbf{V10 (JSON Malleability)}: Mutating signed fields after signing invalidates the signature, which covers the canonical JSON serialization of the policy-relevant payload.
     \item \textbf{V11 (Future Clock Skew)}: Rejects timestamps post-dated beyond 30 seconds into the future.
-    \item \textbf{V12 (Truncated Merkle Path)}: Path height verification prevents path truncation.
+    \item \textbf{V12 (Truncated Merkle Path)}: Removing traces changes the recomputed Merkle root, triggering a mismatch rejection.
 \end{itemize}
 
 \subsection{Comparative Deployment Gate Analysis}
-Figure~\ref{fig:comparative} compares EviAssure against standard CI exit code gates, OPA schema validators, and Sigstore/Cosign container gates. EviAssure achieves 100.0\% (12/12) detection, whereas standard CI gates block 0.0\% (0/12) and OPA/Sigstore block 25.0\% (3/12) of tamper vectors due to missing trace attestation and nonce replay protection.
+Figure~\ref{fig:comparative} compares EviAssure against standard CI exit code gates, OPA schema validators, and Sigstore/Cosign container gates. The baselines are modeled abstractions implemented in \url{scripts/run_comparative_eval.py} --- an unauthenticated exit-code check, an unsigned JSON schema check over pass rate and drift, and an artifact-signature-presence check --- capturing the assurances those gate types offer over an evidence payload; they are not executions of the production OPA or cosign binaries, and do not exercise those tools' full feature sets. Under these models, EviAssure achieves 100.0\% (12/12) detection, whereas standard CI gates block 0.0\% (0/12) and OPA/Sigstore block 25.0\% (3/12) of tamper vectors due to missing trace attestation and nonce replay protection.
 
 \begin{figure}[b]
 \centering
@@ -487,7 +493,7 @@ To comply with USENIX Security '27 Open Science guidelines while preserving doub
 To execute full reproduction of paper figures, benchmark results, and unit tests:
 \begin{enumerate}
     \item \textbf{Environment Setup}: Install dependencies via \texttt{pip install -e .} (Python $\ge 3.10$).
-    \item \textbf{Unit \& Integration Test Suite}: Run \texttt{pytest tests/ -v} to execute all 19 unit, integration, browser attestation, and tamper resilience tests.
+    \item \textbf{Unit \& Integration Test Suite}: Run \texttt{pytest tests/ -v} to execute all 25 unit, integration, browser attestation, trusted-key-registry, and tamper resilience tests.
     \item \textbf{Attestation Scaling \& Throughput Microbenchmarks}: Run \texttt{python3 scripts/run\_release\_benchmark.py} to generate \url{results/benchmark_summary.json}.
     \item \textbf{Adversarial Tamper Evaluation}: Run \texttt{python3 scripts/run\_comparative\_eval.py} to execute the 12-vector attack harness and produce \url{results/comparative_evaluation.json}.
     \item \textbf{Figure Generation \& Manuscript PDF Rebuilding}: Run \texttt{python3 scripts/generate\_paper\_pdf.py} to regenerate paper plots and recompile \url{docs/usenix_paper_manuscript.pdf}.

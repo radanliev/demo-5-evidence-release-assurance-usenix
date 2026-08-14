@@ -2,14 +2,14 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-14 21:11
+**Run:** 2026-08-14 21:21
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 7 |
+| MAJOR | 8 |
 | MINOR | 0 |
-| INFO | 5 |
+| INFO | 4 |
 
 Gated (human sign-off required): **7**
 
@@ -18,13 +18,26 @@ Gated (human sign-off required): **7**
 ```
 === USENIX Security Paper PDF Builder & Figure Generator ===
 [+] Benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
-[*] Froze headline metrics -> frozen_metrics.tex (throughput=5,129, overhead=0.122%)
+[*] Froze headline metrics -> frozen_metrics.tex (throughput=4,848, overhead=0.122%)
 [*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
 [SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
 
 [+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
 ```
 </details>
+
+## Auto-fix mandate
+
+The writer agent applies these directly. Formatting, layout, figures, references, venue compliance — no interpretation of results required.
+
+### [MAJOR] venue.pagecount
+
+paper is well under the 13-page budget
+
+- **found:** `8 body pages`
+- **expected:** competitive submissions use 11-13 pages
+- **remedy:** Expand evaluation, threat model, or related work; reviewers read a short paper as an underdeveloped one.
+- **id:** `6cfb9be7880c8171`
 
 ## Gated — requires your decision
 
@@ -112,9 +125,9 @@ rendered 0 page images for visual QA
 
 ### [INFO] science.artifact_missing
 
-indexed 112 distinct values from 5 artifacts
+indexed 110 distinct values from 5 artifacts
 
-- **id:** `0c0304182337223c`
+- **id:** `4bf7df5370c5beb4`
 
 ### [INFO] venue.font
 
@@ -123,12 +136,4 @@ body font size correct
 - **found:** `9.96pt`
 - **expected:** 10.0pt
 - **id:** `4c59ff54d5e8d91e`
-
-### [INFO] venue.pagecount
-
-page count within limit
-
-- **found:** `12 body pages / 12 total`
-- **expected:** <= 13
-- **id:** `1f0cf72111de700b`
 

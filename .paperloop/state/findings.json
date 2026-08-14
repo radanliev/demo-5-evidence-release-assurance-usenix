@@ -2,17 +2,17 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-14T21:11:38"
+    "generated": "2026-08-14T21:21:14"
   },
   "summary": {
     "total": 12,
     "by_severity": {
       "BLOCKER": 0,
-      "MAJOR": 7,
+      "MAJOR": 8,
       "MINOR": 0,
-      "INFO": 5
+      "INFO": 4
     },
-    "actionable": 7,
+    "actionable": 8,
     "gated_actionable": 7,
     "clean": false
   },
@@ -123,6 +123,21 @@
       "autofixable": false
     },
     {
+      "check": "venue",
+      "category": "venue.pagecount",
+      "severity": "MAJOR",
+      "message": "paper is well under the 13-page budget",
+      "file": null,
+      "line": null,
+      "page": null,
+      "evidence": "8 body pages",
+      "expected": "competitive submissions use 11-13 pages",
+      "remedy": "Expand evaluation, threat model, or related work; reviewers read a short paper as an underdeveloped one.",
+      "fingerprint": "6cfb9be7880c8171",
+      "gated": false,
+      "autofixable": true
+    },
+    {
       "check": "figures",
       "category": "figure.clipping",
       "severity": "INFO",
@@ -156,14 +171,14 @@
       "check": "science",
       "category": "science.artifact_missing",
       "severity": "INFO",
-      "message": "indexed 112 distinct values from 5 artifacts",
+      "message": "indexed 110 distinct values from 5 artifacts",
       "file": null,
       "line": null,
       "page": null,
       "evidence": null,
       "expected": null,
       "remedy": null,
-      "fingerprint": "0c0304182337223c",
+      "fingerprint": "4bf7df5370c5beb4",
       "gated": true,
       "autofixable": false
     },
@@ -179,21 +194,6 @@
       "expected": "10.0pt",
       "remedy": null,
       "fingerprint": "4c59ff54d5e8d91e",
-      "gated": false,
-      "autofixable": true
-    },
-    {
-      "check": "venue",
-      "category": "venue.pagecount",
-      "severity": "INFO",
-      "message": "page count within limit",
-      "file": null,
-      "line": null,
-      "page": null,
-      "evidence": "12 body pages / 12 total",
-      "expected": "<= 13",
-      "remedy": null,
-      "fingerprint": "1f0cf72111de700b",
       "gated": false,
       "autofixable": true
     }

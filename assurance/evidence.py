@@ -4,10 +4,13 @@ Evidence Bundle Schema, Ed25519/HMAC Attestations, Privacy Blinding, and Sparse 
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
+import base64
 import uuid
 import hmac
 import hashlib
 from typing import List, Dict, Any, Optional
+
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from .crypto import (
     hash_sha256,
@@ -26,8 +29,15 @@ from .crypto import (
 
 DEFAULT_SECRET_KEY = "usenix-security-2027-release-assurance-key"
 
-# Global demo Ed25519 keypair for seamless testing
-DEMO_PRIV_KEY, DEMO_PUB_KEY, DEMO_PUB_KEY_B64, DEMO_KEY_ID = generate_ed25519_keypair()
+# Static demo Ed25519 keypair (DEMO/TEST ONLY — never use in production).
+# Fixed so packager and verifier processes derive the same key; its public
+# half is pinned in governance/trusted_keys.yaml and nothing else is trusted.
+DEMO_PRIV_SEED = bytes.fromhex(
+    "d842fd18d672140d2cb1f725f5b72e79574461dbae1c80f16a986264fea4407e")
+DEMO_PRIV_KEY = Ed25519PrivateKey.from_private_bytes(DEMO_PRIV_SEED)
+DEMO_PUB_KEY = DEMO_PRIV_KEY.public_key()
+DEMO_PUB_KEY_B64 = base64.b64encode(DEMO_PUB_KEY.public_bytes_raw()).decode("utf-8")
+DEMO_KEY_ID = compute_key_id(DEMO_PUB_KEY_B64)
 
 
 @dataclass
