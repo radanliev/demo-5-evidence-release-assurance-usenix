@@ -1,3 +1,159 @@
 {
-  "_version": 1
+  "_version": 1,
+  "bellare1993random|10.1145/168588.168596|random oracles are practical  a paradigm for designing efficient protocols": {
+    "source": "crossref",
+    "doi": "10.1145/168588.168596",
+    "title": "Random oracles are practical: a paradigm for designing efficient protocols",
+    "year": 1993,
+    "container": "Proceedings of the 1st ACM conference on Computer and communications security  - CCS '93",
+    "type": "proceedings-article"
+  },
+  "bernstein2012high|10.1007/s13389-012-0027-1|high speed high security signatures": {
+    "source": "crossref",
+    "doi": "10.1007/s13389-012-0027-1",
+    "title": "High-speed high-security signatures",
+    "year": 2012,
+    "container": "Journal of Cryptographic Engineering",
+    "type": "journal-article"
+  },
+  "birgisson2014macaroons|10.14722/ndss.2014.23212|macaroons  cookies with contextual caveats for decentralized authorization in th": {
+    "source": "crossref",
+    "doi": "10.14722/ndss.2014.23212",
+    "title": "Macaroons: Cookies with Contextual Caveats for Decentralized Authorization in the Cloud",
+    "year": 2014,
+    "container": "Proceedings 2014 Network and Distributed System Security Symposium",
+    "type": "proceedings-article"
+  },
+  "boneh2001short|10.1007/3-540-45682-1_30|short signatures from the weil pairing": {
+    "source": "crossref",
+    "doi": "10.1007/3-540-45682-1_30",
+    "title": "Short Signatures from the Weil Pairing",
+    "year": 2001,
+    "container": "Lecture Notes in Computer Science",
+    "type": "book-chapter"
+  },
+  "cappos2008look|10.1145/1455770.1455841|a look in the mirror  attacks on package managers": {
+    "source": "crossref",
+    "doi": "10.1145/1455770.1455841",
+    "title": "A look in the mirror: attacks on package managers",
+    "year": 2008,
+    "container": "Proceedings of the 15th ACM conference on Computer and communications security",
+    "type": "proceedings-article"
+  },
+  "carlini2024poisoning|10.1109/SP54263.2024.00179|poisoning web scale training datasets is practical": {
+    "source": "crossref",
+    "doi": "10.1109/SP54263.2024.00179",
+    "title": "Poisoning Web-Scale Training Datasets is Practical",
+    "year": 2024,
+    "container": "2024 IEEE Symposium on Security and Privacy (SP)",
+    "type": "proceedings-article"
+  },
+  "duan2021towards|10.14722/ndss.2021.23055|towards measuring supply chain attacks on package managers for interpreted langu": {
+    "source": "crossref",
+    "doi": "10.14722/ndss.2021.23055",
+    "title": "Towards Measuring Supply Chain Attacks on Package Managers for Interpreted Languages",
+    "year": 2021,
+    "container": "Proceedings 2021 Network and Distributed System Security Symposium",
+    "type": "proceedings-article"
+  },
+  "greshake2023not|10.1145/3605764.3623985|not what you ve signed up for  compromising real world llm integrated applicatio": {
+    "source": "crossref",
+    "doi": "10.1145/3605764.3623985",
+    "title": "Not What You've Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection",
+    "year": 2023,
+    "container": "Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security",
+    "type": "proceedings-article"
+  },
+  "krawczyk1997hmac|10.17487/RFC2104|hmac  keyed hashing for message authentication": {
+    "source": "crossref",
+    "doi": "10.17487/RFC2104",
+    "title": "HMAC: Keyed-Hashing for Message Authentication",
+    "year": 1997,
+    "container": "",
+    "type": "report"
+  },
+  "kuppusamy2016tuf||diplomat  using delegations to protect community repositories": null,
+  "kyverno2022policy|10.5281/zenodo.6891024|kyverno  kubernetes native policy management engine": null,
+  "ladisa2023sok|10.1109/SP46215.2023.10179304|sok  taxonomy of attacks on open source software supply chains": {
+    "source": "crossref",
+    "doi": "10.1109/SP46215.2023.10179304",
+    "title": "SoK: Taxonomy of Attacks on Open-Source Software Supply Chains",
+    "year": 2023,
+    "container": "2023 IEEE Symposium on Security and Privacy (SP)",
+    "type": "proceedings-article"
+  },
+  "laurie2014certificate|10.17487/RFC6962|certificate transparency": {
+    "source": "crossref",
+    "doi": "10.17487/RFC6962",
+    "title": "Certificate Transparency",
+    "year": 2013,
+    "container": "",
+    "type": "report"
+  },
+  "melara2015coniks||coniks  bringing key transparency to end users": null,
+  "merkle1989digital|10.1007/0-387-34805-0_21|a certified digital signature": {
+    "source": "crossref",
+    "doi": "10.1007/0-387-34805-0_21",
+    "title": "A Certified Digital Signature",
+    "year": null,
+    "container": "Lecture Notes in Computer Science",
+    "type": "book-chapter"
+  },
+  "moore2023artemis|10.1145/3627106.3627129|artemis  defanging software supply chain attacks in multi repository update syst": {
+    "source": "crossref",
+    "doi": "10.1145/3627106.3627129",
+    "title": "Artemis: Defanging Software Supply Chain Attacks in Multi-repository Update Systems",
+    "year": 2023,
+    "container": "Annual Computer Security Applications Conference",
+    "type": "proceedings-article"
+  },
+  "okafor2022sok|10.1145/3560835.3564556|sok  analysis of software supply chain security by establishing secure design pr": {
+    "source": "crossref",
+    "doi": "10.1145/3560835.3564556",
+    "title": "SoK: Analysis of Software Supply Chain Security by Establishing Secure Design Properties",
+    "year": 2022,
+    "container": "Proceedings of the 2022 ACM Workshop on Software Supply Chain Offensive Research and Ecosystem Defenses",
+    "type": "proceedings-article"
+  },
+  "opa2021openpolicy|10.5281/zenodo.5562141|open policy agent  opa  declarative fine grained policy engine for cloud native ": null,
+  "papernot2016cleverhans|10.48550/arXiv.1610.00768|technical report on the cleverhans v1 0 0 adversarial examples library": null,
+  "samuel2010surviving|10.1145/1866307.1866315|survivable key compromise in software update systems": {
+    "source": "crossref",
+    "doi": "10.1145/1866307.1866315",
+    "title": "Survivable key compromise in software update systems",
+    "year": 2010,
+    "container": "Proceedings of the 17th ACM conference on Computer and communications security",
+    "type": "proceedings-article"
+  },
+  "schuster2021get||you autocomplete me  poisoning vulnerabilities in neural code completion systems": null,
+  "shostack2014threat|10.1002/9781118854488|threat modeling  designing for security": null,
+  "sigstore2022cosign|10.1145/3548606.3560596|sigstore  software signing for everybody": {
+    "source": "crossref",
+    "doi": "10.1145/3548606.3560596",
+    "title": "Sigstore: Software Signing for Everybody",
+    "year": 2022,
+    "container": "Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security",
+    "type": "proceedings-article"
+  },
+  "slsa2023supply|10.5281/zenodo.7845612|supply chain levels for software artifacts  slsa  framework specification": null,
+  "spiffe2020spire|10.5281/zenodo.4312091|spiffe and spire  universal workload identity for cloud native infrastructure": null,
+  "taly2011definitive|10.1109/SP.2011.39|automated analysis of security critical javascript apis": {
+    "source": "crossref",
+    "doi": "10.1109/SP.2011.39",
+    "title": "Automated Analysis of Security-Critical JavaScript APIs",
+    "year": 2011,
+    "container": "2011 IEEE Symposium on Security and Privacy",
+    "type": "proceedings-article"
+  },
+  "torres2019in-toto||in toto  providing farm to table guarantees for bits and bytes": null,
+  "yang2024swebench|10.48550/arXiv.2310.06770|swe bench  can language models resolve real world github issues": null,
+  "yao2023react|10.48550/arXiv.2210.03629|react  synergizing reasoning and acting in language models": null,
+  "zheng2023judging||judging llm as a judge with mt bench and chatbot arena": {
+    "source": "crossref",
+    "doi": "10.52202/075280-2020",
+    "title": "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena",
+    "year": 2023,
+    "container": "Advances in Neural Information Processing Systems 36",
+    "type": "proceedings-article"
+  }
 }

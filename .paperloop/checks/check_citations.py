@@ -149,12 +149,20 @@ def _field(blob: str, name: str) -> str | None:
 
 
 # ---------------------------------------------------------------------------
+def _crossref_title(m: dict) -> str:
+    """Crossref stores subtitles separately; a bib title that includes the
+    subtitle is the paper's full registered title, so join them."""
+    title = (m.get("title") or [""])[0]
+    sub = (m.get("subtitle") or [""])[0]
+    return f"{title}: {sub}" if sub else title
+
+
 def _lookup_doi(doi: str, mailto: str) -> dict | None:
     d = _get(f"{CROSSREF}/{urllib.parse.quote(doi)}", mailto)
     if d and d.get("message"):
         m = d["message"]
         return {"source": "crossref", "doi": doi,
-                "title": (m.get("title") or [""])[0],
+                "title": _crossref_title(m),
                 "year": (m.get("issued", {}).get("date-parts") or [[None]])[0][0],
                 "container": (m.get("container-title") or [""])[0],
                 "type": m.get("type", "")}
@@ -166,15 +174,18 @@ def _lookup_title(title: str, mailto: str) -> dict | None:
     d = _get(f"{CROSSREF}?query.bibliographic={q}&rows=3", mailto)
     if d:
         for it in d.get("message", {}).get("items", []):
-            cand = (it.get("title") or [""])[0]
+            cand = _crossref_title(it)
             if cand and _similar(cand, title) >= 0.87:
                 return {"source": "crossref", "doi": it.get("DOI", ""),
                         "title": cand,
                         "year": (it.get("issued", {}).get("date-parts") or [[None]])[0][0],
                         "container": (it.get("container-title") or [""])[0],
                         "type": it.get("type", "")}
-    # OpenAlex covers preprints and CS venues Crossref sometimes misses
-    d = _get(f"{OPENALEX}?filter=title.search:{q}&per-page=3", mailto)
+    # OpenAlex covers preprints and CS venues Crossref sometimes misses.
+    # Its search endpoint rejects some punctuation with HTTP 400, so strip it.
+    d = _get(f"{OPENALEX}?filter=title.search:"
+             f"{urllib.parse.quote(re.sub(r'[^\\w\\s-]', ' ', title[:250]))}&per-page=3",
+             mailto)
     if d:
         for it in d.get("results", []):
             cand = it.get("title") or it.get("display_name") or ""
