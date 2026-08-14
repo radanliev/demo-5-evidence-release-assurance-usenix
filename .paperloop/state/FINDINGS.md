@@ -2,29 +2,29 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-14 20:57
+**Run:** 2026-08-14 21:11
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 8 |
+| MAJOR | 7 |
 | MINOR | 0 |
 | INFO | 5 |
 
 Gated (human sign-off required): **7**
 
-## Auto-fix mandate
+<details><summary>Build output (tail)</summary>
 
-The writer agent applies these directly. Formatting, layout, figures, references, venue compliance — no interpretation of results required.
+```
+=== USENIX Security Paper PDF Builder & Figure Generator ===
+[+] Benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
+[*] Froze headline metrics -> frozen_metrics.tex (throughput=5,129, overhead=0.122%)
+[*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
+[SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
 
-### [MAJOR] venue.font p.7
-
-text below the minimum legible size (usually figure labels)
-
-- **found:** `sizes [4.55, 5.44] on pages [7, 9]`
-- **expected:** >= 6.0pt everywhere
-- **remedy:** Regenerate the affected figures with a larger base font rather than scaling the image down.
-- **id:** `cb0fb173de0a96fd`
+[+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
+```
+</details>
 
 ## Gated — requires your decision
 
@@ -112,9 +112,9 @@ rendered 0 page images for visual QA
 
 ### [INFO] science.artifact_missing
 
-indexed 101 distinct values from 5 artifacts
+indexed 112 distinct values from 5 artifacts
 
-- **id:** `24182eedce03f588`
+- **id:** `0c0304182337223c`
 
 ### [INFO] venue.font
 
@@ -128,7 +128,7 @@ body font size correct
 
 page count within limit
 
-- **found:** `11 body pages / 11 total`
+- **found:** `12 body pages / 12 total`
 - **expected:** <= 13
 - **id:** `1f0cf72111de700b`
 

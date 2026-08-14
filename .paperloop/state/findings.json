@@ -2,17 +2,17 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-14T20:57:49"
+    "generated": "2026-08-14T21:11:38"
   },
   "summary": {
-    "total": 13,
+    "total": 12,
     "by_severity": {
       "BLOCKER": 0,
-      "MAJOR": 8,
+      "MAJOR": 7,
       "MINOR": 0,
       "INFO": 5
     },
-    "actionable": 8,
+    "actionable": 7,
     "gated_actionable": 7,
     "clean": false
   },
@@ -123,21 +123,6 @@
       "autofixable": false
     },
     {
-      "check": "venue",
-      "category": "venue.font",
-      "severity": "MAJOR",
-      "message": "text below the minimum legible size (usually figure labels)",
-      "file": null,
-      "line": null,
-      "page": 7,
-      "evidence": "sizes [4.55, 5.44] on pages [7, 9]",
-      "expected": ">= 6.0pt everywhere",
-      "remedy": "Regenerate the affected figures with a larger base font rather than scaling the image down.",
-      "fingerprint": "cb0fb173de0a96fd",
-      "gated": false,
-      "autofixable": true
-    },
-    {
       "check": "figures",
       "category": "figure.clipping",
       "severity": "INFO",
@@ -171,14 +156,14 @@
       "check": "science",
       "category": "science.artifact_missing",
       "severity": "INFO",
-      "message": "indexed 101 distinct values from 5 artifacts",
+      "message": "indexed 112 distinct values from 5 artifacts",
       "file": null,
       "line": null,
       "page": null,
       "evidence": null,
       "expected": null,
       "remedy": null,
-      "fingerprint": "24182eedce03f588",
+      "fingerprint": "0c0304182337223c",
       "gated": true,
       "autofixable": false
     },
@@ -205,7 +190,7 @@
       "file": null,
       "line": null,
       "page": null,
-      "evidence": "11 body pages / 11 total",
+      "evidence": "12 body pages / 12 total",
       "expected": "<= 13",
       "remedy": null,
       "fingerprint": "1f0cf72111de700b",

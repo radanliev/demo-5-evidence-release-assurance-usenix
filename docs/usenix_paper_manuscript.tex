@@ -76,14 +76,14 @@ To address these critical vulnerabilities, EviAssure introduces an evidence-back
 \subsection{Key Contributions}
 The primary technical and systems contributions of this work include:
 \begin{enumerate}
-    \item \textbf{Cryptographic Trace Attestation Engine}: Formalization of an Ed25519 public-key signature scheme~\cite{bernstein2012high, boneh2001short} coupled with a SHA-256 Merkle tree aggregation protocol that condenses up to $N=1,000,000$ agent execution traces into a single immutable 64-byte root digest.
+    \item \textbf{Cryptographic Trace Attestation Engine}: Formalization of an Ed25519 public-key signature scheme~\cite{bernstein2012high, boneh2001short} coupled with a SHA-256 Merkle tree aggregation protocol that condenses up to $N=1,000,000$ agent execution traces into a single immutable 32-byte (256-bit) root digest.
     \item \textbf{Multi-Signature Threshold Gating}: Support for multi-signature attestation pipelines, enabling threshold verification policies (e.g., requiring valid signatures from at least $K$ out of $M$ authorized keys) before authorizing production deployments.
     \item \textbf{Salted Trace Parameter Blinding}: Introduction of a salted HMAC parameter blinding mode (\texttt{blind\_payload}) using keyed hashes~\cite{krawczyk1997hmac} to conceal sensitive prompt text, proprietary API inputs, and customer PII while preserving public Merkle inclusion auditability.
-    \item \textbf{Browser DOM \& Visual Attestation}: Extension of execution trace attestation to capture browser UI actions, canonical DOM state hashes ($\text{SHA256}(\text{DOM}_{\text{canonical}})$), and visual screenshot render digests ($\text{SHA256}(\text{PNG}_{\text{render}})$).
+    \item \textbf{Browser DOM \& Visual Attestation}: Extension of execution trace attestation to capture browser UI actions, DOM state hashes ($\text{SHA256}(\text{DOM}_{\text{serialized}})$), and screenshot render-reference digests ($\text{SHA256}(\text{render})$).
     \item \textbf{Supply Chain Envelope Compatibility}: Provision of full envelope formatting compatible with in-toto v0.2 and SLSA Provenance v1.0 specification standards~\cite{torres2019in-toto, slsa2023supply, sigstore2022cosign}.
     \item \textbf{Fail-Closed Zero-Trust Policy Engine}: Implementation of a zero-trust policy engine (\texttt{ReleasePolicyEngine}) that evaluates signed evidence packs against declarative governance specifications under a mandatory fail-closed default with Key Revocation List (CRL) and Hardware Security Module (KMS) key ARN enforcement~\cite{kuppusamy2016tuf, melara2015coniks, spiffe2020spire}.
     \item \textbf{Game-Based Formal Security Proofs}: Sequence-of-games security proofs establishing reduction to EUF-CMA in the Random Oracle Model~\cite{bellare1993random} and hash collision resistance.
-    \item \textbf{Corpus \& Forensic Infrastructure}: Delivery of a 1,050-profile multi-architecture agent trace corpus (\url{corpus/agent_trace_corpus.json}) with 50 adversarial anomaly variants and a CLI forensic inspection tool (\url{scripts/audit_trace_forensics.py}).
+    \item \textbf{Corpus \& Forensic Infrastructure}: Delivery of a 1,050-profile multi-architecture agent trace corpus (\url{corpus/agent_trace_corpus.json}) with 50 adversarial anomaly profiles spanning 10 distinct anomaly types, and a CLI forensic inspection tool (\url{scripts/audit_trace_forensics.py}).
     \item \textbf{Empirical Evaluation}: Comparative evaluation demonstrating a 100.0\% block rate for EviAssure versus 0.0\% for standard CI and 25.0\% for OPA/Sigstore across 12 adversarial tamper vectors.
 \end{enumerate}
 
@@ -138,7 +138,7 @@ For browser and UI agent steps, EviAssure extends attestation to capture DOM sta
 \begin{equation}
 T_{\text{UI},i} = (\text{id}_i, \text{agent}_i, \text{action}_i, \text{url}_i, \text{elem}_i, H_{\text{DOM},i}, H_{\text{screen},i})
 \end{equation}
-To prevent false-positive gate rejections caused by volatile web elements (e.g., dynamic CSRF tokens, ephemeral session IDs, or client-side timestamps), $H_{\text{DOM}}$ is computed over a canonicalized DOM tree ($\text{DOM}_{\text{canonical}}$). The canonicalizer strips volatile attribute selectors (\texttt{data-nonce}, \texttt{csrf-token}) and normalizes whitespace prior to SHA-256 hashing: $H_{\text{DOM},i} = \text{SHA256}(\text{DOM}_{\text{canonical}})$. Each trace record produces a canonical leaf digest $H_i = \text{SHA256}(T_i.\text{to\_hash}())$.
+$H_{\text{DOM}}$ is computed over the serialized DOM state of the rendered page, $H_{\text{DOM},i} = \text{SHA256}(\text{DOM}_{\text{serialized}})$: the specimen serializes the rendered document deterministically before hashing, so identical page states yield identical digests while any mutation (e.g., an injected modal dialog or altered form control) changes the digest. Each trace record produces a canonical leaf digest $H_i = \text{SHA256}(T_i.\text{to\_hash}())$.
 
 \subsection{Salted Trace Parameter Blinding Protocol}
 To protect proprietary prompt text, customer PII, or sensitive API parameters during public audit, EviAssure implements a keyed HMAC blinding mode (\texttt{blind\_payload}). Given raw output payload $P_i$ and salt $S \gets \{0,1\}^{256}$:
@@ -150,7 +150,7 @@ The blinded hash replaces raw payload strings in leaf construction while preserv
 \subsection{Merkle Trace Aggregation and Sparse Proof Compression}
 To attest $N$ execution traces without transmitting full raw logs to every gate request, EviAssure aggregates normalized trace digests into a SHA-256 Merkle tree~\cite{merkle1989digital, laurie2014certificate}. Each trace record $T_i$ maps to leaf digest $H_i$.
 
-For $N=1,000$ traces, transmitting raw trace logs requires 222.6 KB of storage, scaling to 220,705.03 KB for $N=1,000,000$ traces. EviAssure provides sparse Merkle proof compression, transmitting the 64-byte root $R_M$ and $O(\log N)$ inclusion proof paths $\pi_i$ for audited steps. 
+For $N=1,000$ traces, transmitting raw trace logs requires 222.6 KB of storage, scaling to 220,705.03 KB for $N=1,000,000$ traces. EviAssure provides sparse Merkle proof compression, transmitting the 32-byte root $R_M$ and $O(\log N)$ inclusion proof paths $\pi_i$ for audited steps. 
 
 Given proof path $\pi_i = \{(P_1, \text{pos}_1), \dots, (P_K, \text{pos}_K)\}$, inclusion is verified recursively by setting $C_0 = \text{SHA256}(H_i)$ and evaluating:
 \begin{equation}
@@ -300,7 +300,7 @@ To evaluate operational deployment feasibility, EviAssure was integrated into a 
 EviAssure was deployed as a production GitHub Action (\url{.github/actions/evidence-release-gate/action.yml}) and an in-toto v0.2 layout specification (\url{governance/intoto_layout.json}). Evaluation tested two primary agentic workflow specimens:
 \begin{enumerate}
     \item \textbf{Backend Multi-Step Workflow Specimen} (\url{specimens/agent_runner.py}): Simulates an autonomous operations agent executing JWT authentication claims, vector RAG document retrieval, and SQLite database sandbox operations.
-    \item \textbf{Browser UI Action Specimen} (\url{specimens/web_app_runner.py}): Simulates a web-browser autonomous agent executing page navigation, button clicks, DOM state hashing ($\text{SHA256}(\text{DOM}_{\text{canonical}})$), and visual screenshot render digests ($\text{SHA256}(\text{PNG}_{\text{render}})$).
+    \item \textbf{Browser UI Action Specimen} (\url{specimens/web_app_runner.py}): Simulates a web-browser autonomous agent executing page navigation, button clicks, DOM state hashing ($\text{SHA256}(\text{DOM}_{\text{serialized}})$), and screenshot render-reference digests ($\text{SHA256}(\text{render})$).
 \end{enumerate}
 
 \subsection{Production GitHub Action Architecture}
@@ -313,7 +313,7 @@ The production GitHub Action workflow integrates directly into automated PR chec
 \end{enumerate}
 
 \subsection{Expanded Agent Execution Trace Corpus (\texorpdfstring{$N=1,050$}{N=1,050})}
-A 1,050-profile benchmark corpus (\url{corpus/agent_trace_corpus.json}) was constructed across five representative agent architectures: CodeSynthesisAgent, MultiStepRAGAgent, DatabaseAdminAgent, FinancialAPIIntegratorAgent, and AutonomousWebScraperAgent. The corpus contains 50 distinct planted anomaly variants (e.g., indirect prompt injection, privilege escalation, unauthorized shell spawning, database drops, secret exfiltration, memory trace tampering, SSRF local network access, vector store poisoning, un-sandboxed process creation, and JSON key malleability). EviAssure successfully blocked 100.0\% (50/50) of anomaly trace profiles while allowing 1,000 clean trace profiles to pass policy verification.
+A 1,050-profile benchmark corpus (\url{corpus/agent_trace_corpus.json}) was constructed across five representative agent architectures: CodeSynthesisAgent, MultiStepRAGAgent, DatabaseAdminAgent, FinancialAPIIntegratorAgent, and AutonomousWebScraperAgent. Of these, 1,000 are clean profiles and 50 are anomalous, spanning 10 distinct planted anomaly types (indirect prompt injection, privilege escalation, unauthorized shell spawning, database drops, secret exfiltration, memory trace tampering, SSRF local network access, vector store poisoning, un-sandboxed process creation, and JSON key malleability) at five profiles per type. Every profile---clean and anomalous alike---packages into a signed bundle whose recomputed Merkle root matches its claimed root, and all 1,000 clean profiles pass policy verification. The planted anomalies are semantic (visible in trace action names and status fields) rather than cryptographic: because anomalous profiles remain well-formed signed bundles, they surface through per-leaf forensic inspection (Section~5.3) instead of the cryptographic gate, whose blocking behavior is measured over the 12 adversarial tamper vectors of Section~6.6.
 
 \subsection{CLI Forensic Inspection \& Audit Tool}
 To assist security incident response teams during post-incident investigations, EviAssure provides an offline forensic inspection utility (\url{scripts/audit_trace_forensics.py}). The forensic tool parses serialized \texttt{EvidenceBundle} files, reconstructs the full Merkle tree, verifies Ed25519 public key signatures against trusted CRL stores, and isolates specific leaf index anomalies. When presented with a tampered trace payload, the forensic tool pinpoints the exact leaf position $i$ and output hash mismatch, outputting structured JSON diagnostic reports for security operations center (SOC) ingestion.
@@ -321,10 +321,10 @@ To assist security incident response teams during post-incident investigations, 
 \section{Empirical Evaluation}
 Performance evaluation was conducted across three operational dimensions: Merkle tree scaling latency, multi-core verifier throughput, and adversarial tamper resilience across 12 attack vectors.
 
-All microbenchmarks were performed on an 8-core Apple M-series hardware platform running Python 3.13.5. Reported metrics represent mean values across 1,000 runs with standard error bounds $\pm 0.05\text{ ms}$~\cite{zheng2023judging, papernot2016cleverhans}.
+All measurements are wall-clock timings recorded by \url{scripts/run_release_benchmark.py} into \url{results/benchmark_summary.json} on an Apple M-series platform with 14 logical cores (10 performance, 4 efficiency) running Python 3.14.6. Each scaling point is a single-run measurement; per-worker throughput aggregates 1,000 policy evaluations; tamper vectors are evaluated once each~\cite{zheng2023judging, papernot2016cleverhans}.
 
 \subsection{Merkle Scaling up to \texorpdfstring{$N=1,000,000$}{N=1,000,000} Traces}
-Packaging latency and Merkle tree build time were evaluated as trace size increased from $N=10$ up to $N=1,000,000$. As shown in Figure~\ref{fig:scaling}, Merkle tree construction scales efficiently to 1,000,000 traces in $415.20\text{ ms}$ (and $38.13\text{ ms}$ for $N=100,000$), representing a negligible packaging overhead of \packagingOverhead\% compared to trace execution duration.
+Packaging latency and Merkle tree build time were evaluated as trace size increased from $N=10$ up to $N=1,000,000$. As shown in Figure~\ref{fig:scaling}, Merkle tree construction scales efficiently to 1,000,000 traces in $415.24\text{ ms}$ (and $\merkleBuildMs\text{ ms}$ for $N=100,000$), representing a negligible packaging overhead of \packagingOverhead\% compared to trace execution duration.
 
 \begin{figure}[h]
 \centering
@@ -334,7 +334,7 @@ Packaging latency and Merkle tree build time were evaluated as trace size increa
 \end{figure}
 
 \subsection{Multi-Core Parallel Verifier Throughput}
-Verifier throughput was evaluated using a Python \texttt{ProcessPoolExecutor} across 1, 2, 4, 8, and 16 worker cores over 1,000 evaluation requests. Figure~\ref{fig:throughput} demonstrates linear throughput scaling up to \peakThroughput{} operations/second on \peakWorkers{} cores.
+Verifier throughput was evaluated using a Python \texttt{ProcessPoolExecutor} across 1, 2, 4, 8, and 16 worker cores over 1,000 evaluation requests. Figure~\ref{fig:throughput} shows throughput rising to a peak of \peakThroughput{} operations/second at \peakWorkers{} workers ($3.7\times$ the single-worker rate) before declining at 16 workers, where worker processes oversubscribe the physical cores.
 
 \begin{figure}[b]
 \centering
@@ -344,42 +344,41 @@ Verifier throughput was evaluated using a Python \texttt{ProcessPoolExecutor} ac
 \end{figure}
 
 \subsection{Sparse Merkle Inclusion Proof Compression \& Audit Latency}
-In enterprise release auditing, security reviewers frequently require verification of individual high-risk agent steps (e.g., database schema alterations or financial API calls) without re-processing full multi-gigabyte trace logs. EviAssure's $O(\log N)$ sparse Merkle inclusion proof generator extracts compact verification paths for target leaf indices. For $N=1,000,000$ traces (tree depth 18), proof path generation requires $0.014\text{ ms}$, yielding a 1.2 KB proof payload containing 18 SHA-256 node digests. Inclusion verification against root $R_M$ requires $0.003\text{ ms}$, representing a $99.99\%$ bandwidth reduction compared to full log transmission.
+In enterprise release auditing, security reviewers frequently require verification of individual high-risk agent steps (e.g., database schema alterations or financial API calls) without re-processing full multi-gigabyte trace logs. EviAssure's $O(\log N)$ sparse Merkle inclusion proof generator extracts compact verification paths for target leaf indices. For $N=1,000,000$ traces (tree depth 21), proof path generation requires $0.009\text{ ms}$, yielding a 1.93 KB proof payload containing 20 SHA-256 node digests. Inclusion verification against root $R_M$ requires $0.010\text{ ms}$, a bandwidth reduction exceeding $99.99\%$ compared to full log transmission (1.93 KB vs.\ 220,705 KB).
 
 \subsection{Salted Trace Parameter Blinding Performance}
-To evaluate the runtime overhead of privacy-preserving parameter blinding (\texttt{blind\_payload}), 10,000 execution traces containing sensitive prompt texts and PII strings were processed using keyed HMAC-SHA256 hashes with a 256-bit salt. Parameter blinding added $0.018\text{ ms}$ of latency per trace record ($0.18\text{ s}$ total for $N=10,000$), demonstrating that privacy protection imposes negligible performance overhead.
+To evaluate the runtime overhead of privacy-preserving parameter blinding (\texttt{blind\_payload}), 10,000 execution traces containing sensitive prompt texts and PII strings were processed using keyed HMAC-SHA256 hashes with a 256-bit salt. Parameter blinding added $0.0015\text{ ms}$ of latency per trace record ($15.4\text{ ms}$ total for $N=10,000$), demonstrating that privacy protection imposes negligible performance overhead.
 
 \subsection{Browser UI DOM State \& Screenshot Render Attestation}
-Browser agent UI action attestation was evaluated across 1,000 automated web interaction sequences using \texttt{WebBrowserAgentSpecimen}. Canonical DOM HTML serialization and SHA-256 hashing ($\text{SHA256}(\text{DOM}_{\text{canonical}})$) averaged $0.14\text{ ms}$ per step. Visual screenshot PNG render hashing ($\text{SHA256}(\text{PNG}_{\text{render}})$) averaged $0.42\text{ ms}$ per frame. When an adversarial DOM mutation (e.g., injecting an unauthorized modal dialog) was introduced, the leaf digest mismatch triggered immediate fail-closed gate rejection (\texttt{BLOCKED}).
+Browser agent UI action attestation was evaluated across 1,000 automated web interaction steps using \texttt{WebBrowserAgentSpecimen}. SHA-256 hashing of the serialized DOM state averaged $0.0004\text{ ms}$ per step, and the screenshot render-reference digest ($\text{SHA256}(\text{render})$) averaged $0.0004\text{ ms}$ per step. When an adversarial DOM mutation (e.g., injecting an unauthorized modal dialog) is introduced, the altered page state changes $H_{\text{DOM}}$ and thus the leaf digest, and the resulting Merkle root mismatch triggers immediate fail-closed gate rejection (\texttt{BLOCKED}).
 
 \subsection{12-Vector Adversarial Tamper Resilience}
 Table~\ref{tab:tamper12} presents detailed security benchmark results across all 12 adversarial tamper vectors, mapping each attack vector to its failure category, expected action, and observed gate verdict.
 
 \begin{table}[b]
 \centering
-\small
 \caption{Adversarial Release Tamper Vector Benchmark Results.}
 \label{tab:tamper12}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lllcc}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lp{2.35cm}lcc@{}}
 \toprule
-\textbf{ID} \& \textbf{Attack Vector Name} \& \textbf{Category} \& \textbf{Result} \& \textbf{Status} \\
+\textbf{ID} & \textbf{Attack Vector} & \textbf{Cat.} & \textbf{Result} & \textbf{Status} \\
 \midrule
-V1 & Unsigned Evidence Payload & Auth & Blocked & PASS \\
+V1 & Unsigned Payload & Auth & Blocked & PASS \\
 V2 & Tampered Trace Digest & Integrity & Blocked & PASS \\
-V3 & Forged Signature & Authenticity & Blocked & PASS \\
-V4 & Replayed Evidence Nonce & Replay & Blocked & PASS \\
-V5 & Expired Timestamp & Freshness & Blocked & PASS \\
-V6 & Unresolved Security Drift & Policy & Blocked & PASS \\
+V3 & Forged Signature & Auth & Blocked & PASS \\
+V4 & Replayed Nonce & Replay & Blocked & PASS \\
+V5 & Expired Timestamp & Fresh & Blocked & PASS \\
+V6 & Unresolved Drift & Policy & Blocked & PASS \\
 V7 & Sub-threshold Pass Rate & Quality & Blocked & PASS \\
 V8 & Forged Merkle Root & Integrity & Blocked & PASS \\
-V9 & Revoked Key ID Usage & Key Gov & Blocked & PASS \\
-V10 & JSON Key Malleability & Serial & Blocked & PASS \\
-V11 & Future Clock Skew & Freshness & Blocked & PASS \\
+V9 & Revoked Key ID & Key Gov & Blocked & PASS \\
+V10 & JSON Malleability & Serial & Blocked & PASS \\
+V11 & Future Clock Skew & Fresh & Blocked & PASS \\
 V12 & Truncated Merkle Path & Integrity & Blocked & PASS \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table}
 
 EviAssure achieved a 100.0\% fail-closed block rate (12/12 vectors successfully blocked). The mitigation mechanics operate as follows:
@@ -412,7 +411,7 @@ Figure~\ref{fig:comparative} compares EviAssure against standard CI exit code ga
 Deploying EviAssure in production software engineering organizations involves balancing trade-offs between storage bandwidth, hardware enclave latencies, and nonce cache state management:
 
 \begin{enumerate}
-    \item \textbf{Storage vs. Audit Granularity}: Full raw trace retention for $N=1,000,000$ agent steps requires 220,705.03 KB per release. EviAssure's $O(\log N)$ sparse Merkle proof generator transmits 1.2 KB proof paths ($\sim 99.99\%$ storage reduction), enabling organizations to store lightweight inclusion proofs on-chain or in immutable ledger databases while archiving raw payloads to cold storage.
+    \item \textbf{Storage vs. Audit Granularity}: Full raw trace retention for $N=1,000,000$ agent steps requires 220,705.03 KB per release. EviAssure's $O(\log N)$ sparse Merkle proof generator transmits 1.93 KB proof paths ($\sim 99.999\%$ storage reduction), enabling organizations to store lightweight inclusion proofs on-chain or in immutable ledger databases while archiving raw payloads to cold storage.
     \item \textbf{Hardware Security Enclave Overhead}: Offloading Ed25519 signature generation to Cloud KMS or HSM endpoints introduces an additional network round-trip ($\approx 12\text{--}25\text{ ms}$ per signature call). To prevent CI pipeline bottlenecks, EviAssure batches evidence root digests into multi-signature calls or employs local worker process pools.
     \item \textbf{Stateful Nonce Cache Memory Footprint}: Replay protection requires the verifier engine to maintain a memory cache of active nonces $N_{\text{seen}}$ over the validity window $\Delta T_{\text{max}} = 3,600\text{ s}$. At a rate of 1,000 releases per second, storing $3.6 \times 10^6$ UUID nonces requires approximately 115 MB of RAM, representing a modest memory footprint for enterprise gateway nodes.
 \end{enumerate}
@@ -425,10 +424,11 @@ Table~\ref{tab:related_work} compares EviAssure against existing software supply
 \small
 \caption{Comparative analysis of EviAssure against existing software supply chain and policy gate frameworks.}
 \label{tab:related_work}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{lcccccc}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccc@{}}
 \toprule
-\textbf{Framework / System} \& \textbf{Trace Attestation} \& \textbf{Asymmetric Signing} \& \textbf{SLSA v1.0} \& \textbf{Fail-Closed} \& \textbf{Replay Protection} \& \textbf{Agent Specific} \\
+\textbf{System} & \textbf{Trace Attest.} & \textbf{Asym. Signing} & \textbf{SLSA v1.0} & \textbf{Fail-Closed} & \textbf{Replay Prot.} & \textbf{Agent-Spec.} \\
 \midrule
 SLSA Framework~\cite{slsa2023supply} & Baseline & Yes & Yes & Manual & Partial & No \\
 in-toto~\cite{torres2019in-toto} & Step-level & Yes & Partial & Manual & No & No \\
@@ -438,10 +438,9 @@ Kyverno Policy Engine~\cite{kyverno2022policy} & No & Cosign & No & Enforced & N
 Macaroons Authorization~\cite{birgisson2014macaroons} & Dynamic & HMAC & No & Enforced & Token & No \\
 SPIFFE / SPIRE Workload ID~\cite{spiffe2020spire} & Identity & X.509 & No & Enforced & Short TTL & No \\
 Static Security Analysis~\cite{taly2011definitive} & Model-based & No & No & Static & No & No \\
-\textbf{EviAssure (Evidence Assurance)} \& \textbf{Merkle Tree ($N{=}1\text{M}$)} \& \textbf{Ed25519} \& \textbf{Full Envelope} \& \textbf{Fail-Closed} \& \textbf{Nonce + Timestamp} \& \textbf{Yes (Agent Traces)} \\
+\textbf{EviAssure} & \textbf{Merkle ($N{=}1$M)} & \textbf{Ed25519} & \textbf{Full Envelope} & \textbf{Fail-Closed} & \textbf{Nonce+Time} & \textbf{Yes} \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabular}
 \end{table*}
 
 \subsection{Software Supply Chain Security Frameworks}
@@ -469,7 +468,7 @@ Autonomous software agents frequently process confidential prompt texts, custome
 By enforcing a strict zero-trust fail-closed release gate, EviAssure provides immediate security benefits for organizations deploying autonomous agents into production. It prevents compromised runner environments or indirect prompt injection vulnerabilities from bypassing deployment safety gates, thereby reducing the systemic risk of unauthorized AI agent deployments in critical infrastructure.
 
 \section{Conclusion}
-This paper presented EviAssure, a fail-closed evidence-backed release assurance architecture for autonomous agent deployments. By coupling SHA-256 Merkle trace attestation with Ed25519 digital signatures and zero-trust policy verification, EviAssure eliminates unauthenticated release signals. The empirical evaluation confirms a 100.0\% (12/12) block rate across 12 tamper attack vectors with high multi-core parallel throughput ($>5,850$ ops/sec).
+This paper presented EviAssure, a fail-closed evidence-backed release assurance architecture for autonomous agent deployments. By coupling SHA-256 Merkle trace attestation with Ed25519 digital signatures and zero-trust policy verification, EviAssure eliminates unauthenticated release signals. The empirical evaluation confirms a 100.0\% (12/12) block rate across 12 tamper attack vectors with multi-core parallel throughput peaking at \peakThroughput{} ops/sec.
 
 \bibliographystyle{plain}
 \bibliography{references}
