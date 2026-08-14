@@ -72,7 +72,14 @@
     "container": "",
     "type": "report"
   },
-  "kuppusamy2016tuf||diplomat  using delegations to protect community repositories": null,
+  "kuppusamy2016tuf||diplomat  using delegations to protect community repositories": {
+    "source": "openalex",
+    "doi": "",
+    "title": "Diplomat: using delegations to protect community repositories",
+    "year": 2016,
+    "container": "Networked Systems Design and Implementation",
+    "type": "article"
+  },
   "kyverno2022policy|10.5281/zenodo.6891024|kyverno  kubernetes native policy management engine": null,
   "ladisa2023sok|10.1109/SP46215.2023.10179304|sok  taxonomy of attacks on open source software supply chains": {
     "source": "crossref",
@@ -90,7 +97,14 @@
     "container": "",
     "type": "report"
   },
-  "melara2015coniks||coniks  bringing key transparency to end users": null,
+  "melara2015coniks||coniks  bringing key transparency to end users": {
+    "source": "openalex",
+    "doi": "",
+    "title": "CONIKS: Bringing Key Transparency to End Users",
+    "year": 2014,
+    "container": "",
+    "type": "article"
+  },
   "merkle1989digital|10.1007/0-387-34805-0_21|a certified digital signature": {
     "source": "crossref",
     "doi": "10.1007/0-387-34805-0_21",
@@ -125,8 +139,22 @@
     "container": "Proceedings of the 17th ACM conference on Computer and communications security",
     "type": "proceedings-article"
   },
-  "schuster2021get||you autocomplete me  poisoning vulnerabilities in neural code completion systems": null,
-  "shostack2014threat|10.1002/9781118854488|threat modeling  designing for security": null,
+  "schuster2021get||you autocomplete me  poisoning vulnerabilities in neural code completion systems": {
+    "source": "openalex",
+    "doi": "",
+    "title": "You Autocomplete Me: Poisoning Vulnerabilities in Neural Code Completion",
+    "year": 2021,
+    "container": "arXiv (Cornell University)",
+    "type": "preprint"
+  },
+  "shostack2014threat|10.1002/9781118854488|threat modeling  designing for security": {
+    "source": "openalex",
+    "doi": "",
+    "title": "Threat Modeling: Designing for Security",
+    "year": 2014,
+    "container": "",
+    "type": "other"
+  },
   "sigstore2022cosign|10.1145/3548606.3560596|sigstore  software signing for everybody": {
     "source": "crossref",
     "doi": "10.1145/3548606.3560596",
@@ -145,7 +173,14 @@
     "container": "2011 IEEE Symposium on Security and Privacy",
     "type": "proceedings-article"
   },
-  "torres2019in-toto||in toto  providing farm to table guarantees for bits and bytes": null,
+  "torres2019in-toto||in toto  providing farm to table guarantees for bits and bytes": {
+    "source": "openalex",
+    "doi": "",
+    "title": "in-toto: Providing farm-to-table guarantees for bits and bytes",
+    "year": 2019,
+    "container": "USENIX Security Symposium",
+    "type": "conference-paper"
+  },
   "yang2024swebench|10.48550/arXiv.2310.06770|swe bench  can language models resolve real world github issues": null,
   "yao2023react|10.48550/arXiv.2210.03629|react  synergizing reasoning and acting in language models": null,
   "zheng2023judging||judging llm as a judge with mt bench and chatbot arena": {

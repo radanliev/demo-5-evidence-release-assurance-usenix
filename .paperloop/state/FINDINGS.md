@@ -2,29 +2,16 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-14 20:47
+**Run:** 2026-08-14 20:57
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 13 |
-| MINOR | 1 |
+| MAJOR | 8 |
+| MINOR | 0 |
 | INFO | 5 |
 
-Gated (human sign-off required): **12**
-
-<details><summary>Build output (tail)</summary>
-
-```
-=== USENIX Security Paper PDF Builder & Figure Generator ===
-[!] Warning: Figure generation error (No module named 'matplotlib')
-[*] Froze headline metrics -> frozen_metrics.tex (throughput=5,919, overhead=0.116%)
-[*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
-[SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-
-[+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-```
-</details>
+Gated (human sign-off required): **7**
 
 ## Auto-fix mandate
 
@@ -43,15 +30,6 @@ text below the minimum legible size (usually figure labels)
 
 **The writer agent must not touch these.** Changing a number to make a gate pass converts a data error into a published claim. Each one gets a proposed diff in `.paperloop/state/proposals/`, and the loop halts.
 
-### [MAJOR] refs.unverified `docs/references.bib`:1
-
-citation 'torres2019in-toto' does not resolve in Crossref or OpenAlex
-
-- **found:** `"in-toto: Providing Farm-to-Table Guarantees for Bits and Bytes"`
-- **expected:** a work that exists in at least one bibliographic database
-- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `92552274018f00cb`
-
 ### [MAJOR] refs.unverified `docs/references.bib`:9
 
 citation 'slsa2023supply' does not resolve in Crossref or OpenAlex
@@ -69,24 +47,6 @@ citation 'yang2024swebench' does not resolve in Crossref or OpenAlex
 - **expected:** a work that exists in at least one bibliographic database
 - **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
 - **id:** `86e7d1290795c829`
-
-### [MAJOR] refs.unverified `docs/references.bib`:43
-
-citation 'kuppusamy2016tuf' does not resolve in Crossref or OpenAlex
-
-- **found:** `"Diplomat: Using Delegations to Protect Community Repositories"`
-- **expected:** a work that exists in at least one bibliographic database
-- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `26c6f588dc8c98a7`
-
-### [MAJOR] refs.unverified `docs/references.bib`:58
-
-citation 'melara2015coniks' does not resolve in Crossref or OpenAlex
-
-- **found:** `"CONIKS: Bringing Key Transparency to End Users"`
-- **expected:** a work that exists in at least one bibliographic database
-- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `f4ddb266bf6c945a`
 
 ### [MAJOR] refs.unverified `docs/references.bib`:82
 
@@ -124,15 +84,6 @@ citation 'papernot2016cleverhans' does not resolve in Crossref or OpenAlex
 - **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
 - **id:** `d8eeeb1a1846e886`
 
-### [MAJOR] refs.unverified `docs/references.bib`:170
-
-citation 'shostack2014threat' does not resolve in Crossref or OpenAlex
-
-- **found:** `"Threat Modeling: Designing for Security"`
-- **expected:** a work that exists in at least one bibliographic database
-- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `b2df5be6ba344ba0`
-
 ### [MAJOR] refs.unverified `docs/references.bib`:198
 
 citation 'yao2023react' does not resolve in Crossref or OpenAlex
@@ -141,23 +92,6 @@ citation 'yao2023react' does not resolve in Crossref or OpenAlex
 - **expected:** a work that exists in at least one bibliographic database
 - **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
 - **id:** `4d3e85e71bd7e905`
-
-### [MAJOR] refs.unverified `docs/references.bib`:215
-
-citation 'schuster2021get' does not resolve in Crossref or OpenAlex
-
-- **found:** `"You Autocomplete Me: Poisoning Vulnerabilities in Neural Code Completion Systems"`
-- **expected:** a work that exists in at least one bibliographic database
-- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `de82ade66f89b4a4`
-
-### [MINOR] refs.unverified
-
-no OPENALEX_API_KEY — OpenAlex has required a key for all requests since 2026-02-13, so only Crossref is being queried
-
-- **expected:** OPENALEX_API_KEY set
-- **remedy:** Free key at https://openalex.org/settings/api, then ./set-key.sh OPENALEX_API_KEY. Crossref alone misses preprints and some CS venues, so coverage is reduced.
-- **id:** `be8cdebd995d03f9`
 
 ## Measurements
 
@@ -172,9 +106,9 @@ rendered 0 page images for visual QA
 
 ### [INFO] refs.unverified
 
-18 citation(s) verified against Crossref/OpenAlex, 12 unresolved
+23 citation(s) verified against Crossref/OpenAlex, 7 unresolved
 
-- **id:** `02fdf995b41099d9`
+- **id:** `baa069333e2380e4`
 
 ### [INFO] science.artifact_missing
 

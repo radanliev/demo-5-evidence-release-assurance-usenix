@@ -2,36 +2,21 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-14T20:47:19"
+    "generated": "2026-08-14T20:57:49"
   },
   "summary": {
-    "total": 19,
+    "total": 13,
     "by_severity": {
       "BLOCKER": 0,
-      "MAJOR": 13,
-      "MINOR": 1,
+      "MAJOR": 8,
+      "MINOR": 0,
       "INFO": 5
     },
-    "actionable": 14,
-    "gated_actionable": 12,
+    "actionable": 8,
+    "gated_actionable": 7,
     "clean": false
   },
   "findings": [
-    {
-      "check": "citations",
-      "category": "refs.unverified",
-      "severity": "MAJOR",
-      "message": "citation 'torres2019in-toto' does not resolve in Crossref or OpenAlex",
-      "file": "docs/references.bib",
-      "line": 1,
-      "page": null,
-      "evidence": "\"in-toto: Providing Farm-to-Table Guarantees for Bits and Bytes\"",
-      "expected": "a work that exists in at least one bibliographic database",
-      "remedy": "Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation \u2014 check the authors, year and venue against the publisher's page, or remove it.",
-      "fingerprint": "92552274018f00cb",
-      "gated": true,
-      "autofixable": false
-    },
     {
       "check": "citations",
       "category": "refs.unverified",
@@ -59,36 +44,6 @@
       "expected": "a work that exists in at least one bibliographic database",
       "remedy": "Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation \u2014 check the authors, year and venue against the publisher's page, or remove it.",
       "fingerprint": "86e7d1290795c829",
-      "gated": true,
-      "autofixable": false
-    },
-    {
-      "check": "citations",
-      "category": "refs.unverified",
-      "severity": "MAJOR",
-      "message": "citation 'kuppusamy2016tuf' does not resolve in Crossref or OpenAlex",
-      "file": "docs/references.bib",
-      "line": 43,
-      "page": null,
-      "evidence": "\"Diplomat: Using Delegations to Protect Community Repositories\"",
-      "expected": "a work that exists in at least one bibliographic database",
-      "remedy": "Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation \u2014 check the authors, year and venue against the publisher's page, or remove it.",
-      "fingerprint": "26c6f588dc8c98a7",
-      "gated": true,
-      "autofixable": false
-    },
-    {
-      "check": "citations",
-      "category": "refs.unverified",
-      "severity": "MAJOR",
-      "message": "citation 'melara2015coniks' does not resolve in Crossref or OpenAlex",
-      "file": "docs/references.bib",
-      "line": 58,
-      "page": null,
-      "evidence": "\"CONIKS: Bringing Key Transparency to End Users\"",
-      "expected": "a work that exists in at least one bibliographic database",
-      "remedy": "Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation \u2014 check the authors, year and venue against the publisher's page, or remove it.",
-      "fingerprint": "f4ddb266bf6c945a",
       "gated": true,
       "autofixable": false
     },
@@ -156,21 +111,6 @@
       "check": "citations",
       "category": "refs.unverified",
       "severity": "MAJOR",
-      "message": "citation 'shostack2014threat' does not resolve in Crossref or OpenAlex",
-      "file": "docs/references.bib",
-      "line": 170,
-      "page": null,
-      "evidence": "\"Threat Modeling: Designing for Security\"",
-      "expected": "a work that exists in at least one bibliographic database",
-      "remedy": "Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation \u2014 check the authors, year and venue against the publisher's page, or remove it.",
-      "fingerprint": "b2df5be6ba344ba0",
-      "gated": true,
-      "autofixable": false
-    },
-    {
-      "check": "citations",
-      "category": "refs.unverified",
-      "severity": "MAJOR",
       "message": "citation 'yao2023react' does not resolve in Crossref or OpenAlex",
       "file": "docs/references.bib",
       "line": 198,
@@ -179,21 +119,6 @@
       "expected": "a work that exists in at least one bibliographic database",
       "remedy": "Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation \u2014 check the authors, year and venue against the publisher's page, or remove it.",
       "fingerprint": "4d3e85e71bd7e905",
-      "gated": true,
-      "autofixable": false
-    },
-    {
-      "check": "citations",
-      "category": "refs.unverified",
-      "severity": "MAJOR",
-      "message": "citation 'schuster2021get' does not resolve in Crossref or OpenAlex",
-      "file": "docs/references.bib",
-      "line": 215,
-      "page": null,
-      "evidence": "\"You Autocomplete Me: Poisoning Vulnerabilities in Neural Code Completion Systems\"",
-      "expected": "a work that exists in at least one bibliographic database",
-      "remedy": "Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation \u2014 check the authors, year and venue against the publisher's page, or remove it.",
-      "fingerprint": "de82ade66f89b4a4",
       "gated": true,
       "autofixable": false
     },
@@ -211,21 +136,6 @@
       "fingerprint": "cb0fb173de0a96fd",
       "gated": false,
       "autofixable": true
-    },
-    {
-      "check": "citations",
-      "category": "refs.unverified",
-      "severity": "MINOR",
-      "message": "no OPENALEX_API_KEY \u2014 OpenAlex has required a key for all requests since 2026-02-13, so only Crossref is being queried",
-      "file": null,
-      "line": null,
-      "page": null,
-      "evidence": null,
-      "expected": "OPENALEX_API_KEY set",
-      "remedy": "Free key at https://openalex.org/settings/api, then ./set-key.sh OPENALEX_API_KEY. Crossref alone misses preprints and some CS venues, so coverage is reduced.",
-      "fingerprint": "be8cdebd995d03f9",
-      "gated": true,
-      "autofixable": false
     },
     {
       "check": "figures",
@@ -246,14 +156,14 @@
       "check": "citations",
       "category": "refs.unverified",
       "severity": "INFO",
-      "message": "18 citation(s) verified against Crossref/OpenAlex, 12 unresolved",
+      "message": "23 citation(s) verified against Crossref/OpenAlex, 7 unresolved",
       "file": null,
       "line": null,
       "page": null,
       "evidence": null,
       "expected": null,
       "remedy": null,
-      "fingerprint": "02fdf995b41099d9",
+      "fingerprint": "baa069333e2380e4",
       "gated": true,
       "autofixable": false
     },

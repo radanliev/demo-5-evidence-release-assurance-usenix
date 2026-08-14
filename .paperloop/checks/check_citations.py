@@ -182,10 +182,17 @@ def _lookup_title(title: str, mailto: str) -> dict | None:
                         "container": (it.get("container-title") or [""])[0],
                         "type": it.get("type", "")}
     # OpenAlex covers preprints and CS venues Crossref sometimes misses.
-    # Its search endpoint rejects some punctuation with HTTP 400, so strip it.
-    d = _get(f"{OPENALEX}?filter=title.search:"
-             f"{urllib.parse.quote(re.sub(r'[^\\w\\s-]', ' ', title[:250]))}&per-page=3",
-             mailto)
+    # Its search endpoint rejects some punctuation with HTTP 400, and
+    # title.search ANDs tokens — one word missing from its (sometimes
+    # truncated) record title kills the match. So retry on the leading
+    # words; the >=0.87 similarity check below still guards the result.
+    clean = re.sub(r"\s+", " ", re.sub(r"[^\w\s-]", " ", title[:250])).strip()
+    d = None
+    for query in (clean, " ".join(clean.split()[:8])):
+        d = _get(f"{OPENALEX}?filter=title.search:{urllib.parse.quote(query)}&per-page=3",
+                 mailto)
+        if d and d.get("results"):
+            break
     if d:
         for it in d.get("results", []):
             cand = it.get("title") or it.get("display_name") or ""
