@@ -193,6 +193,10 @@ class EvidenceBundle:
                 p_copy["kms_key_arn"] = sig_entry.get("kms_key_arn")
 
                 if alg == "ed25519" and pk:
+                    # Self-consistency only (does this signature match this
+                    # bundle's own key?). Authentication against the trusted
+                    # registry happens in ReleasePolicyEngine/ForensicAuditEngine.
+                    # nosemgrep: verifier-trusts-payload-supplied-key
                     if verify_signature_ed25519(p_copy, s, pk):
                         valid_count += 1
                 else:
