@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
 Empirical Release Assurance Benchmark Runner for USENIX Security 2027.
-Measures packaging latency, multi-process verifier throughput, 100K Merkle scaling, and 12-vector tamper resilience.
+Measures packaging latency, multi-process verifier throughput, Merkle scaling,
+sparse inclusion proof costs, blinding overhead, UI attestation hashing costs,
+and 12-vector tamper resilience.
 """
 
 import sys
@@ -15,7 +17,7 @@ from typing import Dict, Any, List, Tuple
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from assurance.evidence import create_evidence_pack, ExecutionTraceRecord, DEFAULT_SECRET_KEY
-from assurance.crypto import hash_sha256, build_merkle_tree
+from assurance.crypto import hash_sha256, build_merkle_tree, generate_merkle_proof, verify_merkle_proof
 from assurance.policy import ReleasePolicyEngine
 from benchmark.tamper_vectors import generate_tampered_evidence_suite
 
@@ -30,7 +32,7 @@ def _eval_worker(task: Tuple[str, Dict[str, Any]]) -> bool:
 
 def measure_merkle_scaling() -> List[Dict[str, Any]]:
     results = []
-    trace_counts = [10, 100, 1000, 10000, 100000]
+    trace_counts = [10, 100, 1000, 10000, 100000, 1000000]
 
     for count in trace_counts:
         traces = [
@@ -71,7 +73,7 @@ def measure_parallel_throughput() -> Dict[str, Any]:
     bundle = create_evidence_pack(use_ed25519=True, signed=True)
     b_dict = bundle.to_dict()
 
-    workers_list = [1, 2, 4, 8]
+    workers_list = [1, 2, 4, 8, 16]
     total_evals = 1000
     parallel_results = {}
 
@@ -94,6 +96,88 @@ def measure_parallel_throughput() -> Dict[str, Any]:
         }
 
     return parallel_results
+
+
+def measure_sparse_proof(n_traces: int = 1_000_000) -> Dict[str, Any]:
+    """Sparse Merkle inclusion proof generation/verification cost at scale."""
+    traces = [
+        ExecutionTraceRecord(
+            trace_id=f"TR-{i:06d}", agent_id="agent-worker", action="execute_step",
+            status="SUCCESS", duration_ms=1.5, output_hash=hash_sha256(f"OUTPUT_{i}")
+        )
+        for i in range(n_traces)
+    ]
+    leaves = [t.to_hash() for t in traces]
+    root, levels = build_merkle_tree(leaves)
+
+    gen_ms, ver_ms, sizes_kb = [], [], []
+    for idx in (0, n_traces // 2, n_traces - 1):
+        t0 = time.perf_counter()
+        proof = generate_merkle_proof(idx, levels)
+        gen_ms.append((time.perf_counter() - t0) * 1000.0)
+
+        t0 = time.perf_counter()
+        ok = verify_merkle_proof(leaves[idx], proof, root)
+        ver_ms.append((time.perf_counter() - t0) * 1000.0)
+        assert ok, "inclusion proof failed verification"
+
+        sizes_kb.append(len(json.dumps(proof)) / 1024.0)
+
+    return {
+        "trace_count": n_traces,
+        "tree_depth": len(levels),
+        "proof_nodes": len(proof),
+        "proof_size_kb": round(statistics.mean(sizes_kb), 3),
+        "gen_latency_ms": round(statistics.mean(gen_ms), 4),
+        "verify_latency_ms": round(statistics.mean(ver_ms), 4),
+    }
+
+
+def measure_blinding_overhead(n_traces: int = 10_000) -> Dict[str, Any]:
+    """Per-record cost of salted HMAC parameter blinding (blind_payload)."""
+    salt = "s" * 32
+    records = [
+        ExecutionTraceRecord(
+            trace_id=f"T{i}", agent_id="agent-worker", action="execute_step",
+            status="SUCCESS", duration_ms=1.0, output_hash=hash_sha256(f"PII_PAYLOAD_{i}")
+        )
+        for i in range(n_traces)
+    ]
+    t0 = time.perf_counter()
+    blinded = [r.blind_payload(salt) for r in records]
+    total_ms = (time.perf_counter() - t0) * 1000.0
+    assert all(r.output_hash.startswith("BLINDED-") for r in blinded)
+
+    return {
+        "trace_count": n_traces,
+        "total_ms": round(total_ms, 2),
+        "per_record_ms": round(total_ms / n_traces, 5),
+    }
+
+
+def measure_ui_attestation_hashing(n_steps: int = 1_000) -> Dict[str, Any]:
+    """Cost of the DOM serialization digest and screenshot digest per UI step.
+
+    Mirrors specimens/web_app_runner.py: deterministic HTML serialization is
+    SHA-256 hashed for DOM state, and the screenshot digest is computed over
+    the canonical render reference string.
+    """
+    t0 = time.perf_counter()
+    for i in range(n_steps):
+        dom = f"<html><body><div id='app'>Dashboard Loaded for https://app/{i}</div></body></html>"
+        hash_sha256(dom)
+    dom_ms_per_step = ((time.perf_counter() - t0) * 1000.0) / n_steps
+
+    t0 = time.perf_counter()
+    for i in range(n_steps):
+        hash_sha256(f"SCREENSHOT_PNG_CLICK_btn-{i}")
+    shot_ms_per_step = ((time.perf_counter() - t0) * 1000.0) / n_steps
+
+    return {
+        "ui_steps": n_steps,
+        "dom_hash_ms_per_step": round(dom_ms_per_step, 5),
+        "screenshot_digest_ms_per_step": round(shot_ms_per_step, 5),
+    }
 
 
 def evaluate_tamper_resilience() -> Dict[str, Any]:
@@ -154,7 +238,16 @@ def main():
     for k, v in parallel_throughput.items():
         print(f"   Workers: {v['num_workers']:2d} | Total Evals: {v['total_evaluations']} | Time: {v['elapsed_seconds']}s | Throughput: {v['throughput_ops_sec']} ops/sec")
 
-    print("\n3. Evaluating 12-Vector Adversarial Release Tamper Resilience Suite...")
+    print("\n3. Measuring Sparse Merkle Inclusion Proof Costs (N=1,000,000)...")
+    sparse_proof = measure_sparse_proof()
+
+    print("\n4. Measuring Salted Parameter Blinding Overhead (N=10,000)...")
+    blinding = measure_blinding_overhead()
+
+    print("\n5. Measuring Browser UI Attestation Hashing Costs (1,000 steps)...")
+    ui_hashing = measure_ui_attestation_hashing()
+
+    print("\n6. Evaluating 12-Vector Adversarial Release Tamper Resilience Suite...")
     tamper_res = evaluate_tamper_resilience()
     print(f"   Fail-Closed Block Rate: {tamper_res['fail_closed_block_rate_pct']}% ({tamper_res['blocked_vectors']}/{tamper_res['total_vectors']} blocked)")
     for v in tamper_res["vector_details"]:
@@ -163,8 +256,19 @@ def main():
 
     results = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "platform": {
+            "python_version": sys.version.split()[0],
+            "logical_cores": __import__("os").cpu_count(),
+        },
+        "benchmark_params": {
+            "synthetic_step_duration_ms": 1.5,
+            "throughput_evals_per_worker": 1000,
+        },
         "merkle_scaling": merkle_scaling,
         "parallel_throughput": parallel_throughput,
+        "sparse_proof": sparse_proof,
+        "blinding_overhead": blinding,
+        "ui_attestation_hashing": ui_hashing,
         "tamper_resilience": tamper_res
     }
 

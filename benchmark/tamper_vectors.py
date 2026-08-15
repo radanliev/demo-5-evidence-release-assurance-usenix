@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, List, Tuple
 
 from assurance.evidence import create_evidence_pack, EvidenceBundle, DEFAULT_SECRET_KEY, DEMO_PRIV_KEY, DEMO_PUB_KEY_B64
-from assurance.crypto import hash_sha256
+from assurance.crypto import hash_sha256, generate_ed25519_keypair, sign_payload_ed25519
 
 TAMPER_VECTOR_TAXONOMY = {
     "V1_UNSIGNED_EVIDENCE": {
@@ -29,7 +29,7 @@ TAMPER_VECTOR_TAXONOMY = {
         "id": "V3",
         "name": "Forged Signature",
         "category": "Authenticity",
-        "description": "Signature generated using an unverified / wrong key.",
+        "description": "Evidence signed by an attacker-generated Ed25519 key that is not pinned in the trusted key registry.",
         "expected_result": "BLOCKED"
     },
     "V4_REPLAYED_NONCE": {
@@ -121,9 +121,34 @@ def generate_tampered_evidence_suite() -> List[Tuple[str, Dict[str, Any], Dict[s
         v2_dict["traces"][0]["output_hash"] = hash_sha256("TAMPERED_OUTPUT")
     suite.append(("V2_TAMPERED_TRACE_DIGEST", TAMPER_VECTOR_TAXONOMY["V2_TAMPERED_TRACE_DIGEST"], v2_dict))
 
-    # V3: Forged Signature
-    v3_bundle = create_evidence_pack(use_ed25519=False, secret_key="WRONG_ATTACKER_KEY", signed=True)
+    # V3: Forged Signature — the attacker generates a fresh Ed25519 keypair,
+    # signs a well-formed payload, and embeds their own public key. The gate
+    # must reject it because the key is not in the trusted registry (and a
+    # spoofed trusted key_id fails the pinned-key comparison).
+    att_priv, _, att_pub_b64, _ = generate_ed25519_keypair()
+    v3_bundle = create_evidence_pack(use_ed25519=False, signed=False)
     v3_dict = v3_bundle.to_dict()
+    v3_dict.update({
+        "signed": True,
+        "sig_alg": "ed25519",
+        "key_id": "KEY-ATTACKER-UNTRUSTED",
+        "public_key": att_pub_b64,
+    })
+    v3_payload = {
+        "evidence_id": v3_dict["evidence_id"],
+        "timestamp": v3_dict["timestamp"],
+        "nonce": v3_dict["nonce"],
+        "agent_system_version": v3_dict["agent_system_version"],
+        "test_pass_pct": v3_dict["test_pass_pct"],
+        "unresolved_drift": v3_dict["unresolved_drift"],
+        "execution_traces_count": v3_dict["execution_traces_count"],
+        "merkle_root": v3_dict["merkle_root"],
+        "artifact_digests": v3_dict["artifact_digests"],
+        "sig_alg": "ed25519",
+        "key_id": "KEY-ATTACKER-UNTRUSTED",
+        "kms_key_arn": v3_dict.get("kms_key_arn"),
+    }
+    v3_dict["signature"] = sign_payload_ed25519(v3_payload, att_priv)
     suite.append(("V3_FORGED_SIGNATURE", TAMPER_VECTOR_TAXONOMY["V3_FORGED_SIGNATURE"], v3_dict))
 
     # V4: Replayed Nonce

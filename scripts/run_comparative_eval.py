@@ -1,11 +1,23 @@
 #!/usr/bin/env python3
 """
 Comparative Baseline Evaluation Script for USENIX Security 2027.
-Evaluates Demo 5 against Standard CI exit gates, OPA/Kyverno schema validators, and Sigstore/Cosign container signing.
+Evaluates EviAssure against Standard CI exit gates, an OPA schema validator,
+and a Sigstore/Cosign-style artifact gate.
+
+Execution modes (recorded in the artifact):
+- OPA baseline: EXECUTED by the real OPA engine (`opa eval` with
+  governance/baseline_opa.rego) when the `opa` binary is on PATH; otherwise
+  falls back to an equivalent Python model and says so in the artifact.
+- CI exit-code and Sigstore/Cosign baselines: MODELED — exit-code semantics
+  and artifact-signature presence checks expressed in Python. The paper
+  states this explicitly.
 """
 
+import shutil
+import subprocess
 import sys
 import json
+import tempfile
 import time
 from pathlib import Path
 from typing import Dict, Any, List
@@ -16,14 +28,51 @@ from assurance.evidence import create_evidence_pack, DEFAULT_SECRET_KEY
 from assurance.policy import ReleasePolicyEngine
 from benchmark.tamper_vectors import generate_tampered_evidence_suite, TAMPER_VECTOR_TAXONOMY
 
+_GOVERNANCE = Path(__file__).parent.parent / "governance"
+
 
 def eval_ci_exit_code_gate(payload: Dict[str, Any]) -> bool:
     """Standard unauthenticated CI exit code check: passes if test_pass_pct > 0 and no hard failure flag."""
     return payload.get("test_pass_pct", 0) > 0 and payload.get("status") != "HARD_FAILURE"
 
 
+def _opa_available() -> bool:
+    return shutil.which("opa") is not None
+
+
+def _opa_version() -> str:
+    try:
+        out = subprocess.run(["opa", "version"], capture_output=True,
+                             text=True, timeout=15)
+        for line in out.stdout.splitlines():
+            if line.startswith("Version:"):
+                return line.split(":", 1)[1].strip()
+    except Exception:
+        pass
+    return "unknown"
+
+
 def eval_opa_schema_gate(payload: Dict[str, Any]) -> bool:
-    """Unsigned JSON schema validator: checks test_pass_pct == 100 and unresolved_drift == 0."""
+    """Unsigned JSON schema validator: checks test_pass_pct == 100 and
+    unresolved_drift == 0. Executed by the real OPA engine when available."""
+    rego = _GOVERNANCE / "baseline_opa.rego"
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+        json.dump(payload, f)
+        tmp = f.name
+    try:
+        out = subprocess.run(
+            ["opa", "eval", "-i", tmp, "-d", str(rego),
+             "data.eviassure.baseline.allow", "--format=raw"],
+            capture_output=True, text=True, timeout=30)
+        return out.stdout.strip() == "true"
+    except Exception:
+        return False
+    finally:
+        Path(tmp).unlink(missing_ok=True)
+
+
+def eval_opa_schema_gate_modeled(payload: Dict[str, Any]) -> bool:
+    """Fallback model of the same policy when no `opa` binary is on PATH."""
     return payload.get("test_pass_pct", 0.0) >= 100.0 and payload.get("unresolved_drift", 999) <= 0
 
 
@@ -42,6 +91,9 @@ def main():
     print("=== Running Comparative Baseline Deployment Gate Evaluation ===")
     print(f"Adversarial Vectors Evaluated: {len(suite)}")
 
+    opa_executed = _opa_available()
+    opa_evaluator = eval_opa_schema_gate if opa_executed else eval_opa_schema_gate_modeled
+
     results = []
     seen_nonces = set()
 
@@ -54,8 +106,8 @@ def main():
         ci_passed = eval_ci_exit_code_gate(tampered_payload)
         ci_blocked = not ci_passed
 
-        # 2. OPA Schema Gate
-        opa_passed = eval_opa_schema_gate(tampered_payload)
+        # 2. OPA Schema Gate (executed by real OPA when on PATH)
+        opa_passed = opa_evaluator(tampered_payload)
         opa_blocked = not opa_passed
 
         # 3. Sigstore Cosign Gate
@@ -92,6 +144,12 @@ def main():
 
     summary_data = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "baseline_execution": {
+            "opa_schema_gate": ("executed: OPA " + _opa_version()) if opa_executed
+                               else "modeled (no opa binary on PATH)",
+            "ci_exit_code_gate": "modeled (exit-code semantics)",
+            "sigstore_cosign_gate": "modeled (artifact-signature presence)",
+        },
         "summary": {
             "ci_exit_code_block_rate_pct": ci_block_rate,
             "opa_schema_block_rate_pct": opa_block_rate,
