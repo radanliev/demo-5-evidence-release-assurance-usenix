@@ -14,7 +14,7 @@ def evaluate_release_gate(
     policy_path: Path | str,
     evidence: Optional[EvidenceBundle | Dict[str, Any]] = None,
     secret_key: str = DEFAULT_SECRET_KEY,
-    seen_nonces: Optional[set] = None,
+    seen_nonces: Optional[set[str]] = None,
     output_decision_file: Optional[Path | str] = None
 ) -> Dict[str, Any]:
     """

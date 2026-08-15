@@ -50,7 +50,7 @@ class ReleasePolicyEngine:
         self,
         evidence: EvidenceBundle | Dict[str, Any],
         secret_key: str = DEFAULT_SECRET_KEY,
-        seen_nonces: Optional[set] = None
+        seen_nonces: Optional[set[str]] = None
     ) -> Tuple[bool, List[str], Dict[str, Any]]:
         """
         Evaluate evidence pack against policy rules.
@@ -72,7 +72,7 @@ class ReleasePolicyEngine:
         self,
         evidence: EvidenceBundle | Dict[str, Any],
         secret_key: str = DEFAULT_SECRET_KEY,
-        seen_nonces: Optional[set] = None
+        seen_nonces: Optional[set[str]] = None
     ) -> Tuple[bool, List[str], Dict[str, Any]]:
         violations = []
         details = {}

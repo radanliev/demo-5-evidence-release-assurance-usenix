@@ -27,7 +27,7 @@ class ForensicAuditEngine:
         self,
         evidence: EvidenceBundle | Dict[str, Any],
         secret_key: str = DEFAULT_SECRET_KEY,
-        seen_nonces: Optional[set] = None
+        seen_nonces: Optional[set[str]] = None
     ) -> Dict[str, Any]:
         """Perform comprehensive forensic inspection and return structured audit card."""
         if isinstance(evidence, EvidenceBundle):
@@ -67,7 +67,7 @@ class ForensicAuditEngine:
                 # verify against the trusted registry pinned alongside the
                 # policy, and report CRL revocation explicitly.
                 trusted_keys: Dict[str, str] = getattr(self.policy_engine, "trusted_keys", {}) if self.policy_engine else {}
-                revoked_keys: set = getattr(self.policy_engine, "revoked_key_ids", set()) if self.policy_engine else set()
+                revoked_keys: set[str] = getattr(self.policy_engine, "revoked_key_ids", set()) if self.policy_engine else set()
                 if trusted_keys and key_id in revoked_keys:
                     key_status = "revoked"
                 elif trusted_keys and key_id not in trusted_keys:
