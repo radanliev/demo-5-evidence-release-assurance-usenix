@@ -72,8 +72,30 @@ def generate_merkle_proof(index: int, levels: List[List[str]]) -> List[Dict[str,
     return proof
 
 
-def verify_merkle_proof(leaf_hash: str, proof: List[Dict[str, str]], expected_root: str) -> bool:
-    """Verify Merkle tree inclusion proof against expected root."""
+def expected_tree_depth(n_leaves: int) -> int:
+    """Proof path length for a tree over n_leaves (the committed geometry).
+
+    Without binding the proof to this length, an internal node digest can be
+    presented as a leaf with a shortened path (classic Merkle ambiguity,
+    CVE-2012-2459 family) - a forgery that needs no hash collision.
+    Third-party auditors MUST pass expected_depth, derived from the signed
+    execution_traces_count, alongside the root.
+    """
+    if n_leaves < 1:
+        return 0
+    return (n_leaves - 1).bit_length()
+
+
+def verify_merkle_proof(leaf_hash: str, proof: List[Dict[str, str]], expected_root: str,
+                        expected_depth: int | None = None) -> bool:
+    """Verify Merkle tree inclusion proof against expected root.
+
+    When expected_depth is given, the proof must contain exactly that many
+    node steps; shorter paths (internal-node-as-leaf substitution) are
+    rejected.
+    """
+    if expected_depth is not None and len(proof) != expected_depth:
+        return False
     current = hash_sha256(leaf_hash) if len(leaf_hash) != 64 else leaf_hash
     for step in proof:
         sibling = step["hash"]

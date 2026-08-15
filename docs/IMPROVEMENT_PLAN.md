@@ -90,3 +90,7 @@ mutmut (kill-rate audit, scoped to policy.py).
   hypothesis. Known limitation: mutmut's sandbox cannot collect the
   multi-package test layout (works under plain pytest); config retained.
 - Final gates: 0 BLOCKER, 5 MAJOR (all citation coverage gaps), 0 MINOR.
+
+## Round 2 (2026-08-15, adversarial peer review)
+
+See docs/PEER_REVIEW_2026-08-15.md: Merkle leaf/internal ambiguity (demonstrated attack), unenforced signed trace count, 64-bit blinding tag — all fixed with regression tests (test_merkle_soundness.py) and theorem text corrected. Existing tool stack sufficed; no new downloads.

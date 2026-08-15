@@ -93,7 +93,8 @@ class ForensicAuditEngine:
         trace_audit = []
         for i, leaf_h in enumerate(leaf_hashes):
             proof = generate_merkle_proof(i, levels)
-            proof_ok = verify_merkle_proof(leaf_h, proof, recalculated_root)
+            proof_ok = verify_merkle_proof(leaf_h, proof, recalculated_root,
+                                           expected_depth=max(len(levels) - 1, 0))
             trace_audit.append({
                 "index": i,
                 "trace_id": traces[i].get("trace_id"),

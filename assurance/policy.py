@@ -218,6 +218,15 @@ class ReleasePolicyEngine:
                     f"POLICY_VIOLATION: Merkle root mismatch! Claimed: {merkle_root[:12]}..., Recalculated: {recalculated_root[:12]}..."
                 )
 
+        # 2b. Signed trace-count binding: the signed execution_traces_count
+        # must match the traces actually present - auditors derive Merkle
+        # proof depth from this count, so a lie here breaks proof binding.
+        claimed_count = bundle_dict.get("execution_traces_count")
+        if claimed_count is not None and claimed_count != len(traces):
+            violations.append(
+                f"POLICY_VIOLATION: Execution trace count mismatch ({claimed_count} claimed, {len(traces)} present)."
+            )
+
         # 3. Test Pass Percentage check
         min_pass_pct = rc.get("min_passing_tests_pct", 100.0)
         if test_pass_pct < min_pass_pct:

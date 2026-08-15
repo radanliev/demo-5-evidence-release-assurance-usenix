@@ -58,14 +58,14 @@ def test_canonical_json_deterministic(values, flag):
 @given(st.text(min_size=0, max_size=64), st.text(min_size=1, max_size=64))
 @settings(deadline=None)
 def test_blinding_structure_and_variance(payload, salt):
-    """Blinded records carry the marker prefix and an 8-byte (16 hex) tag;
+    """Blinded records carry the marker prefix and a 256-bit (64 hex) tag;
     distinct payloads or salts must blind to distinct tags with high
     probability (checked structurally here, statistically by the bound)."""
     rec = ExecutionTraceRecord(trace_id="T", agent_id="a", action="x",
                                status="SUCCESS", duration_ms=1.0,
                                output_hash=hash_sha256(payload))
     b1 = rec.blind_payload(salt).output_hash
-    assert b1.startswith("BLINDED-") and len(b1) == len("BLINDED-") + 16
+    assert b1.startswith("BLINDED-") and len(b1) == len("BLINDED-") + 64
     b2 = rec.blind_payload(salt + "!").output_hash
     if payload != "":
         assert b1 != b2

@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-15 13:29
+**Run:** 2026-08-15 20:34
 
 | Severity | Count |
 |---|---|
@@ -81,9 +81,9 @@ rendered 12 page images for visual QA
 
 ### [INFO] science.artifact_missing
 
-indexed 111 distinct values from 5 artifacts
+indexed 112 distinct values from 5 artifacts
 
-- **id:** `ab6c34a6e894d517`
+- **id:** `0c0304182337223c`
 
 ### [INFO] venue.font
 

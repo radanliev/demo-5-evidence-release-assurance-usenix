@@ -103,7 +103,7 @@ An Evidence Assurance Scheme $\Sigma = (\text{KeyGen}, \text{Package}, \text{Ver
 \end{definition}
 
 \begin{definition}[Merkle Trace Inclusion Soundness]
-For root $R_M$ and leaf $H_i$, a Merkle proof $\pi_i$ is sound if no computationally bounded adversary can construct $\pi'_i$ for $H'_i \neq H_i$ such that $\text{VerifyMerkle}(H'_i, \pi'_i, R_M) = 1$.
+For root $R_M$ committed together with its leaf count $N$, and leaf $H_i$, a Merkle proof $\pi_i$ is sound if no computationally bounded adversary can construct $\pi'_i$ for any $H'_i \neq H_i$ --- including internal node digests of the same tree --- such that $\text{VerifyMerkle}(H'_i, \pi'_i, R_M, \lceil\log_2 N\rceil) = 1$, where verification accepts only proof paths of the committed tree depth.
 \end{definition}
 
 \begin{definition}[Salted Trace Parameter Blinding Indistinguishability]
@@ -141,11 +141,11 @@ T_{\text{UI},i} = (\text{id}_i, \text{agent}_i, \text{action}_i, \text{url}_i, \
 $H_{\text{DOM}}$ is computed over the serialized DOM state of the rendered page, $H_{\text{DOM},i} = \text{SHA256}(\text{DOM}_{\text{serialized}})$: the specimen serializes the rendered document deterministically before hashing, so identical page states yield identical digests while any mutation (e.g., an injected modal dialog or altered form control) changes the digest. Each trace record produces a canonical leaf digest $H_i = \text{SHA256}(T_i.\text{to\_hash}())$.
 
 \subsection{Salted Trace Parameter Blinding Protocol}
-To protect proprietary prompt text, customer PII, or sensitive API parameters during public audit, EviAssure implements a keyed HMAC blinding mode (\texttt{blind\_payload}). Given raw output payload $P_i$ and salt $S \gets \{0,1\}^{256}$:
+To protect proprietary prompt text, customer PII, or sensitive API parameters during public audit, EviAssure implements a keyed HMAC blinding mode (\texttt{blind\_payload}). Given the trace's output digest $P_i$ and salt $S \gets \{0,1\}^{256}$:
 \begin{equation}
-H_{\text{blinded},i} = \text{BLINDED-} \parallel \text{HMAC-SHA256}(S, P_i)[:16]
+H_{\text{blinded},i} = \text{BLINDED-} \parallel \text{HMAC-SHA256}(S, P_i)
 \end{equation}
-The blinded hash replaces raw payload strings in leaf construction while preserving global Merkle tree inclusion verification.
+The blinded value retains the full 256-bit HMAC digest, preserving payload-aliasing resistance at the same scale as the underlying hash. It replaces raw payload strings in leaf construction while preserving global Merkle tree inclusion verification.
 
 \subsection{Merkle Trace Aggregation and Sparse Proof Compression}
 To attest $N$ execution traces without transmitting full raw logs to every gate request, EviAssure aggregates normalized trace digests into a SHA-256 Merkle tree~\cite{merkle1989digital, laurie2014certificate}. Each trace record $T_i$ maps to leaf digest $H_i$.
@@ -159,7 +159,7 @@ C_j = \begin{cases}
 \text{SHA256}(P_j \parallel C_{j-1}), & \text{if } \text{pos}_j = \text{left}
 \end{cases}
 \end{equation}
-The proof is valid if and only if $C_K = R_M$, reducing transmission size to $<5\text{ KB}$.
+The proof is valid if and only if $C_K = R_M$ and the path length equals the committed tree depth $\lceil\log_2 N\rceil$, derived from the signed execution trace count; the length check prevents internal node digests from being verified as leaves --- a substitution that would otherwise succeed without any hash collision --- reducing transmission size to $<5\text{ KB}$.
 
 \begin{lstlisting}[language=python,caption={Merkle Trace Aggregation Protocol.},label={lst:proto1}]
 def build_merkle_tree(traces):
@@ -283,7 +283,7 @@ The proof structures the security argument using a formal sequence of games $\te
     \begin{equation}
     |\text{Pr}[G_0] - \text{Pr}[G_1]| \le \text{Adv}_{\text{Ed25519}}^{\text{euf-cma}}(\mathcal{A})
     \end{equation}
-    \item $\mathbf{Game}_2$: Identical to $\text{Game}_1$, except the verifier aborts if $\mathcal{A}$ produces a trace set $\mathcal{T}^* \neq \mathcal{T}$ such that $\text{MerkleRoot}(\mathcal{T}^*) = R_M$. The difference between $\text{Game}_1$ and $\text{Game}_2$ is bounded by the collision resistance of SHA-256:
+    \item $\mathbf{Game}_2$: Identical to $\text{Game}_1$, except the verifier aborts if $\mathcal{A}$ produces a trace set $\mathcal{T}^* \neq \mathcal{T}$ such that $\text{MerkleRoot}(\mathcal{T}^*) = R_M$. The verifier additionally binds the claimed trace count to the recomputed tree and inclusion proofs to the committed depth, so internal-node substitution itself requires a collision. The difference between $\text{Game}_1$ and $\text{Game}_2$ is bounded by the collision resistance of SHA-256:
     \begin{equation}
     |\text{Pr}[G_1] - \text{Pr}[G_2]| \le \text{Adv}_{\text{SHA256}}^{\text{coll}}(\mathcal{A})
     \end{equation}
@@ -463,7 +463,7 @@ Table~\ref{tab:capability_map} traces each adversary capability class of Section
 \textbf{Class} & \textbf{Vectors} & \textbf{Enforcement} \\
 \midrule
 $\mathcal{A}_1$ Trace tampering & V2, V8, V12 & Merkle root re-derivation over all leaves \\
-$\mathcal{A}_2$ Signature forgery & V1, V3, V10 & Ed25519 over canonical payload; trusted-key registry \\
+$\mathcal{A}_2$ Signature forgery & V1, V3 & Ed25519 over canonical payload; trusted-key registry \\
 $\mathcal{A}_3$ Replay / skew & V4, V5, V11 & Nonce cache (validity window) $+$ freshness bounds \\
 $\mathcal{A}_4$ Key governance & V9 & CRL membership; KMS ARN boundary pattern \\
 $\mathcal{A}_5$ Malleability & V10 & Canonical JSON serialization in signed payload \\
@@ -474,7 +474,7 @@ Policy compliance & V6, V7 & Drift and pass-rate thresholds \\
 \end{table}
 
 \subsection{Limitations and Threats to Validity}
-\textbf{Measurement methodology.} All latency and throughput figures are single-run wall-clock measurements (throughput aggregates 1,000 evaluations per worker count; tamper vectors are evaluated once each); no confidence intervals are reported, and run-to-run variation on the order of a few percent should be assumed. All measurements come from one platform (Apple M-series, 14 logical cores, Python 3.14.6, recorded in the artifact's \texttt{platform} block); cross-platform behavior was not measured. \textbf{Key management.} The artifact signs with a static demo key pinned in \texttt{governance/trusted\_keys.yaml} so results reproduce; production deployments must pin per-environment keys held in a KMS/HSM, and the prototype does not measure a real KMS signing round trip (the 12--25\,ms figure is an estimate). \textbf{Baseline realism.} The OPA baseline is executed (OPA 1.19.0, Rego policy in the artifact); the CI and Sigstore/Cosign baselines are modeled abstractions, as disclosed in Section~\ref{sec:comparative}. \textbf{Scope of blocking.} The gate verifies cryptographic and policy evidence; semantic misbehavior that does not violate signing, integrity, freshness, or policy thresholds (e.g., a well-signed bundle recording unauthorized actions) is surfaced by per-leaf forensic inspection rather than blocked at the gate --- content-level policy over trace semantics is future work. \textbf{Construct validity.} The 12 vectors were authored by the authors to exercise each enforcement check; a 100\% block rate (12/12 vectors) demonstrates the checks fire, not resilience to novel attacks.
+\textbf{Measurement methodology.} All latency and throughput figures are single-run wall-clock measurements (throughput aggregates 1,000 evaluations per worker count; tamper vectors are evaluated once each); no confidence intervals are reported, and run-to-run variation on the order of a few percent should be assumed. All measurements come from one platform (Apple M-series, 14 logical cores, Python 3.14.6, recorded in the artifact's \texttt{platform} block); cross-platform behavior was not measured. \textbf{Key management.} The artifact signs with a static demo key pinned in \texttt{governance/trusted\_keys.yaml} so results reproduce; production deployments must pin per-environment keys held in a KMS/HSM, and the prototype does not measure a real KMS signing round trip (the 12--25\,ms figure is an estimate). \textbf{Baseline realism.} The OPA baseline is executed (OPA 1.19.0, Rego policy in the artifact); the CI and Sigstore/Cosign baselines are modeled abstractions, as disclosed in Section~\ref{sec:comparative}. \textbf{Scope of blocking.} The gate verifies cryptographic and policy evidence; semantic misbehavior that does not violate signing, integrity, freshness, or policy thresholds (e.g., a well-signed bundle recording unauthorized actions) is surfaced by per-leaf forensic inspection rather than blocked at the gate --- content-level policy over trace semantics is future work. Replay state ($N_{\text{seen}}$) is process-local: a gate restart resets it within the validity window, so deployments must share nonce state across replicas to preserve replay protection. \textbf{Construct validity.} The 12 vectors were authored by the authors to exercise each enforcement check; a 100\% block rate (12/12 vectors) demonstrates the checks fire, not resilience to novel attacks.
 
 \subsection{Software Supply Chain Security Frameworks}
 Software supply chain security frameworks such as in-toto~\cite{torres2019in-toto}, SLSA~\cite{slsa2023supply}, and Sigstore/Cosign~\cite{sigstore2022cosign} provide cryptographic provenance for static build pipelines and container image digests. In-toto records step-level layout attestations signed by individual human developers or build agents, while SLSA establishes four incremental levels of build environment isolation. However, these systems focus on static source code commits and pre-compiled binary artifacts. They lack native primitives to ingest, attest, and verify non-deterministic, multi-step LLM agent execution traces, browser DOM mutations, or salted prompt parameter blinding.

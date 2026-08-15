@@ -63,7 +63,7 @@ class ExecutionTraceRecord:
             action=self.action,
             status=self.status,
             duration_ms=self.duration_ms,
-            output_hash=f"BLINDED-{blinded_hash[:16]}",
+            output_hash=f"BLINDED-{blinded_hash}",
             raw_payload=None
         )
 
