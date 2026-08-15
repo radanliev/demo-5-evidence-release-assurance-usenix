@@ -32,6 +32,7 @@ from checks.check_refs import parse_bib  # noqa: E402
 
 CROSSREF = "https://api.crossref.org/works"
 OPENALEX = "https://api.openalex.org/works"
+DBLP = "https://dblp.org/search/publ/api"
 TIMEOUT = 20
 PAUSE = 0.15          # be polite; both APIs are free and unmetered
 CACHE_VERSION = 1
@@ -149,12 +150,20 @@ def _field(blob: str, name: str) -> str | None:
 
 
 # ---------------------------------------------------------------------------
+def _crossref_title(m: dict) -> str:
+    """Crossref stores subtitles separately; a bib title that includes the
+    subtitle is the paper's full registered title, so join them."""
+    title = (m.get("title") or [""])[0]
+    sub = (m.get("subtitle") or [""])[0]
+    return f"{title}: {sub}" if sub else title
+
+
 def _lookup_doi(doi: str, mailto: str) -> dict | None:
     d = _get(f"{CROSSREF}/{urllib.parse.quote(doi)}", mailto)
     if d and d.get("message"):
         m = d["message"]
         return {"source": "crossref", "doi": doi,
-                "title": (m.get("title") or [""])[0],
+                "title": _crossref_title(m),
                 "year": (m.get("issued", {}).get("date-parts") or [[None]])[0][0],
                 "container": (m.get("container-title") or [""])[0],
                 "type": m.get("type", "")}
@@ -166,15 +175,25 @@ def _lookup_title(title: str, mailto: str) -> dict | None:
     d = _get(f"{CROSSREF}?query.bibliographic={q}&rows=3", mailto)
     if d:
         for it in d.get("message", {}).get("items", []):
-            cand = (it.get("title") or [""])[0]
+            cand = _crossref_title(it)
             if cand and _similar(cand, title) >= 0.87:
                 return {"source": "crossref", "doi": it.get("DOI", ""),
                         "title": cand,
                         "year": (it.get("issued", {}).get("date-parts") or [[None]])[0][0],
                         "container": (it.get("container-title") or [""])[0],
                         "type": it.get("type", "")}
-    # OpenAlex covers preprints and CS venues Crossref sometimes misses
-    d = _get(f"{OPENALEX}?filter=title.search:{q}&per-page=3", mailto)
+    # OpenAlex covers preprints and CS venues Crossref sometimes misses.
+    # Its search endpoint rejects some punctuation with HTTP 400, and
+    # title.search ANDs tokens — one word missing from its (sometimes
+    # truncated) record title kills the match. So retry on the leading
+    # words; the >=0.87 similarity check below still guards the result.
+    clean = re.sub(r"\s+", " ", re.sub(r"[^\w\s-]", " ", title[:250])).strip()
+    d = None
+    for query in (clean, " ".join(clean.split()[:8])):
+        d = _get(f"{OPENALEX}?filter=title.search:{urllib.parse.quote(query)}&per-page=3",
+                 mailto)
+        if d and d.get("results"):
+            break
     if d:
         for it in d.get("results", []):
             cand = it.get("title") or it.get("display_name") or ""
@@ -185,6 +204,25 @@ def _lookup_title(title: str, mailto: str) -> dict | None:
                         "title": cand, "year": it.get("publication_year"),
                         "container": loc.get("display_name", ""),
                         "type": it.get("type", "")}
+    # DBLP: author-curated ground truth for CS venues that Crossref does not
+    # index (USENIX, ICLR pre-2024) and OpenAlex's search sometimes misses.
+    q = urllib.parse.quote(title[:250])
+    d = _get(f"{DBLP}?q={q}&format=json&h=3", mailto)
+    if d:
+        hits = d.get("result", {}).get("hits", {}).get("hit", [])
+        if isinstance(hits, dict):
+            hits = [hits]
+        for x in hits:
+            info = x.get("info", {})
+            cand = info.get("title", "")
+            if cand and _similar(cand, title) >= 0.87:
+                au = info.get("authors", {}).get("author", [])
+                if isinstance(au, dict):
+                    au = [au]
+                return {"source": "dblp", "doi": info.get("doi", ""),
+                        "title": cand, "year": int(info.get("year", 0) or 0),
+                        "container": info.get("venue", ""),
+                        "type": "inproceedings"}
     return None
 
 

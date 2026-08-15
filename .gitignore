@@ -27,3 +27,4 @@ build/
 .github-token
 .paperloop-env
 *.token
+*.zip

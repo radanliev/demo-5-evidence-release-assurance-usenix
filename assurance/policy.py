@@ -4,6 +4,8 @@ Release Policy Evaluation Engine for Fail-Closed Gate Enforcement.
 
 from datetime import datetime, timezone
 from typing import Dict, Any, Tuple, List, Optional
+import hmac
+import re
 import yaml
 from pathlib import Path
 
@@ -15,18 +17,34 @@ _NONCE_TIMESTAMPS: Dict[str, datetime] = {}
 
 
 class ReleasePolicyEngine:
-    def __init__(self, policy_data: Dict[str, Any]):
+    def __init__(self, policy_data: Dict[str, Any],
+                 trusted_keys: Optional[Dict[str, Dict[str, str]]] = None):
         self.policy_data = policy_data
         self.policy_name = policy_data.get("policy_name", "Fail-Closed Security Gate Policy")
         self.version = policy_data.get("version", "1.0.0")
         self.release_conditions = policy_data.get("release_conditions", {})
         self.revoked_key_ids = set(policy_data.get("revoked_key_ids", []))
+        # Trusted key registry: key_id -> pinned public key. Signatures from
+        # unregistered keys are rejected, and verification always uses the
+        # pinned key — never a public key supplied inside the evidence bundle.
+        self.trusted_keys: Dict[str, str] = {}
+        for kid, info in (trusted_keys or {}).items():
+            if isinstance(info, dict) and info.get("public_key"):
+                self.trusted_keys[kid] = info["public_key"]
+            elif isinstance(info, str):
+                self.trusted_keys[kid] = info
 
     @classmethod
     def from_yaml(cls, yaml_path: Path | str) -> "ReleasePolicyEngine":
+        yaml_path = Path(yaml_path)
         with open(yaml_path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
-        return cls(data)
+        trusted = {}
+        keys_path = yaml_path.parent / "trusted_keys.yaml"
+        if keys_path.exists():
+            with open(keys_path, 'r', encoding='utf-8') as f:
+                trusted = (yaml.safe_load(f) or {}).get("trusted_keys", {})
+        return cls(data, trusted_keys=trusted)
 
     def evaluate(
         self,
@@ -37,7 +55,25 @@ class ReleasePolicyEngine:
         """
         Evaluate evidence pack against policy rules.
         Returns: (passed: bool, violations: List[str], details: Dict[str, Any])
+
+        Fail-closed: any exception while parsing evidence is itself a
+        BLOCKED verdict, never a crash or an approval.
         """
+        try:
+            return self._evaluate(evidence, secret_key=secret_key,
+                                  seen_nonces=seen_nonces)
+        except Exception as exc:  # noqa: BLE001 — the gate must fail closed
+            return False, [f"POLICY_VIOLATION: Malformed evidence rejected (fail-closed): {type(exc).__name__}"], {
+                "passed": False, "violations_count": 1, "fail_closed_enforced": True,
+                "parse_error": str(exc)[:200],
+            }
+
+    def _evaluate(
+        self,
+        evidence: EvidenceBundle | Dict[str, Any],
+        secret_key: str = DEFAULT_SECRET_KEY,
+        seen_nonces: Optional[set] = None
+    ) -> Tuple[bool, List[str], Dict[str, Any]]:
         violations = []
         details = {}
 
@@ -111,7 +147,28 @@ class ReleasePolicyEngine:
                     if s_key_id and s_key_id in self.revoked_key_ids:
                         violations.append(f"POLICY_VIOLATION: Key ID '{s_key_id}' has been revoked!")
                         continue
-                        
+
+                    # Trusted-key registry: the public key travels inside the
+                    # attacker-controllable bundle, so it is never trusted.
+                    # Verification uses the registry-pinned key, and unknown
+                    # key IDs are rejected outright.
+                    pinned_pub = None
+                    if s_alg == "ed25519":
+                        if not self.trusted_keys:
+                            violations.append("POLICY_VIOLATION: No trusted key registry configured; Ed25519 signatures cannot be authenticated.")
+                            continue
+                        if s_key_id not in self.trusted_keys:
+                            violations.append(f"POLICY_VIOLATION: Key ID '{s_key_id}' not in trusted key registry.")
+                            continue
+                        pinned_pub = self.trusted_keys[s_key_id]
+                        if s_pub and not hmac.compare_digest(s_pub, pinned_pub):
+                            violations.append(f"POLICY_VIOLATION: Public key for '{s_key_id}' does not match the trusted key registry.")
+                            continue
+                        kms_pattern = rc.get("kms_key_arn_pattern")
+                        if kms_pattern and (not s_arn or not re.match(kms_pattern, s_arn)):
+                            violations.append("POLICY_VIOLATION: Signing key KMS ARN missing or outside the required boundary.")
+                            continue
+
                     payload_to_verify = {
                         "evidence_id": bundle_dict.get("evidence_id", ""),
                         "timestamp": bundle_dict.get("timestamp", ""),
@@ -128,10 +185,11 @@ class ReleasePolicyEngine:
                     }
                     
                     if s_alg == "ed25519":
-                        if not s_pub:
+                        verify_pub = pinned_pub or s_pub
+                        if not verify_pub:
                             violations.append("POLICY_VIOLATION: Missing public key for Ed25519 verification.")
                         else:
-                            if verify_signature_ed25519(payload_to_verify, s_sig, s_pub):
+                            if verify_signature_ed25519(payload_to_verify, s_sig, verify_pub):
                                 valid_sigs_count += 1
                             else:
                                 violations.append("POLICY_VIOLATION: Invalid or forged Ed25519 signature.")
@@ -159,6 +217,15 @@ class ReleasePolicyEngine:
                 violations.append(
                     f"POLICY_VIOLATION: Merkle root mismatch! Claimed: {merkle_root[:12]}..., Recalculated: {recalculated_root[:12]}..."
                 )
+
+        # 2b. Signed trace-count binding: the signed execution_traces_count
+        # must match the traces actually present - auditors derive Merkle
+        # proof depth from this count, so a lie here breaks proof binding.
+        claimed_count = bundle_dict.get("execution_traces_count")
+        if claimed_count is not None and claimed_count != len(traces):
+            violations.append(
+                f"POLICY_VIOLATION: Execution trace count mismatch ({claimed_count} claimed, {len(traces)} present)."
+            )
 
         # 3. Test Pass Percentage check
         min_pass_pct = rc.get("min_passing_tests_pct", 100.0)

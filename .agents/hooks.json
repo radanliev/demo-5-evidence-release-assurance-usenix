@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "post_edit": [
+      {
+        "pattern": "**/*.py",
+        "command": "ruff format ${file}"
+      }
+    ]
+  }
+}

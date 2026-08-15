@@ -4,10 +4,13 @@ Evidence Bundle Schema, Ed25519/HMAC Attestations, Privacy Blinding, and Sparse 
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
+import base64
 import uuid
 import hmac
 import hashlib
 from typing import List, Dict, Any, Optional
+
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from .crypto import (
     hash_sha256,
@@ -26,8 +29,15 @@ from .crypto import (
 
 DEFAULT_SECRET_KEY = "usenix-security-2027-release-assurance-key"
 
-# Global demo Ed25519 keypair for seamless testing
-DEMO_PRIV_KEY, DEMO_PUB_KEY, DEMO_PUB_KEY_B64, DEMO_KEY_ID = generate_ed25519_keypair()
+# Static demo Ed25519 keypair (DEMO/TEST ONLY — never use in production).
+# Fixed so packager and verifier processes derive the same key; its public
+# half is pinned in governance/trusted_keys.yaml and nothing else is trusted.
+DEMO_PRIV_SEED = bytes.fromhex(
+    "d842fd18d672140d2cb1f725f5b72e79574461dbae1c80f16a986264fea4407e")
+DEMO_PRIV_KEY = Ed25519PrivateKey.from_private_bytes(DEMO_PRIV_SEED)
+DEMO_PUB_KEY = DEMO_PRIV_KEY.public_key()
+DEMO_PUB_KEY_B64 = base64.b64encode(DEMO_PUB_KEY.public_bytes_raw()).decode("utf-8")
+DEMO_KEY_ID = compute_key_id(DEMO_PUB_KEY_B64)
 
 
 @dataclass
@@ -53,13 +63,31 @@ class ExecutionTraceRecord:
             action=self.action,
             status=self.status,
             duration_ms=self.duration_ms,
-            output_hash=f"BLINDED-{blinded_hash[:16]}",
+            output_hash=f"BLINDED-{blinded_hash}",
             raw_payload=None
         )
 
     def to_hash(self) -> str:
         raw = f"{self.trace_id}:{self.agent_id}:{self.action}:{self.status}:{self.output_hash}"
         return hash_sha256(raw)
+
+
+@dataclass
+class BrowserActionTraceRecord:
+    trace_id: str
+    agent_id: str
+    action: str  # "click", "navigate", "type", "screenshot"
+    status: str
+    duration_ms: float
+    url: str
+    element_selector: str
+    dom_state_hash: str
+    screenshot_sha256: Optional[str] = None
+
+    def to_hash(self) -> str:
+        raw = f"{self.trace_id}:{self.agent_id}:{self.action}:{self.status}:{self.url}:{self.element_selector}:{self.dom_state_hash}:{self.screenshot_sha256 or ''}"
+        return hash_sha256(raw)
+
 
 
 _SENTINEL = object()
@@ -111,7 +139,7 @@ class EvidenceBundle:
         self.signature = sign_payload_hmac(payload, secret_key)
         self.signed = True
 
-    def sign_ed25519(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:123456789:key/usenix-release-gate") -> None:
+    def sign_ed25519(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:000000000000:key/usenix-release-gate") -> None:
         self.sig_alg = "ed25519"
         self.public_key = pub_key_b64
         self.key_id = compute_key_id(pub_key_b64)
@@ -132,7 +160,7 @@ class EvidenceBundle:
         })
         self.signed = True
 
-    def sign_ed25519_multi(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:123456789:key/usenix-release-gate") -> None:
+    def sign_ed25519_multi(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:000000000000:key/usenix-release-gate") -> None:
         """Append an Ed25519 signature to the signatures list."""
         k_id = compute_key_id(pub_key_b64)
         payload = self.payload_for_signing(sig_alg_override="ed25519", key_id_override=k_id, kms_arn_override=kms_arn)
@@ -165,10 +193,14 @@ class EvidenceBundle:
                 p_copy["kms_key_arn"] = sig_entry.get("kms_key_arn")
 
                 if alg == "ed25519" and pk:
-                    if verify_signature_ed25519(p_copy, s, pk):
+                    # Self-consistency only (does this signature match this
+                    # bundle's own key?). Authentication against the trusted
+                    # registry happens in ReleasePolicyEngine/ForensicAuditEngine.
+                    # nosemgrep: verifier-trusts-payload-supplied-key
+                    if s and verify_signature_ed25519(p_copy, s, pk):
                         valid_count += 1
                 else:
-                    if verify_signature_hmac(p_copy, s, secret_key):
+                    if s and verify_signature_hmac(p_copy, s, secret_key):
                         valid_count += 1
             return valid_count > 0
 
