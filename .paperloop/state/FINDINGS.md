@@ -2,29 +2,16 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-15 13:07
+**Run:** 2026-08-15 13:29
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 8 |
+| MAJOR | 5 |
 | MINOR | 0 |
-| INFO | 4 |
+| INFO | 5 |
 
-Gated (human sign-off required): **7**
-
-## Auto-fix mandate
-
-The writer agent applies these directly. Formatting, layout, figures, references, venue compliance — no interpretation of results required.
-
-### [MAJOR] venue.pagecount
-
-paper is well under the 13-page budget
-
-- **found:** `8 body pages`
-- **expected:** competitive submissions use 11-13 pages
-- **remedy:** Expand evaluation, threat model, or related work; reviewers read a short paper as an underdeveloped one.
-- **id:** `6cfb9be7880c8171`
+Gated (human sign-off required): **5**
 
 ## Gated — requires your decision
 
@@ -39,59 +26,41 @@ citation 'slsa2023supply' does not resolve in Crossref or OpenAlex
 - **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
 - **id:** `206b73cd20dd823a`
 
-### [MAJOR] refs.unverified `docs/references.bib`:35
-
-citation 'yang2024swebench' does not resolve in Crossref or OpenAlex
-
-- **found:** `"SWE-bench: Can Language Models Resolve Real-World GitHub Issues?"`
-- **expected:** a work that exists in at least one bibliographic database
-- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `86e7d1290795c829`
-
-### [MAJOR] refs.unverified `docs/references.bib`:82
+### [MAJOR] refs.unverified `docs/references.bib`:81
 
 citation 'spiffe2020spire' does not resolve in Crossref or OpenAlex
 
 - **found:** `"SPIFFE and SPIRE: Universal Workload Identity for Cloud Native Infrastructure"`
 - **expected:** a work that exists in at least one bibliographic database
 - **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `9d9d61941dbbebd7`
+- **id:** `d8d883428a22e7da`
 
-### [MAJOR] refs.unverified `docs/references.bib`:90
+### [MAJOR] refs.unverified `docs/references.bib`:89
 
 citation 'opa2021openpolicy' does not resolve in Crossref or OpenAlex
 
 - **found:** `"Open Policy Agent (OPA): Declarative Fine-Grained Policy Engine for Cloud Native Environments"`
 - **expected:** a work that exists in at least one bibliographic database
 - **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `b2fe3701521ddbae`
+- **id:** `0d698a857bcccd1f`
 
-### [MAJOR] refs.unverified `docs/references.bib`:98
+### [MAJOR] refs.unverified `docs/references.bib`:97
 
 citation 'kyverno2022policy' does not resolve in Crossref or OpenAlex
 
 - **found:** `"Kyverno: Kubernetes Native Policy Management Engine"`
 - **expected:** a work that exists in at least one bibliographic database
 - **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `29a92d20793d66f4`
+- **id:** `9b5c8f226e8321a8`
 
-### [MAJOR] refs.unverified `docs/references.bib`:115
+### [MAJOR] refs.unverified `docs/references.bib`:114
 
 citation 'papernot2016cleverhans' does not resolve in Crossref or OpenAlex
 
 - **found:** `"Technical Report on the CleverHans v1.0.0 Adversarial Examples Library"`
 - **expected:** a work that exists in at least one bibliographic database
 - **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `d8eeeb1a1846e886`
-
-### [MAJOR] refs.unverified `docs/references.bib`:198
-
-citation 'yao2023react' does not resolve in Crossref or OpenAlex
-
-- **found:** `"ReAct: Synergizing Reasoning and Acting in Language Models"`
-- **expected:** a work that exists in at least one bibliographic database
-- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
-- **id:** `4d3e85e71bd7e905`
+- **id:** `0945889a9254fbb2`
 
 ## Measurements
 
@@ -106,15 +75,15 @@ rendered 12 page images for visual QA
 
 ### [INFO] refs.unverified
 
-23 citation(s) verified against Crossref/OpenAlex, 7 unresolved
+25 citation(s) verified against Crossref/OpenAlex, 5 unresolved
 
-- **id:** `baa069333e2380e4`
+- **id:** `d36575ca8390ecfc`
 
 ### [INFO] science.artifact_missing
 
-indexed 110 distinct values from 5 artifacts
+indexed 111 distinct values from 5 artifacts
 
-- **id:** `4bf7df5370c5beb4`
+- **id:** `ab6c34a6e894d517`
 
 ### [INFO] venue.font
 
@@ -123,4 +92,12 @@ body font size correct
 - **found:** `9.96pt`
 - **expected:** 10.0pt
 - **id:** `4c59ff54d5e8d91e`
+
+### [INFO] venue.pagecount
+
+page count within limit
+
+- **found:** `12 body pages / 12 total`
+- **expected:** <= 13
+- **id:** `1f0cf72111de700b`
 

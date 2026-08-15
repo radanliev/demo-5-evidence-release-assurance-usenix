@@ -260,6 +260,10 @@ def main():
             "python_version": sys.version.split()[0],
             "logical_cores": __import__("os").cpu_count(),
         },
+        "benchmark_params": {
+            "synthetic_step_duration_ms": 1.5,
+            "throughput_evals_per_worker": 1000,
+        },
         "merkle_scaling": merkle_scaling,
         "parallel_throughput": parallel_throughput,
         "sparse_proof": sparse_proof,

@@ -32,6 +32,7 @@ from checks.check_refs import parse_bib  # noqa: E402
 
 CROSSREF = "https://api.crossref.org/works"
 OPENALEX = "https://api.openalex.org/works"
+DBLP = "https://dblp.org/search/publ/api"
 TIMEOUT = 20
 PAUSE = 0.15          # be polite; both APIs are free and unmetered
 CACHE_VERSION = 1
@@ -203,6 +204,25 @@ def _lookup_title(title: str, mailto: str) -> dict | None:
                         "title": cand, "year": it.get("publication_year"),
                         "container": loc.get("display_name", ""),
                         "type": it.get("type", "")}
+    # DBLP: author-curated ground truth for CS venues that Crossref does not
+    # index (USENIX, ICLR pre-2024) and OpenAlex's search sometimes misses.
+    q = urllib.parse.quote(title[:250])
+    d = _get(f"{DBLP}?q={q}&format=json&h=3", mailto)
+    if d:
+        hits = d.get("result", {}).get("hits", {}).get("hit", [])
+        if isinstance(hits, dict):
+            hits = [hits]
+        for x in hits:
+            info = x.get("info", {})
+            cand = info.get("title", "")
+            if cand and _similar(cand, title) >= 0.87:
+                au = info.get("authors", {}).get("author", [])
+                if isinstance(au, dict):
+                    au = [au]
+                return {"source": "dblp", "doi": info.get("doi", ""),
+                        "title": cand, "year": int(info.get("year", 0) or 0),
+                        "container": info.get("venue", ""),
+                        "type": "inproceedings"}
     return None
 
 

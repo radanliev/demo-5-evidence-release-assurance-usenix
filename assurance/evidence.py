@@ -197,10 +197,10 @@ class EvidenceBundle:
                     # bundle's own key?). Authentication against the trusted
                     # registry happens in ReleasePolicyEngine/ForensicAuditEngine.
                     # nosemgrep: verifier-trusts-payload-supplied-key
-                    if verify_signature_ed25519(p_copy, s, pk):
+                    if s and verify_signature_ed25519(p_copy, s, pk):
                         valid_count += 1
                 else:
-                    if verify_signature_hmac(p_copy, s, secret_key):
+                    if s and verify_signature_hmac(p_copy, s, secret_key):
                         valid_count += 1
             return valid_count > 0
 

@@ -66,8 +66,8 @@ class ForensicAuditEngine:
                 # Never trust a public key supplied inside the audited bundle:
                 # verify against the trusted registry pinned alongside the
                 # policy, and report CRL revocation explicitly.
-                trusted_keys = getattr(self.policy_engine, "trusted_keys", {}) if self.policy_engine else {}
-                revoked_keys = getattr(self.policy_engine, "revoked_key_ids", set()) if self.policy_engine else set()
+                trusted_keys: Dict[str, str] = getattr(self.policy_engine, "trusted_keys", {}) if self.policy_engine else {}
+                revoked_keys: set = getattr(self.policy_engine, "revoked_key_ids", set()) if self.policy_engine else set()
                 if trusted_keys and key_id in revoked_keys:
                     key_status = "revoked"
                 elif trusted_keys and key_id not in trusted_keys:
@@ -105,7 +105,7 @@ class ForensicAuditEngine:
 
         # 3. Policy Evaluation Integration
         policy_passed = False
-        violations = []
+        violations: List[str] = []
         if self.policy_engine:
             policy_passed, violations, _ = self.policy_engine.evaluate(b, secret_key, seen_nonces)
 
