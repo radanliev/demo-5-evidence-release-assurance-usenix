@@ -2,16 +2,29 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-15 20:34
+**Run:** 2026-08-15 23:33
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 5 |
+| MAJOR | 9 |
 | MINOR | 0 |
 | INFO | 5 |
 
-Gated (human sign-off required): **5**
+Gated (human sign-off required): **9**
+
+<details><summary>Build output (tail)</summary>
+
+```
+=== USENIX Security Paper PDF Builder & Figure Generator ===
+[+] Benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
+[*] Froze headline metrics -> frozen_metrics.tex (throughput=4,863, overhead=0.125%)
+[*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
+[SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
+
+[+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
+```
+</details>
 
 ## Gated — requires your decision
 
@@ -62,28 +75,64 @@ citation 'papernot2016cleverhans' does not resolve in Crossref or OpenAlex
 - **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
 - **id:** `0945889a9254fbb2`
 
+### [MAJOR] refs.unverified `docs/references.bib`:197
+
+citation 'yao2023react' does not resolve in Crossref or OpenAlex
+
+- **found:** `"ReAct: Synergizing Reasoning and Acting in Language Models"`
+- **expected:** a work that exists in at least one bibliographic database
+- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
+- **id:** `2986620a7350d575`
+
+### [MAJOR] refs.unverified `docs/references.bib`:256
+
+citation 'intoto2026agent-decision' does not resolve in Crossref or OpenAlex
+
+- **found:** `"RFC: agent-decision/v0.1 Predicate for AI Agent Policy Decisions"`
+- **expected:** a work that exists in at least one bibliographic database
+- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
+- **id:** `dbfd33d0536c8b4c`
+
+### [MAJOR] refs.unverified `docs/references.bib`:265
+
+citation 'apas2026agent-provenance' does not resolve in Crossref or OpenAlex
+
+- **found:** `"Agent Provenance Attestation Standard (APAS)"`
+- **expected:** a work that exists in at least one bibliographic database
+- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
+- **id:** `0b53e123b4c53b11`
+
+### [MAJOR] refs.unverified `docs/references.bib`:274
+
+citation 'aas12026agent-audit' does not resolve in Crossref or OpenAlex
+
+- **found:** `"Agent Auditability Standard (AAS-1), Working Paper v0.1"`
+- **expected:** a work that exists in at least one bibliographic database
+- **remedy:** Verify this reference by hand. A title that matches nothing is usually a hallucinated or misremembered citation — check the authors, year and venue against the publisher's page, or remove it.
+- **id:** `a88da2424995aaf6`
+
 ## Measurements
 
 Recorded for the round log; no action implied.
 
 ### [INFO] figure.clipping
 
-rendered 12 page images for visual QA
+rendered 16 page images for visual QA
 
 - **found:** `/Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/.paperloop/state/pages`
-- **id:** `62d9aa3b85fb59e3`
+- **id:** `519c5e2395cf3450`
 
 ### [INFO] refs.unverified
 
-25 citation(s) verified against Crossref/OpenAlex, 5 unresolved
+24 citation(s) verified against Crossref/OpenAlex, 9 unresolved
 
-- **id:** `d36575ca8390ecfc`
+- **id:** `2c70f11a8673530e`
 
 ### [INFO] science.artifact_missing
 
-indexed 112 distinct values from 5 artifacts
+indexed 129 distinct values from 6 artifacts
 
-- **id:** `0c0304182337223c`
+- **id:** `9a27c7de6b999178`
 
 ### [INFO] venue.font
 
@@ -97,7 +146,7 @@ body font size correct
 
 page count within limit
 
-- **found:** `12 body pages / 12 total`
+- **found:** `11 body pages / 16 total`
 - **expected:** <= 13
 - **id:** `1f0cf72111de700b`
 

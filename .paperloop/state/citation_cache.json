@@ -181,30 +181,6 @@
     "container": "USENIX Security Symposium",
     "type": "conference-paper"
   },
-  "yang2024swebench|10.48550/arXiv.2310.06770|swe bench  can language models resolve real world github issues": {
-    "source": "dblp",
-    "doi": "",
-    "title": "SWE-bench: Can Language Models Resolve Real-world Github Issues?",
-    "year": 2024,
-    "container": "ICLR",
-    "type": "inproceedings"
-  },
-  "yao2023react|10.48550/arXiv.2210.03629|react  synergizing reasoning and acting in language models": {
-    "source": "dblp",
-    "doi": "",
-    "title": "ReAct: Synergizing Reasoning and Acting in Language Models.",
-    "year": 2023,
-    "container": "ICLR",
-    "type": "inproceedings"
-  },
-  "zheng2023judging||judging llm as a judge with mt bench and chatbot arena": {
-    "source": "crossref",
-    "doi": "10.52202/075280-2020",
-    "title": "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena",
-    "year": 2023,
-    "container": "Advances in Neural Information Processing Systems 36",
-    "type": "proceedings-article"
-  },
   "yang2024swebench||swe bench  can language models resolve real world github issues": {
     "source": "dblp",
     "doi": "",
@@ -213,12 +189,16 @@
     "container": "ICLR",
     "type": "inproceedings"
   },
-  "yao2023react||react  synergizing reasoning and acting in language models": {
-    "source": "dblp",
-    "doi": "",
-    "title": "ReAct: Synergizing Reasoning and Acting in Language Models.",
+  "yao2023react||react  synergizing reasoning and acting in language models": null,
+  "zheng2023judging||judging llm as a judge with mt bench and chatbot arena": {
+    "source": "crossref",
+    "doi": "10.52202/075280-2020",
+    "title": "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena",
     "year": 2023,
-    "container": "ICLR",
-    "type": "inproceedings"
-  }
+    "container": "Advances in Neural Information Processing Systems 36",
+    "type": "proceedings-article"
+  },
+  "aas12026agent-audit||agent auditability standard  aas 1  working paper v0 1": null,
+  "apas2026agent-provenance||agent provenance attestation standard  apas": null,
+  "intoto2026agent-decision||rfc  agent decision v0 1 predicate for ai agent policy decisions": null
 }

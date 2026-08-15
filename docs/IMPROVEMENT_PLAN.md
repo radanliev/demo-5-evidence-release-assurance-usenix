@@ -9,6 +9,7 @@ fix and the tool that makes the fix verifiable.
 |---|---|---|---|
 | E1 | **Numeric drift**: hardcoded prose numbers went stale when the benchmark re-ran | §6.1 merkle-1M 415.24 vs artifact 403.714; §6.2 peak 5,129 vs 4,848; ratio 3.7× vs 4.4×; 9 more rounding-level mismatches | recurring class — will recur on every re-run |
 | E2 | **Citation coverage gaps**: 7 refs.unverified MAJORs | SWE-bench, ReAct, SLSA, SPIFFE, OPA, Kyverno, CleverHans — hand-verified real; Crossref doesn't index USENIX/ICLR specs; OpenAlex index gaps | documented false negatives |
+| E2b | **2026 draft-standard citations**: in-toto agent-decision RFC (GitHub in-toto/attestation#554, 2026-05-19), APAS v0.2.1 (agentic-research/signet), AAS-1 v0.1 (aas-1.org) — hand-verified against the live pages; web-only drafts with no DOI, so never resolvable in Crossref/OpenAlex | §8.11 | documented false negatives (hand-verified 2026-08-15) |
 | E3 | **Modeled baselines**: comparative eval uses 3-line Python models of OPA/cosign | disclosed in §6.7 since 98fc6f1, but still not real executions | honest but weak |
 | E4 | **Page count**: 10 body pages vs 11–13 target | venue.pagecount MAJOR | content gap |
 | E5 | **Type-safety findings** | mypy: 4 errors (Optional args, missing annotations) | unfixed |

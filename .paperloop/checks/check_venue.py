@@ -305,13 +305,14 @@ def check(cfg: Config) -> list[Finding]:
     if limit:
         ref_page = None
         appendix_page = None
-        ref_head = re.compile(r"^\s*(references|bibliography)\s*$", re.IGNORECASE | re.MULTILINE)
-        app_head = re.compile(r"^\s*(appendix|appendices|a\s+appendix)\b", re.IGNORECASE | re.MULTILINE)
+        ref_head = re.compile(r"^[ \t]*references[ \t]*$", re.IGNORECASE | re.MULTILINE)
+        app_head = re.compile(r"^[ \t]*[A-Z][ \t]+[A-Za-z]*appendix[ \t]*$|"
+                              r"^[ \t]*appendices[ \t]*$", re.IGNORECASE | re.MULTILINE)
         for p in pages:
-            head = "\n".join(p["text"].splitlines()[:6])
-            if ref_page is None and ref_head.search(head):
+            # headings can sit mid-column in two-column layouts, so scan the whole page
+            if ref_page is None and ref_head.search(p["text"]):
                 ref_page = p["page"]
-            if appendix_page is None and app_head.search(head):
+            if appendix_page is None and app_head.search(p["text"]):
                 appendix_page = p["page"]
         cut = npages
         basis = "whole document"

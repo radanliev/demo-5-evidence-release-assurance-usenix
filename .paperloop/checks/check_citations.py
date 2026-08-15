@@ -99,11 +99,20 @@ def _get(url: str, mailto: str) -> dict | None:
     req = urllib.request.Request(
         full, headers={"User-Agent": f"paperloop/1.0 (mailto:{mailto})",
                        "Accept": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-            return json.loads(r.read().decode("utf-8", "replace"))
-    except Exception:
-        return None
+    # One retry: DBLP/OpenAlex occasionally rate-limit (429) or hiccup, and a
+    # transient failure must not surface as "citation does not exist".
+    for attempt in (0, 1):
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                return json.loads(r.read().decode("utf-8", "replace"))
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 500, 502, 503) and attempt == 0:
+                time.sleep(2)
+                continue
+            return None
+        except Exception:
+            return None
+    return None
 
 
 def _norm(s: str) -> str:

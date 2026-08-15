@@ -40,10 +40,14 @@ def generate_benchmark_figures(docs_dir: Path):
     traces = [s["trace_count"] for s in scaling]
     pkg_lat = [s["packaging_latency_ms"] for s in scaling]
     merkle_build = [s["merkle_tree_build_ms"] for s in scaling]
+    pkg_err = [s.get("packaging_latency_ms_std", 0.0) for s in scaling]
+    merkle_err = [s.get("merkle_tree_build_ms_std", 0.0) for s in scaling]
 
     plt.figure(figsize=(3.4, 2.6))
-    plt.plot(traces, pkg_lat, 'o-', color='#1f77b4', linewidth=1.5, label='Packaging Latency (ms)')
-    plt.plot(traces, merkle_build, 's--', color='#d62728', linewidth=1.5, label='Merkle Build Time (ms)')
+    plt.errorbar(traces, pkg_lat, yerr=pkg_err, fmt='o-', color='#1f77b4',
+                 linewidth=1.5, capsize=2, label='Packaging Latency (ms)')
+    plt.errorbar(traces, merkle_build, yerr=merkle_err, fmt='s--', color='#d62728',
+                 linewidth=1.5, capsize=2, label='Merkle Build Time (ms)')
     plt.xscale('log')
     plt.yscale('log')
     plt.tick_params(labelsize=8)
@@ -60,9 +64,11 @@ def generate_benchmark_figures(docs_dir: Path):
     p_tp = data_b["parallel_throughput"]
     workers = [v["num_workers"] for v in p_tp.values()]
     ops = [v["throughput_ops_sec"] for v in p_tp.values()]
+    ops_err = [v.get("throughput_ops_sec_std", 0.0) for v in p_tp.values()]
 
     plt.figure(figsize=(3.4, 2.6))
-    plt.bar([str(w) + 'w' for w in workers], ops, color='#2ca02c', width=0.5)
+    plt.bar([str(w) + 'w' for w in workers], ops, yerr=ops_err, capsize=2,
+            color='#2ca02c', width=0.5, edgecolor='black', linewidth=0.8)
     plt.tick_params(labelsize=8)
     plt.xlabel('Process Pool Size (workers)', fontsize=9)
     plt.ylabel('Verifier Throughput (ops/sec)', fontsize=9)
@@ -132,12 +138,15 @@ def write_frozen_metrics(res_dir, docs_dir):
         "% Regenerated from results/benchmark_summary.json on every build.\n"
         "% Every benchmark-derived numeral cited in the prose is a macro here,\n"
         "% so a benchmark re-run can never leave a stale number in the text.\n"
+        f"\\newcommand{{\\benchRepeats}}{{{b['benchmark_params'].get('repeats', 5)}}}\n"
         f"\\newcommand{{\\peakThroughput}}{{{best['throughput_ops_sec']:,.0f}}}\n"
+        f"\\newcommand{{\\peakThroughputStd}}{{{best.get('throughput_ops_sec_std', 0):,.0f}}}\n"
         f"\\newcommand{{\\peakWorkers}}{{{best['num_workers']}}}\n"
         f"\\newcommand{{\\singleWorkerThroughput}}{{{single['throughput_ops_sec']:,.0f}}}\n"
         f"\\newcommand{{\\peakRatio}}{{{peak_ratio:.1f}}}\n"
         f"\\newcommand{{\\merkleBuildMs}}{{{n100['merkle_tree_build_ms']:.1f}}}\n"
         f"\\newcommand{{\\merkleBuildOneMMs}}{{{n1m['merkle_tree_build_ms']:.2f}}}\n"
+        f"\\newcommand{{\\merkleBuildOneMStd}}{{{n1m.get('merkle_tree_build_ms_std', 0):.2f}}}\n"
         f"\\newcommand{{\\packagingOverhead}}{{{n100['packaging_overhead_pct']:.3f}}}\n"
         f"\\newcommand{{\\sparseProofNodes}}{{{sp['proof_nodes']}}}\n"
         f"\\newcommand{{\\sparseProofSizeKb}}{{{sp['proof_size_kb']:.2f}}}\n"
