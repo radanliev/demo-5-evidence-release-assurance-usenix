@@ -76,3 +76,17 @@ def test_malformed_evidence_fails_closed():
     passed, violations, _ = engine.evaluate(d)
     assert not passed, "Crashing evidence must fail closed, not approve"
     assert any("fail-closed" in v or "Malformed" in v for v in violations)
+
+
+def test_forensic_audit_uses_registry_not_bundle_keys():
+    from assurance.forensics import ForensicAuditEngine
+    from benchmark.tamper_vectors import generate_tampered_evidence_suite
+    engine = ForensicAuditEngine(policy_engine=ReleasePolicyEngine.from_yaml(POLICY))
+    suite = {vid: ev for vid, _, ev in generate_tampered_evidence_suite()}
+    res = engine.audit_bundle(suite["V3_FORGED_SIGNATURE"])
+    assert res["signature_key_status"] == "unregistered"
+    assert not res["signature_valid"]
+    assert res["forensic_status"] == "COMPROMISED_OR_TAMPERED"
+
+    clean = engine.audit_bundle(create_evidence_pack(use_ed25519=True, signed=True))
+    assert clean["signature_key_status"] == "trusted" and clean["signature_valid"]

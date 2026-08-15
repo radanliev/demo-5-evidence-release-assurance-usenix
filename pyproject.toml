@@ -9,10 +9,18 @@ description = "USENIX Security evidence-backed release assurance and deployment 
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "pytest>=8.0.0",
     "pyyaml>=6.0",
     "matplotlib>=3.5.0",
     "cryptography>=42.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "hypothesis>=6.0",
+    "mutmut>=3.0",
+    "bandit>=1.7",
+    "mypy>=1.8"
 ]
 
 [tool.pytest.ini_options]

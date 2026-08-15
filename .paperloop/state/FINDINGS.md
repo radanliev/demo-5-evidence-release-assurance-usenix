@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-14 21:21
+**Run:** 2026-08-15 13:01
 
 | Severity | Count |
 |---|---|
@@ -12,19 +12,6 @@
 | INFO | 4 |
 
 Gated (human sign-off required): **7**
-
-<details><summary>Build output (tail)</summary>
-
-```
-=== USENIX Security Paper PDF Builder & Figure Generator ===
-[+] Benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
-[*] Froze headline metrics -> frozen_metrics.tex (throughput=4,848, overhead=0.122%)
-[*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
-[SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-
-[+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-```
-</details>
 
 ## Auto-fix mandate
 
@@ -112,10 +99,10 @@ Recorded for the round log; no action implied.
 
 ### [INFO] figure.clipping
 
-rendered 0 page images for visual QA
+rendered 12 page images for visual QA
 
 - **found:** `/Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/.paperloop/state/pages`
-- **id:** `9cf707a2e8e178df`
+- **id:** `62d9aa3b85fb59e3`
 
 ### [INFO] refs.unverified
 

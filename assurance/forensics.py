@@ -46,6 +46,7 @@ class ForensicAuditEngine:
 
         # 1. Signature Inspection
         sig_valid = False
+        key_status = "unknown"
         if signed and sig:
             payload = {
                 "evidence_id": b.get("evidence_id", ""),
@@ -62,9 +63,23 @@ class ForensicAuditEngine:
                 "kms_key_arn": b.get("kms_key_arn")
             }
             if sig_alg == "ed25519" and pub_key:
-                sig_valid = verify_signature_ed25519(payload, sig, pub_key)
+                # Never trust a public key supplied inside the audited bundle:
+                # verify against the trusted registry pinned alongside the
+                # policy, and report CRL revocation explicitly.
+                trusted_keys = getattr(self.policy_engine, "trusted_keys", {}) if self.policy_engine else {}
+                revoked_keys = getattr(self.policy_engine, "revoked_key_ids", set()) if self.policy_engine else set()
+                if trusted_keys and key_id in revoked_keys:
+                    key_status = "revoked"
+                elif trusted_keys and key_id not in trusted_keys:
+                    key_status = "unregistered"
+                elif trusted_keys and trusted_keys.get(key_id) != pub_key:
+                    key_status = "pinned_key_mismatch"
+                else:
+                    key_status = "trusted"
+                    sig_valid = verify_signature_ed25519(payload, sig, trusted_keys.get(key_id) or pub_key)
             else:
                 sig_valid = verify_signature_hmac(payload, sig, secret_key)
+                key_status = "shared_secret"
 
         # 2. Merkle Tree & Inclusion Proof Inspection
         leaf_hashes = []
@@ -100,6 +115,7 @@ class ForensicAuditEngine:
             "signature_valid": sig_valid,
             "signature_algorithm": sig_alg,
             "key_id": key_id,
+            "signature_key_status": key_status,
             "merkle_root_claimed": merkle_root,
             "merkle_root_recalculated": recalculated_root,
             "merkle_integrity_valid": merkle_valid,
