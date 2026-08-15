@@ -20,21 +20,26 @@ jobs:
           python-version: "3.11"
 
       - name: Install Dependencies
-        run: pip install bandit pyyaml cryptography
+        run: pip install bandit semgrep pyyaml cryptography
 
       # Custom rule: verifiers must not trust key material from the payload
       # being verified (regression guard for the 98fc6f1 auth-bypass fix).
+      # Direct semgrep (not the deprecated semgrep-action@v1, whose old
+      # bundled engine mis-evaluated the nosemgrep annotation and failed).
       - name: Custom key-trust rules (fail on hit)
-        uses: returntocorp/semgrep-action@v1
-        with:
-          config: semgrep/
+        run: semgrep scan --config semgrep/ --error assurance/ scripts/
 
       - name: Bandit (report; currently no medium/high — keep it that way)
         run: bandit -r assurance/ scripts/ -f json -o bandit-report.json || true
 
       - name: Publish bandit report
         if: always()
-        run: cat bandit-report.json >> "$GITHUB_STEP_SUMMARY" || true
+        run: |
+          if [ -f bandit-report.json ]; then
+            cat bandit-report.json >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "no bandit report produced" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   test:
     name: Run Pytest & Release Gate Scanner
