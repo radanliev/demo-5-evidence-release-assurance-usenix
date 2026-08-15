@@ -23,6 +23,12 @@ dev = [
     "mypy>=1.8"
 ]
 
+[tool.setuptools]
+# Explicit package list: flat-layout auto-discovery fails on this repo
+# (corpus/, results/, governance/ are data, not packages), which broke
+# `pip install -e .` — the reproduction step in the paper's appendix.
+packages = ["assurance", "benchmark", "specimens"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
