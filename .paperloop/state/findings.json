@@ -2,7 +2,7 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-16T21:57:13"
+    "generated": "2026-08-16T22:05:08"
   },
   "summary": {
     "total": 7,
@@ -36,14 +36,14 @@
       "check": "figures",
       "category": "figure.clipping",
       "severity": "INFO",
-      "message": "rendered 19 page images for visual QA",
+      "message": "rendered 20 page images for visual QA",
       "file": null,
       "line": null,
       "page": null,
       "evidence": "/Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/.paperloop/state/pages",
       "expected": null,
       "remedy": null,
-      "fingerprint": "6d7cb51fc5fa57c9",
+      "fingerprint": "3e8705bea43410a2",
       "gated": false,
       "autofixable": true
     },
@@ -115,7 +115,7 @@
       "file": null,
       "line": null,
       "page": null,
-      "evidence": "13 body pages / 19 total",
+      "evidence": "13 body pages / 20 total",
       "expected": "<= 13",
       "remedy": null,
       "fingerprint": "1f0cf72111de700b",
