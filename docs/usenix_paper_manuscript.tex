@@ -482,7 +482,7 @@ Browser agent UI action attestation was evaluated across 1,000 automated web int
 \begin{table}[b]
 \centering
 \caption{Adversarial release tamper vector benchmark results across 13 attack vectors.}
-\label{tab:tamper12}
+\label{tab:tamper}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}lp{2.35cm}lcc@{}}
@@ -506,7 +506,7 @@ V13 & Out of Bounds KMS ARN & Key Gov & Blocked & PASS \\
 \end{tabular}
 \end{table}
 
-EviAssure blocked all 13 attack vectors (100.0\% block rate). Mitigation mechanics for each vector are summarized in Table~\ref{tab:tamper12}. For V10 (JSON Malleability), the ingestion boundary detects duplicate keys in the raw wire text and rejects the document as non-canonical prior to policy or signature evaluation; the canonical JSON serialization of the payload is what the signature covers, preventing parser-differential attacks. To test resilience against non-deterministic corruptions outside the curated suite, an offline property-based mutation fuzzing campaign evaluated 1,000 randomized payloads (signature bit-flips, leaf additions/omissions, timestamp skew drifts, nonce corruptions, key ID spoofing); EviAssure achieved a 100.0\% (1,000/1,000) fail-closed block rate with zero false approvals.
+EviAssure blocked all 13 attack vectors (100.0\% block rate). Mitigation mechanics for each vector are summarized in Table~\ref{tab:tamper}. For V10 (JSON Malleability), the ingestion boundary detects duplicate keys in the raw wire text and rejects the document as non-canonical prior to policy or signature evaluation; the canonical JSON serialization of the payload is what the signature covers, preventing parser-differential attacks. To test resilience against non-deterministic corruptions outside the curated suite, an offline property-based mutation fuzzing campaign evaluated 1,000 randomized payloads (signature bit-flips, leaf additions/omissions, timestamp skew drifts, nonce corruptions, key ID spoofing); EviAssure achieved a 100.0\% (1,000/1,000) fail-closed block rate with zero false approvals.
 
 \subsection{Per-Check Ablation}
 To isolate the marginal contribution of each enforcement, the gate was re-evaluated over all 13 vectors with exactly one check disabled per run (condition overrides on the same engine and registry; matrix recorded in the artifact's \texttt{ablation} block). Disabling the signature check releases its four targeted vectors (V1 unsigned, V3 attacker key, V9 revoked key, V13 out-of-bounds KMS ARN); disabling the Merkle re-derivation releases the digest and root forgeries (V2, V8); the quality, drift, freshness, and replay checks each release exactly their targeted vectors (V7; V6; V5 and V11; V4). 
