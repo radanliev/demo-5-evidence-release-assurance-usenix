@@ -1,4 +1,4 @@
-# demo-5-evidence-release-assurance-usenix — self-correcting review loop
+# EviAssure — Evidence-Backed Release Assurance (USENIX Security 2027)
 
 Target venue: **USENIX Security 2027**
 Manuscript: `docs/usenix_paper_manuscript.tex`

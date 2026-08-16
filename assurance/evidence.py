@@ -278,7 +278,7 @@ class EvidenceBundle:
             build_type="https://usenix.org/AgenticReleasePolicy/v1",
             invocation_params={"evidence_id": self.evidence_id, "nonce": self.nonce},
             materials=[
-                {"uri": f"git+https://github.com/anonymous-author/demo-5-evidence-release-assurance-usenix@{self.agent_system_version}",
+                {"uri": f"git+https://github.com/anonymous-author/eviassure@{self.agent_system_version}",
                  "digest": {"sha256": self.artifact_digests.get("policy_definition", hash_sha256("DEFAULT"))}}
             ]
         )

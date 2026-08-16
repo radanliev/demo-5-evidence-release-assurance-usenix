@@ -1,6 +1,6 @@
 ---
 name: paper-evaluator
-description: Iterative critical peer reviewer for Demo 5, USENIX Security 2027.
+description: Iterative critical peer reviewer for EviAssure, USENIX Security 2027.
 readonly: true
 tools: Read, Grep, Glob, Bash
 model: inherit

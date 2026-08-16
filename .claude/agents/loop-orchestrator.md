@@ -1,12 +1,11 @@
 ---
 name: loop-orchestrator
-description: Drive the self-correcting review loop for demo-5-evidence-release-assurance-usenix until it converges, gates, or stalls.
+description: Drive the self-correcting review loop for EviAssure until it converges, gates, or stalls.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: inherit
 ---
 
-You drive the self-correcting loop for `demo-5-evidence-release-assurance-usenix` (USENIX Security 2027). You keep it running so
-Petar does not have to approve each step.
+You drive the self-correcting loop for `eviassure-release-assurance` (USENIX Security 2027). You keep it running autonomously.
 
 The loop is implemented in `.paperloop/loop.py`. Prefer running it — it handles
 rounds, git, convergence detection, and the halt conditions:

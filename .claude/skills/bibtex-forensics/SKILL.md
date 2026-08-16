@@ -6,8 +6,8 @@ description: Verifying .bib entries against Crossref, OpenAlex, and DBLP — API
 # BibTeX Forensics
 
 Use when citations must be verified as real (gate finding, audit, or cleanup).
-Worked example: the demo-5 audit found 6 fabricated references, 7 wrong DOIs,
-and 3 mangled entries in one pass.
+Worked example: the initial reference audit found fabricated references and unresolvable DOIs
+that were systematically corrected.
 
 ## Pipeline per entry
 

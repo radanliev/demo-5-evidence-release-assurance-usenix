@@ -131,9 +131,9 @@ def main():
         composed_passed = eval_composed_sota_gate(tampered_payload, opa_evaluator)
         composed_blocked = not composed_passed
 
-        # 5. Demo 5 Evidence Assurance Gate
-        demo5_passed, violations, _ = policy_engine.evaluate(tampered_payload, seen_nonces=test_seen_nonces)
-        demo5_blocked = not demo5_passed
+        # 5. EviAssure Release Assurance Gate
+        evi_passed, violations, _ = policy_engine.evaluate(tampered_payload, seen_nonces=test_seen_nonces)
+        evi_blocked = not evi_passed
 
         results.append({
             "vector_id": meta["id"],
@@ -142,7 +142,7 @@ def main():
             "opa_schema_blocked": opa_blocked,
             "sigstore_cosign_blocked": cosign_blocked,
             "composed_sota_blocked": composed_blocked,
-            "demo5_assurance_blocked": demo5_blocked
+            "eviassure_assurance_blocked": evi_blocked
         })
 
     # Summary Statistics
@@ -150,7 +150,7 @@ def main():
     opa_blocks = sum(1 for r in results if r["opa_schema_blocked"])
     sigstore_blocks = sum(1 for r in results if r["sigstore_cosign_blocked"])
     composed_blocks = sum(1 for r in results if r["composed_sota_blocked"])
-    evi_blocks = sum(1 for r in results if r["demo5_assurance_blocked"])
+    evi_blocks = sum(1 for r in results if r["eviassure_assurance_blocked"])
 
     ci_rate = (ci_blocks / len(results)) * 100.0
     opa_rate = (opa_blocks / len(results)) * 100.0
@@ -163,7 +163,7 @@ def main():
     print(f"2. OPA Schema Validator:            {opa_rate:6.1f}% Block Rate ({opa_blocks}/{len(results)})")
     print(f"3. Sigstore / Cosign Artifact Gate: {sigstore_rate:6.1f}% Block Rate ({sigstore_blocks}/{len(results)})")
     print(f"4. Composed SOTA (Cosign+in-toto+OPA): {composed_rate:6.1f}% Block Rate ({composed_blocks}/{len(results)})")
-    print(f"5. Demo 5 Evidence Assurance Gate:  {evi_rate:6.1f}% Block Rate ({evi_blocks}/{len(results)})")
+    print(f"5. EviAssure Evidence Gate:         {evi_rate:6.1f}% Block Rate ({evi_blocks}/{len(results)})")
 
     out_file = Path(__file__).parent.parent / "results" / "comparative_evaluation.json"
     out_file.parent.mkdir(parents=True, exist_ok=True)
@@ -183,6 +183,7 @@ def main():
             "opa_schema_block_rate_pct": opa_rate,
             "sigstore_cosign_block_rate_pct": sigstore_rate,
             "composed_sota_block_rate_pct": composed_rate,
+            "eviassure_block_rate_pct": evi_rate,
             "demo5_assurance_block_rate_pct": evi_rate
         },
         "details": results

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-USENIX Security Paper PDF Builder & Multi-Plot Figure Generator for Demo 5.
+USENIX Security Paper PDF Builder & Multi-Plot Figure Generator for EviAssure.
 """
 
 import sys
@@ -153,9 +153,6 @@ def generate_benchmark_figures(docs_dir: Path):
     fig.savefig(fig_dir / "parallel_throughput.png", dpi=600)
     plt.close(fig)
 
-    # -------------------------------------------------------------
-    # Figure 4: Comparative Tamper Detection Block Rates
-    # -------------------------------------------------------------
     comp_sum = data_c["summary"]
     systems = ['CI Exit Code', 'Sigstore', 'OPA Schema', 'Composed SOTA', 'EviAssure']
     block_rates = [
@@ -163,7 +160,7 @@ def generate_benchmark_figures(docs_dir: Path):
         comp_sum.get("sigstore_cosign_block_rate_pct", 7.7),
         comp_sum.get("opa_schema_block_rate_pct", 23.1),
         comp_sum.get("composed_sota_block_rate_pct", 30.8),
-        comp_sum.get("demo5_assurance_block_rate_pct", 100.0)
+        comp_sum.get("eviassure_block_rate_pct", comp_sum.get("demo5_assurance_block_rate_pct", 100.0))
     ]
     colors = ['#EF4444', '#F59E0B', '#EAB308', '#8B5CF6', '#0284C7']
     hatches = ['///', '\\\\\\', 'xx', '++', '..']

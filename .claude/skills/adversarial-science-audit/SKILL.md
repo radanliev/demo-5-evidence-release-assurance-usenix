@@ -7,7 +7,7 @@ description: Checklist for auditing a paper's empirical claims by re-derivation 
 
 Use when asked to verify the science of a paper whose code and data sit in the
 repo. The premise: **every claim is false until re-derived from the artifact.**
-Two full audits of the demo-5 paper found fabricated statistics, fabricated
+Two full audits of the EviAssure paper found fabricated statistics, fabricated
 references, wrong units, an unmeasured methodology, and an authentication
 bypass — none caught by the paper's own review loop.
 
@@ -18,25 +18,30 @@ bypass — none caught by the paper's own review loop.
   stale. (Found this way: "±0.05 ms stderr", "0.14 ms DOM hashing", "tree
   depth 18".)
 - Recompute derived values: percentages, ratios, reductions. Check units:
-  "64-byte root digest" for SHA-256 (32 bytes) was hex-vs-bytes confusion.
-- Check the *platform block* (Python version, cores) matches the machine that
-  produced the artifact; record it in the artifact if absent.
+  `overhead%` must not divide milliseconds by nanoseconds; "99.999%
+  reduction" must match `1 - (sparse_kb / full_kb)`.
+- Flag non-monotone scaling: an $O(N)$ or $O(\log N)$ curve that dips at
+  $N=100{,}000$ indicates cache artifacts or different hardware between data
+  points.
 
-## 2. Re-run the experiments
+## 2. Check the test suite for honesty
 
-- Run the benchmark scripts yourself; compare every published number.
-- If numbers are run-bound, regenerate the artifact and rebuild the paper so
-  everything traces to one reproducible run. Update platform claims to match.
-- Methodology wording must match what the code does: "1,000 runs with standard
-  errors" was actually single-shot timings; "linear scaling" hid a drop at 16
-  workers. State single-run/aggregate-of-N explicitly.
+- Read the assertions, not the green checkmarks. Look for:
+  - Assertions that pass on any non-empty string or dict (`assert result`)
+  - Tests that catch their own exceptions and pass
+  - `expected` values that are hardcoded literals instead of recomputed values
+  - Tests that pass with dummy keys because the engine didn't validate
+    signatures at all
+  - Mocks that replace the system under test rather than its dependencies
 
-## 3. Attack the system yourself — never trust the test
+## 3. Verify the threat model is closed
 
-For each security claim, run the attack directly against the implementation:
-
-- **Trust boundaries**: is any verifier input both attacker-controlled and
-  trusted? (demo-5: the Ed25519 verifier used the public key *inside the
+- For every attack vector the paper claims to mitigate:
+  - Can an attacker bypass it by mutating a field the check doesn't cover?
+  - Does the verifier check the sender's identity, or only that *some* key
+    signed it?
+  - Is the trusted-key registry actually consulted, or is the bundle key
+    trusted? (EviAssure: the Ed25519 verifier used the public key *inside the
   submitted bundle* — attacker-signed bundles were APPROVED. The test passed
   because it tested HMAC-with-wrong-secret instead of an Ed25519 forgery.)
 - **Fail-closed claims**: feed malformed input (wrong types, truncated

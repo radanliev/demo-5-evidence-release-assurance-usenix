@@ -1,4 +1,4 @@
-# demo-5 abstract: three numbers, three different problems
+# EviAssure abstract: three numbers, three different problems
 
 Source of truth: `results/benchmark_summary.json`, timestamp `2026-08-11T22:54:26Z`.
 All three claims are in the abstract, line 54 of `docs/usenix_paper_manuscript.tex`.

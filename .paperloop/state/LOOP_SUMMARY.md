@@ -1,4 +1,4 @@
-# paperloop summary — demo-5-evidence-release-assurance-usenix
+# paperloop summary — EviAssure
 
 - venue: USENIX Security 2027
 - outcome: **gates-only**

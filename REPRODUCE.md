@@ -15,7 +15,7 @@ This artifact package provides full reproduction materials for the paper **"Evid
 
 ```bash
 # Clone or extract the artifact
-cd demo-5-evidence-release-assurance-usenix
+cd eviassure
 
 # Install the package in editable mode with dependencies
 pip install -e .
