@@ -405,7 +405,7 @@ def main():
     print(f"=== Running USENIX Security Release Assurance Empirical Benchmark "
           f"(repeats={repeats}) ===")
 
-    print("\n1. Measuring Merkle Tree & Packaging Scaling (up to N=100,000)...")
+    print("\n1. Measuring Merkle Tree & Packaging Scaling (up to N=1,000,000)...")
     merkle_scaling = measure_merkle_scaling(repeats)
     for row in merkle_scaling:
         print(f"   Traces: {row['trace_count']:6d} | Pkg Latency: {row['packaging_latency_ms']:7.2f} ms | Merkle Build: {row['merkle_tree_build_ms']:6.2f} ms | Bundle: {row['bundle_size_kb']:8.2f} KB | Overhead: {row['packaging_overhead_pct']:.4f}%")
@@ -424,7 +424,7 @@ def main():
     print("\n5. Measuring Browser UI Attestation Hashing Costs (1,000 steps)...")
     ui_hashing = measure_ui_attestation_hashing(repeats=repeats)
 
-    print("\n6. Evaluating 12-Vector Adversarial Release Tamper Resilience Suite...")
+    print("\n6. Evaluating 13-Vector Adversarial Release Tamper Resilience Suite...")
     tamper_res = evaluate_tamper_resilience()
     print(f"   Fail-Closed Block Rate: {tamper_res['fail_closed_block_rate_pct']}% ({tamper_res['blocked_vectors']}/{tamper_res['total_vectors']} blocked)")
     for v in tamper_res["vector_details"]:

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-16T18:32:16Z",
+  "timestamp": "2026-08-16T21:38:04Z",
   "platform": {
     "python_version": "3.14.7",
     "logical_cores": 14,
@@ -8,7 +8,7 @@
   "benchmark_params": {
     "synthetic_step_duration_ms": 1.5,
     "throughput_evals_per_worker": 1000,
-    "repeats": 3
+    "repeats": 5
   },
   "disclosures": {
     "packaging_latency_excludes_merkle_build": "packaging_latency_ms times the post-Merkle packaging path (bundle construction, signing, serialization); Merkle tree construction is reported separately as merkle_tree_build_ms from the same single build (N15).",
@@ -19,119 +19,119 @@
   "merkle_scaling": [
     {
       "trace_count": 10,
-      "packaging_latency_ms": 0.174,
-      "packaging_latency_ms_std": 0.155,
+      "packaging_latency_ms": 0.141,
+      "packaging_latency_ms_std": 0.133,
       "packaging_excludes_merkle_build": true,
-      "merkle_tree_build_ms": 0.007,
-      "merkle_tree_build_ms_std": 0.001,
+      "merkle_tree_build_ms": 0.008,
+      "merkle_tree_build_ms_std": 0.003,
       "merkle_tree_depth": 5,
       "bundle_size_kb": 3.19,
-      "packaging_overhead_pct": 1.1621
+      "packaging_overhead_pct": 0.9379
     },
     {
       "trace_count": 100,
-      "packaging_latency_ms": 0.093,
-      "packaging_latency_ms_std": 0.017,
+      "packaging_latency_ms": 0.079,
+      "packaging_latency_ms_std": 0.003,
       "packaging_excludes_merkle_build": true,
-      "merkle_tree_build_ms": 0.045,
-      "merkle_tree_build_ms_std": 0.012,
+      "merkle_tree_build_ms": 0.037,
+      "merkle_tree_build_ms_std": 0.0,
       "merkle_tree_depth": 8,
       "bundle_size_kb": 23.05,
-      "packaging_overhead_pct": 0.0619
+      "packaging_overhead_pct": 0.0525
     },
     {
       "trace_count": 1000,
-      "packaging_latency_ms": 0.096,
-      "packaging_latency_ms_std": 0.023,
+      "packaging_latency_ms": 0.09,
+      "packaging_latency_ms_std": 0.011,
       "packaging_excludes_merkle_build": true,
-      "merkle_tree_build_ms": 0.414,
-      "merkle_tree_build_ms_std": 0.052,
+      "merkle_tree_build_ms": 0.382,
+      "merkle_tree_build_ms_std": 0.022,
       "merkle_tree_depth": 11,
       "bundle_size_kb": 221.68,
-      "packaging_overhead_pct": 0.0064
+      "packaging_overhead_pct": 0.006
     },
     {
       "trace_count": 10000,
-      "packaging_latency_ms": 0.136,
-      "packaging_latency_ms_std": 0.025,
+      "packaging_latency_ms": 0.125,
+      "packaging_latency_ms_std": 0.021,
       "packaging_excludes_merkle_build": true,
-      "merkle_tree_build_ms": 3.481,
-      "merkle_tree_build_ms_std": 0.15,
+      "merkle_tree_build_ms": 3.432,
+      "merkle_tree_build_ms_std": 0.057,
       "merkle_tree_depth": 15,
       "bundle_size_kb": 2208.01,
-      "packaging_overhead_pct": 0.0009
+      "packaging_overhead_pct": 0.0008
     },
     {
       "trace_count": 100000,
-      "packaging_latency_ms": 0.257,
-      "packaging_latency_ms_std": 0.183,
+      "packaging_latency_ms": 0.213,
+      "packaging_latency_ms_std": 0.142,
       "packaging_excludes_merkle_build": true,
-      "merkle_tree_build_ms": 37.632,
-      "merkle_tree_build_ms_std": 0.293,
+      "merkle_tree_build_ms": 37.242,
+      "merkle_tree_build_ms_std": 0.288,
       "merkle_tree_depth": 18,
       "bundle_size_kb": 22071.3,
-      "packaging_overhead_pct": 0.0002
+      "packaging_overhead_pct": 0.0001
     },
     {
       "trace_count": 1000000,
-      "packaging_latency_ms": 1.176,
-      "packaging_latency_ms_std": 1.752,
+      "packaging_latency_ms": 0.737,
+      "packaging_latency_ms_std": 1.28,
       "packaging_excludes_merkle_build": true,
-      "merkle_tree_build_ms": 380.203,
-      "merkle_tree_build_ms_std": 5.009,
+      "merkle_tree_build_ms": 383.48,
+      "merkle_tree_build_ms_std": 6.524,
       "merkle_tree_depth": 21,
       "bundle_size_kb": 220704.11,
-      "packaging_overhead_pct": 0.0001
+      "packaging_overhead_pct": 0.0
     }
   ],
   "parallel_throughput": {
     "workers_1": {
       "num_workers": 1,
       "total_evaluations": 1000,
-      "elapsed_seconds": 0.2691,
-      "throughput_ops_sec": 3666.11,
-      "throughput_ops_sec_std": 98.3,
-      "mean_latency_per_eval_ms": 0.2691,
+      "elapsed_seconds": 0.2692,
+      "throughput_ops_sec": 3710.12,
+      "throughput_ops_sec_std": 144.81,
+      "mean_latency_per_eval_ms": 0.2692,
       "distinct_nonce_bundles": true,
       "warm_engine": true
     },
     "workers_2": {
       "num_workers": 2,
       "total_evaluations": 1000,
-      "elapsed_seconds": 0.1755,
-      "throughput_ops_sec": 5662.18,
-      "throughput_ops_sec_std": 30.19,
-      "mean_latency_per_eval_ms": 0.1755,
+      "elapsed_seconds": 0.1761,
+      "throughput_ops_sec": 5630.97,
+      "throughput_ops_sec_std": 39.52,
+      "mean_latency_per_eval_ms": 0.1761,
       "distinct_nonce_bundles": true,
       "warm_engine": true
     },
     "workers_4": {
       "num_workers": 4,
       "total_evaluations": 1000,
-      "elapsed_seconds": 0.1373,
-      "throughput_ops_sec": 7265.0,
-      "throughput_ops_sec_std": 75.63,
-      "mean_latency_per_eval_ms": 0.1373,
+      "elapsed_seconds": 0.1375,
+      "throughput_ops_sec": 7321.13,
+      "throughput_ops_sec_std": 83.19,
+      "mean_latency_per_eval_ms": 0.1375,
       "distinct_nonce_bundles": true,
       "warm_engine": true
     },
     "workers_8": {
       "num_workers": 8,
       "total_evaluations": 1000,
-      "elapsed_seconds": 0.1692,
-      "throughput_ops_sec": 6328.36,
-      "throughput_ops_sec_std": 365.29,
-      "mean_latency_per_eval_ms": 0.1692,
+      "elapsed_seconds": 0.1503,
+      "throughput_ops_sec": 6504.04,
+      "throughput_ops_sec_std": 223.21,
+      "mean_latency_per_eval_ms": 0.1503,
       "distinct_nonce_bundles": true,
       "warm_engine": true
     },
     "workers_16": {
       "num_workers": 16,
       "total_evaluations": 1000,
-      "elapsed_seconds": 0.2017,
-      "throughput_ops_sec": 4769.95,
-      "throughput_ops_sec_std": 245.66,
-      "mean_latency_per_eval_ms": 0.2017,
+      "elapsed_seconds": 0.2108,
+      "throughput_ops_sec": 4813.76,
+      "throughput_ops_sec_std": 53.82,
+      "mean_latency_per_eval_ms": 0.2108,
       "distinct_nonce_bundles": true,
       "warm_engine": true
     }
@@ -141,26 +141,26 @@
     "tree_depth": 21,
     "proof_nodes": 20,
     "proof_size_kb": 1.927,
-    "gen_latency_ms": 0.0038,
-    "gen_latency_ms_std": 0.0033,
+    "gen_latency_ms": 0.003,
+    "gen_latency_ms_std": 0.0024,
     "verify_latency_ms": 0.0071,
-    "verify_latency_ms_std": 0.0011,
-    "repeats": 3
+    "verify_latency_ms_std": 0.0009,
+    "repeats": 5
   },
   "blinding_overhead": {
     "trace_count": 10000,
-    "total_ms": 12.78,
-    "total_ms_std": 0.55,
+    "total_ms": 12.79,
+    "total_ms_std": 0.4,
     "per_record_ms": 0.00128,
-    "repeats": 3
+    "repeats": 5
   },
   "ui_attestation_hashing": {
     "ui_steps": 1000,
-    "dom_hash_ms_per_step": 0.00124,
-    "dom_hash_ms_per_step_std": 5e-05,
-    "screenshot_digest_ms_per_step": 0.00031,
+    "dom_hash_ms_per_step": 0.00123,
+    "dom_hash_ms_per_step_std": 2e-05,
+    "screenshot_digest_ms_per_step": 0.00033,
     "screenshot_digest_ms_per_step_std": 2e-05,
-    "repeats": 3
+    "repeats": 5
   },
   "tamper_resilience": {
     "total_vectors": 13,
@@ -176,7 +176,7 @@
         "violations": [
           "POLICY_VIOLATION: Unsigned evidence bundle rejected."
         ],
-        "eval_latency_ms": 0.029
+        "eval_latency_ms": 0.02
       },
       {
         "id": "V2",
@@ -187,7 +187,7 @@
         "violations": [
           "POLICY_VIOLATION: Merkle root mismatch! Claimed: 562c75f24581..., Recalculated: 427a4e04e68e..."
         ],
-        "eval_latency_ms": 0.255
+        "eval_latency_ms": 0.268
       },
       {
         "id": "V3",
@@ -199,7 +199,7 @@
           "POLICY_VIOLATION: Key ID 'KEY-ATTACKER-UNTRUSTED' not in trusted key registry.",
           "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
         ],
-        "eval_latency_ms": 0.016
+        "eval_latency_ms": 0.01
       },
       {
         "id": "V4",
@@ -208,9 +208,9 @@
         "passed": false,
         "blocked": true,
         "violations": [
-          "POLICY_VIOLATION: Replayed evidence nonce detected (ff102644-4a6d-482e-b8ee-8b3a41bcf37d)."
+          "POLICY_VIOLATION: Replayed evidence nonce detected (8941db6d-87c1-4cd2-94bc-9974bee60098)."
         ],
-        "eval_latency_ms": 0.194
+        "eval_latency_ms": 0.163
       },
       {
         "id": "V5",
@@ -221,7 +221,7 @@
         "violations": [
           "POLICY_VIOLATION: Evidence timestamp expired (7200s > max 3600s)."
         ],
-        "eval_latency_ms": 0.182
+        "eval_latency_ms": 0.176
       },
       {
         "id": "V6",
@@ -232,7 +232,7 @@
         "violations": [
           "POLICY_VIOLATION: Unresolved drift findings present (3 > allowed 0)."
         ],
-        "eval_latency_ms": 0.175
+        "eval_latency_ms": 0.166
       },
       {
         "id": "V7",
@@ -243,7 +243,7 @@
         "violations": [
           "POLICY_VIOLATION: Sub-threshold test pass rate (85.5% < min required 100.0%)."
         ],
-        "eval_latency_ms": 0.182
+        "eval_latency_ms": 0.174
       },
       {
         "id": "V8",
@@ -254,7 +254,7 @@
         "violations": [
           "POLICY_VIOLATION: Merkle root mismatch! Claimed: b6427a237933..., Recalculated: 562c75f24581..."
         ],
-        "eval_latency_ms": 0.171
+        "eval_latency_ms": 0.18
       },
       {
         "id": "V9",
@@ -280,7 +280,7 @@
           "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1).",
           "POLICY_VIOLATION: Sub-threshold test pass rate (85.5% < min required 100.0%)."
         ],
-        "eval_latency_ms": 0.208
+        "eval_latency_ms": 0.207
       },
       {
         "id": "V11",
@@ -291,7 +291,7 @@
         "violations": [
           "POLICY_VIOLATION: Timestamp post-dated in the future (skew: 3599s > max 30s)."
         ],
-        "eval_latency_ms": 0.171
+        "eval_latency_ms": 0.169
       },
       {
         "id": "V12",
@@ -303,7 +303,7 @@
           "POLICY_VIOLATION: Merkle root mismatch! Claimed: 562c75f24581..., Recalculated: 89b7eca2b5db...",
           "POLICY_VIOLATION: Execution trace count mismatch (3 claimed, 1 present)."
         ],
-        "eval_latency_ms": 0.164
+        "eval_latency_ms": 0.167
       },
       {
         "id": "V13",
@@ -315,7 +315,7 @@
           "POLICY_VIOLATION: Signing key KMS ARN missing or outside the required boundary.",
           "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
         ],
-        "eval_latency_ms": 0.006
+        "eval_latency_ms": 0.007
       }
     ]
   },
