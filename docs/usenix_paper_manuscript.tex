@@ -459,7 +459,7 @@ Browser agent UI action attestation was evaluated across 1,000 automated web int
 \begin{table}[b]
 Table~\ref{tab:tamper12} presents detailed security benchmark results across all 13 adversarial tamper vectors, mapping each attack vector to its failure category, expected action, and observed gate verdict.
 \centering
-\caption{Adversarial Release Tamper Vector Benchmark Results.}
+\caption{Adversarial release tamper vector benchmark results across 13 attack vectors.}
 \label{tab:tamper12}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -570,7 +570,7 @@ V6 and V7 are policy-compliance vectors rather than capabilities of $\mathcal{A}
 $\mathcal{A}_1$ Trace tampering & V2, V8, V12 & Merkle root re-derivation over all leaves \\
 $\mathcal{A}_2$ Signature forgery & V1, V3 & Ed25519 over canonical payload; trusted-key registry \\
 $\mathcal{A}_3$ Replay / skew & V4, V5, V11 & Nonce cache (validity window) $+$ freshness bounds \\
-$\mathcal{A}_4$ Key governance & V9 & CRL membership; KMS ARN boundary pattern \\
+$\mathcal{A}_4$ Key governance & V9, V13 & CRL membership; KMS ARN boundary pattern \\
 $\mathcal{A}_5$ Malleability & V10 & Canonical JSON serialization in signed payload \\
 \midrule
 Policy compliance & V6, V7 & Drift and pass-rate thresholds \\
