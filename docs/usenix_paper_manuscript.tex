@@ -678,14 +678,15 @@ To comply with USENIX Security '27 Open Science guidelines while preserving doub
 
 Additionally, an archived review package \texttt{eviassure\_usenix27\_artifact.zip} (size: \artifactSizeKb{} KB) has been prepared using \url{scripts/prepare_anonymous_artifact.py}. The archive carries SHA-256 digest:
 \begin{center}
-\texttt{\artifactShaDigest}
+\texttt{\artifactShaPartOne}\\
+\texttt{\artifactShaPartTwo}
 \end{center}
 
 \subsection{Reproduction Workflow}
 To execute full reproduction of paper figures, benchmark results, and unit tests:
 \begin{enumerate}
     \item \textbf{Environment Setup}: Install dependencies via \texttt{pip install -e .} (Python $\ge 3.10$).
-    \item \textbf{Unit \& Integration Test Suite}: Run \texttt{pytest tests/ -v} to execute all 42 unit, integration, property-based (crypto soundness), browser attestation, trusted-key-registry, tamper resilience, corpus-evaluation, adversarial-regression (2026-08 review findings), and docs-consistency tests.
+    \item \textbf{Unit \& Integration Test Suite}: Run \texttt{pytest tests/ -v} to execute all 44 unit, integration, property-based (crypto soundness), browser attestation, trusted-key-registry, tamper resilience, corpus-evaluation, and adversarial-regression tests.
     \item \textbf{Attestation Scaling \& Throughput Microbenchmarks}: Run \texttt{python3 scripts/run\_release\_benchmark.py --repeats 5} to generate \url{results/benchmark_summary.json}.
     \item \textbf{Adversarial Tamper Evaluation}: Run \texttt{python3 scripts/run\_comparative\_eval.py} to execute the 13-vector attack harness and produce \url{results/comparative_evaluation.json}.
     \item \textbf{Corpus Two-Layer Evaluation}: Run \texttt{python3 scripts/run\_corpus\_eval.py} to evaluate all 1,050 corpus profiles through the cryptographic, policy, and per-leaf inspection layers and produce \url{results/corpus_evaluation.json}.

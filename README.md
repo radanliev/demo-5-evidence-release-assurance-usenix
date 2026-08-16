@@ -32,7 +32,7 @@ Autonomous agentic deployments require reproducible, cryptographically verifiabl
 | **Fail-Closed Block Rate** | **100.0%** | **13 / 13** adversarial tamper vectors blocked (`V1` to `V13`) |
 | **Verifier Throughput** | **7,321 ops/sec** | Multi-core parallel verification (steady-state warm engine) |
 | **Merkle Tree Packaging ($N=1,000,000$)** | **383.48 ms** | Scalable trace attestation for enterprise agent workloads |
-| **Test Suite Coverage** | **33/33 PASS** | 100% pass rate across cryptographic, policy, and tamper tests |
+| **Test Suite Coverage** | **44/44 PASS** | 100% pass rate across cryptographic, policy, and tamper tests |
 
 
 ## 🚀 Quickstart & Reproduction
