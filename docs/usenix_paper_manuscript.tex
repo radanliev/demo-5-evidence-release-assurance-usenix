@@ -681,9 +681,9 @@ By enforcing a strict zero-trust fail-closed release gate, EviAssure provides im
 The reproducibility materials consist of the complete EviAssure implementation (including cryptographic attestation, privacy blinding, and policy verification modules), the 1,050-profile agent execution trace corpus, the 13-vector tamper evaluation harness, production GitHub Action workflows, benchmark scripts, and the paper figure generator. Furthermore, all datasets used to establish the comparative baselines (e.g., the specific OPA Rego policies and JSON payloads used in Section~\ref{sec:comparative}) are included to guarantee full baseline reproducibility.
 
 \subsection{Anonymous Review Artifact \& Verification}
-To comply with USENIX Security '27 Open Science guidelines while preserving double-blind review, the complete artifact has been published to a sanitized, anonymous GitHub repository at:
+To comply with USENIX Security '27 Open Science guidelines while preserving double-blind review, the complete artifact has been published to a sanitized, anonymous repository at:
 \begin{center}
-\textbf{[REDACTED FOR DOUBLE-BLIND REVIEW]}
+\url{https://anonymous.4open.science/r/eviassure-release-assurance/}
 \end{center}
 
 Additionally, an archived review package \texttt{eviassure\_usenix27\_artifact.zip} (size: \artifactSizeKb{} KB) has been prepared using \url{scripts/prepare_anonymous_artifact.py}. The archive carries SHA-256 digest:

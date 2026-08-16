@@ -6,8 +6,9 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 
-> **Blind-Verification Artifact**  
+> **Double-Blind Review Artifact**  
 > *Target Venue:* USENIX Security Symposium (USENIX Security 2027)  
+> *Anonymous Repository Mirror:* [https://anonymous.4open.science/r/eviassure-release-assurance/](https://anonymous.4open.science/r/eviassure-release-assurance/)  
 > *Primary Focus:* Cryptographic trace attestation (SHA-256 Merkle trees), Ed25519/HMAC digital evidence packaging, fail-closed zero-trust policy gate verification, and tamper resilience audit infrastructure.
 
 ---
