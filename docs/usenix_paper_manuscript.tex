@@ -582,11 +582,11 @@ V6 and V7 are policy-compliance vectors rather than capabilities of $\mathcal{A}
 \toprule
 \textbf{Class} & \textbf{Vectors} & \textbf{Enforcement} \\
 \midrule
-$\mathcal{A}_1$ Trace tampering & V2, V8, V12 & Merkle root re-derivation over all leaves \\
+$\mathcal{A}_1$ Trace tampering & V2, V8, V12 & Merkle root re-derivation and signed count depth bound \\
 $\mathcal{A}_2$ Signature forgery & V1, V3 & Ed25519 over canonical payload; trusted-key registry \\
 $\mathcal{A}_3$ Replay / skew & V4, V5, V11 & Nonce cache (validity window) $+$ freshness bounds \\
 $\mathcal{A}_4$ Key governance & V9, V13 & CRL membership; KMS ARN boundary pattern \\
-$\mathcal{A}_5$ Malleability & V10 & Canonical JSON serialization in signed payload \\
+$\mathcal{A}_5$ Malleability & V10 & Duplicate-key wire check and canonical JSON \\
 \midrule
 Policy compliance & V6, V7 & Drift and pass-rate thresholds \\
 \bottomrule
