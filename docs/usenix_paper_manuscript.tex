@@ -16,7 +16,7 @@
 \usepackage{enumitem}
 \usepackage{tikz}
 \raggedbottom
-\usetikzlibrary{shapes.geometric, arrows, positioning}
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit, backgrounds, calc}
 \setlist{noitemsep,topsep=3pt,parsep=0pt,partopsep=0pt}
 
 \lstdefinelanguage{json}{
@@ -139,35 +139,43 @@ The EviAssure release assurance architecture involves four primary entities: the
 \emph{Release Assurance Gate}: The central enforcement entity. It runs in a trusted, isolated deployment environment (e.g., a secured CI/CD pipeline step) and evaluates the cryptographically signed \texttt{EvidenceBundle} against the pinned policy from the registry.
 
 \begin{figure*}[t]
-{The following architecture diagram (Figure~\ref{fig:architecture}) introduces the end-to-end data flow, detailing how non-deterministic execution traces are collected, cryptographically signed, and securely evaluated against governance policies prior to production deployment.\par\vspace{1ex}}
 \centering
 \begin{tikzpicture}[
-    node distance=1cm and 1cm,
-    box/.style={rectangle, draw, minimum width=2.5cm, minimum height=1cm, align=center, fill=gray!10, text width=2.5cm},
-    arrow/.style={thick, ->, >=stealth}
+    node distance=0.8cm and 1.1cm,
+    zone/.style={draw=#1, dashed, rounded corners=6pt, fill=#1!4, inner sep=8pt, label={[anchor=north west, font=\footnotesize\bfseries\color{#1!80!black}, xshift=6pt, yshift=-4pt]#2}},
+    entity/.style={rectangle, draw=#1!80!black, fill=#1!12, rounded corners=4pt, minimum width=2.3cm, minimum height=1.0cm, align=center, font=\footnotesize, thick},
+    gate_box/.style={rectangle, draw=blue!80!black, fill=blue!15, rounded corners=4pt, minimum width=2.4cm, minimum height=1.1cm, align=center, font=\footnotesize\bfseries, very thick},
+    flow/.style={thick, ->, >=stealth, draw=black!70},
+    secflow/.style={very thick, ->, >=stealth, draw=blue!80!black},
+    badge/.style={fill=white, draw=gray!50, rounded corners=2pt, inner sep=1.8pt, font=\footnotesize}
 ]
 
 % Nodes
-\node[box] (agent) {Autonomous Agent};
-\node[box, right=of agent] (collector) {Evidence Collector};
-\node[box, below=of collector] (kms) {Cloud KMS / HSM};
-\node[box, right=of collector] (registry) {Policy Registry \& CRL};
-\node[box, below=of registry, fill=blue!10] (gate) {Release Assurance Gate};
-\node[box, right=of gate] (prod) {Production Environment};
+\node[entity=orange] (agent) {\textbf{Autonomous Agent}\\\textit{Untrusted Runtime}};
+\node[entity=cyan, right=1.3cm of agent] (collector) {\textbf{Evidence Collector}\\\textit{Isolated Monitor}};
+\node[entity=purple, below=0.8cm of collector] (kms) {\textbf{Cloud KMS / HSM}\\\textit{Ed25519 Hardware Root}};
+\node[entity=gray, right=1.3cm of collector] (registry) {\textbf{Policy Registry}\\\textit{YAML Rules \& CRL}};
+\node[gate_box, below=0.8cm of registry] (gate) {Release Assurance Gate\\\mdseries\textit{Fail-Closed Zero-Trust Engine}};
+\node[entity=green!70!black, right=1.3cm of gate] (prod) {\textbf{Production Env}\\\textit{Authorized Target}};
 
-% Arrows
-\draw[arrow] (agent) -- node[above, font=\scriptsize] {Traces} (collector);
-\draw[arrow] ([xshift=-0.5cm]collector.south) -- node[left, font=\scriptsize] {Digest} ([xshift=-0.5cm]kms.north);
-\draw[arrow] ([xshift=0.5cm]kms.north) -- node[right, font=\scriptsize] {Signature} ([xshift=0.5cm]collector.south);
-\draw[arrow] (collector) -- node[above right, font=\scriptsize] {Evidence} (gate);
-\draw[arrow] (registry) -- node[right, font=\scriptsize] {Policy} (gate);
-\draw[arrow] (gate) -- node[above, font=\scriptsize] {Deploy} (prod);
+% Grouping Trust Boundaries / Zones
+\begin{scope}[on background layer]
+\node[zone={red}{Untrusted Agent Tier}, fit=(agent)] (zone_agent) {};
+\node[zone={cyan!70!blue}{Isolated Attestation Tier}, fit=(collector) (kms)] (zone_attest) {};
+\node[zone={green!60!black}{Zero-Trust Deployment Boundary}, fit=(registry) (gate) (prod)] (zone_deploy) {};
+\end{scope}
+
+% Dataflow Connections
+\draw[flow] (agent) -- node[above, badge] {Raw Trace Stream} (collector);
+\draw[secflow] ([xshift=-0.35cm]collector.south) -- node[left, badge] {Trace Digest $H_{\text{trace}}$} ([xshift=-0.35cm]kms.north);
+\draw[secflow] ([xshift=0.35cm]kms.north) -- node[right, badge] {Ed25519 Attestation $\sigma$} ([xshift=0.35cm]collector.south);
+\draw[secflow] (collector) -- node[above right, badge, pos=0.45] {Signed Bundle $\mathcal{E}$} (gate);
+\draw[flow] (registry) -- node[right, badge] {Pinned Policy $\mathcal{P}$} (gate);
+\draw[flow, draw=green!60!black, very thick] (gate) -- node[above, badge] {\textbf{APPROVED} (Exit 0)} (prod);
 
 \end{tikzpicture}
-\caption{EviAssure System Architecture. The Evidence Collector aggregates agent traces and signs them via the KMS. The Release Assurance Gate evaluates the signed bundle against policies from the Registry before authorizing deployment.}
+\caption{EviAssure System Architecture and Trust Boundaries. The Evidence Collector captures execution traces across an out-of-process monitor boundary and requests hardware-rooted attestation from Cloud KMS. The Release Assurance Gate evaluates the signed bundle ($\mathcal{E}$) against pinned governance rules ($\mathcal{P}$) from the Registry to authorize production release.}
 \label{fig:architecture}
-
-As mapped out in the figure above, this architectural flow ensures that all traces are signed at the source, preventing any undetected modification between collection and policy evaluation.
 \end{figure*}
 
 \subsection{Adversary Model}\label{sec:threat}

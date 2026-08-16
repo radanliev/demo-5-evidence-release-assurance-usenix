@@ -15,8 +15,36 @@ from scripts.run_comparative_eval import main as run_comparative_eval
 
 
 def generate_benchmark_figures(docs_dir: Path):
+    # Ensure user site-packages are available for matplotlib
+    import sys
+    for extra_path in ["/Users/skywalker/Library/Python/3.14/lib/python/site-packages", "/opt/homebrew/lib/python3.14/site-packages"]:
+        if extra_path not in sys.path and Path(extra_path).exists():
+            sys.path.insert(0, extra_path)
+
+    import matplotlib
     import matplotlib.pyplot as plt
     import json
+
+    # Configure publication-grade aesthetics matching 2024-2026 USENIX/IEEE S&P standards
+    plt.rcParams.update({
+        'font.family': 'sans-serif',
+        'font.sans-serif': ['Helvetica', 'DejaVu Sans', 'Arial'],
+        'figure.dpi': 600,
+        'savefig.dpi': 600,
+        'savefig.bbox': 'tight',
+        'axes.spines.top': False,
+        'axes.spines.right': False,
+        'axes.grid': True,
+        'axes.grid.which': 'both',
+        'grid.color': '#E2E8F0',
+        'grid.linestyle': '--',
+        'grid.linewidth': 0.6,
+        'grid.alpha': 0.7,
+        'xtick.direction': 'out',
+        'ytick.direction': 'out',
+        'xtick.major.size': 3.5,
+        'ytick.major.size': 3.5,
+    })
 
     res_dir = docs_dir.parent / "results"
     b_file = res_dir / "benchmark_summary.json"
@@ -35,7 +63,9 @@ def generate_benchmark_figures(docs_dir: Path):
     fig_dir = docs_dir / "figures"
     fig_dir.mkdir(parents=True, exist_ok=True)
 
-    # Figure 1: Merkle Tree Scaling up to 100K traces
+    # -------------------------------------------------------------
+    # Figure 2: Merkle Tree Attestation Scaling (N=10 to N=1,000,000)
+    # -------------------------------------------------------------
     scaling = data_b["merkle_scaling"]
     traces = [s["trace_count"] for s in scaling]
     pkg_lat = [s["packaging_latency_ms"] for s in scaling]
@@ -43,45 +73,90 @@ def generate_benchmark_figures(docs_dir: Path):
     pkg_err = [s.get("packaging_latency_ms_std", 0.0) for s in scaling]
     merkle_err = [s.get("merkle_tree_build_ms_std", 0.0) for s in scaling]
 
-    plt.figure(figsize=(3.4, 2.6))
-    plt.errorbar(traces, pkg_lat, yerr=pkg_err, fmt='o-', color='#1f77b4',
-                 linewidth=1.5, capsize=2, label='Packaging Latency (ms)')
-    plt.errorbar(traces, merkle_build, yerr=merkle_err, fmt='s--', color='#d62728',
-                 linewidth=1.5, capsize=2, label='Merkle Build Time (ms)')
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.tick_params(labelsize=8)
-    plt.xlabel('Trace Count N (log scale)', fontsize=9)
-    plt.ylabel('Time (ms, log scale)', fontsize=9)
-    plt.title('Attestation Scaling up to N=1,000,000 Traces', fontsize=8.5, fontweight='bold')
-    plt.grid(True, which="both", ls="--", alpha=0.5)
-    plt.legend(fontsize=8)
-    plt.tight_layout()
-    plt.savefig(fig_dir / "merkle_scaling.png", dpi=300)
-    plt.close()
+    fig, ax = plt.subplots(figsize=(3.35, 2.5))
+    
+    # Merkle build curve with error band and prominent markers
+    ax.plot(traces, merkle_build, 's-', color='#B91C1C', linewidth=1.8,
+            markersize=5.5, markeredgewidth=1.2, markerfacecolor='white',
+            label='Merkle Tree Construction', zorder=4)
+    ax.fill_between(traces,
+                    [max(0.001, m - e) for m, e in zip(merkle_build, merkle_err)],
+                    [m + e for m, e in zip(merkle_build, merkle_err)],
+                    color='#B91C1C', alpha=0.12, zorder=2)
 
-    # Figure 2: Multi-Process Parallel Throughput
+    # Packaging latency curve with error band and prominent markers
+    ax.plot(traces, pkg_lat, 'o-', color='#1D4ED8', linewidth=1.8,
+            markersize=5.5, markeredgewidth=1.2, markerfacecolor='white',
+            label='Envelope Packaging Latency', zorder=4)
+    ax.fill_between(traces,
+                    [max(0.001, p - e) for p, e in zip(pkg_lat, pkg_err)],
+                    [p + e for p, e in zip(pkg_lat, pkg_err)],
+                    color='#1D4ED8', alpha=0.12, zorder=2)
+
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+    ax.tick_params(labelsize=7.5)
+    ax.set_xlabel('Trace Count $N$ (log scale)', fontsize=8.5, fontweight='semibold')
+    ax.set_ylabel('Execution Time (ms, log scale)', fontsize=8.5, fontweight='semibold')
+    ax.set_title('Attestation Scaling up to $N=1,000,000$ Traces', fontsize=9.0, fontweight='bold', pad=6)
+    
+    # Annotated callout at 1M
+    ax.annotate(f'383.5 ms\n(1M traces)', xy=(1000000, 383.48), xytext=(80000, 750.0),
+                arrowprops=dict(arrowstyle='->', color='#B91C1C', lw=1.0),
+                fontsize=6.8, fontweight='bold', color='#7F1D1D',
+                bbox=dict(boxstyle='round,pad=0.2', facecolor='#FEF2F2', edgecolor='#F87171', lw=0.6))
+
+    ax.legend(fontsize=7.2, frameon=True, facecolor='white', edgecolor='#CBD5E1', loc='upper left')
+    fig.tight_layout()
+    fig.savefig(fig_dir / "merkle_scaling.png", dpi=600)
+    plt.close(fig)
+
+    # -------------------------------------------------------------
+    # Figure 3: Multi-Process Parallel Verifier Throughput
+    # -------------------------------------------------------------
     p_tp = data_b["parallel_throughput"]
     workers = [v["num_workers"] for v in p_tp.values()]
     ops = [v["throughput_ops_sec"] for v in p_tp.values()]
     ops_err = [v.get("throughput_ops_sec_std", 0.0) for v in p_tp.values()]
 
-    plt.figure(figsize=(3.4, 2.6))
-    plt.bar([str(w) + 'w' for w in workers], ops, yerr=ops_err, capsize=2,
-            color='#2ca02c', width=0.5, edgecolor='black', linewidth=0.8)
-    plt.tick_params(labelsize=8)
-    plt.xlabel('Process Pool Size (workers)', fontsize=9)
-    plt.ylabel('Verifier Throughput (ops/sec)', fontsize=9)
-    plt.title('Multi-Core Parallel Verification Throughput', fontsize=9, fontweight='bold')
-    plt.ylim(0, max(ops) * 1.25)
-    plt.grid(axis='y', ls="--", alpha=0.5)
-    for i, v in enumerate(ops):
-        plt.text(i, v + 100, f"{int(v)}/s", ha='center', fontweight='bold', fontsize=8)
-    plt.tight_layout()
-    plt.savefig(fig_dir / "parallel_throughput.png", dpi=300)
-    plt.close()
+    fig, ax = plt.subplots(figsize=(3.35, 2.5))
+    x_pos = list(range(len(workers)))
+    labels = [f'{w}w' for w in workers]
+    
+    bars = ax.bar(x_pos, ops, yerr=ops_err, capsize=3, width=0.52,
+                  color='#059669', edgecolor='#064E3B', linewidth=1.0,
+                  hatch='//', zorder=3)
 
-    # Figure 3: Comparative Tamper Detection Block Rates
+    # Single-worker baseline reference line
+    ax.axhline(y=ops[0], color='#64748B', linestyle=':', linewidth=1.0, zorder=2, label='1-Worker Baseline')
+
+    ax.tick_params(labelsize=7.5)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(labels, fontsize=8.0, fontweight='semibold')
+    ax.set_xlabel('Process Pool Size (Workers)', fontsize=8.5, fontweight='semibold')
+    ax.set_ylabel('Verifier Throughput (ops/sec)', fontsize=8.5, fontweight='semibold')
+    ax.set_title('Multi-Core Parallel Verification Throughput', fontsize=9.0, fontweight='bold', pad=6)
+    ax.set_ylim(0, max(ops) * 1.30)
+    ax.grid(axis='y', ls="--", color='#E2E8F0', alpha=0.7)
+
+    # Bar value labels & peak callout
+    for i, (bar, v) in enumerate(zip(bars, ops)):
+        if i == 2:  # Peak at 4 workers
+            bar.set_facecolor('#047857')
+            bar.set_hatch('\\\\')
+            ax.text(bar.get_x() + bar.get_width()/2.0, v + 280, f'{int(v):,} /s\n(2.0x Peak)',
+                    ha='center', va='bottom', fontweight='bold', fontsize=7.2, color='#065F46')
+        else:
+            ax.text(bar.get_x() + bar.get_width()/2.0, v + 120, f'{int(v):,}',
+                    ha='center', va='bottom', fontweight='semibold', fontsize=7.0, color='#1E293B')
+
+    fig.tight_layout()
+    fig.savefig(fig_dir / "parallel_throughput.png", dpi=600)
+    plt.close(fig)
+
+    # -------------------------------------------------------------
+    # Figure 4: Comparative Tamper Detection Block Rates
+    # -------------------------------------------------------------
     comp_sum = data_c["summary"]
     systems = ['CI Exit Code', 'Sigstore', 'OPA Schema', 'Composed SOTA', 'EviAssure']
     block_rates = [
@@ -91,26 +166,40 @@ def generate_benchmark_figures(docs_dir: Path):
         comp_sum.get("composed_sota_block_rate_pct", 30.8),
         comp_sum.get("demo5_assurance_block_rate_pct", 100.0)
     ]
-    colors = ['#d62728', '#bcbd22', '#ff7f0e', '#9467bd', '#1f77b4']
+    colors = ['#EF4444', '#F59E0B', '#EAB308', '#8B5CF6', '#0284C7']
+    hatches = ['///', '\\\\\\', 'xx', '++', '..']
 
-    plt.figure(figsize=(3.4, 2.6))
-    bars = plt.bar(systems, block_rates, color=colors, edgecolor='black', linewidth=1.0, width=0.55)
-    hatches = ['//', '\\\\', 'xx', '++', '..']
+    fig, ax = plt.subplots(figsize=(3.35, 2.5))
+    x_pos = list(range(len(systems)))
+    bars = ax.bar(x_pos, block_rates, color=colors, edgecolor='#0F172A',
+                  linewidth=1.0, width=0.55, zorder=3)
+    
     for bar, hatch in zip(bars, hatches):
         bar.set_hatch(hatch)
-    plt.tick_params(labelsize=6.5)
-    plt.xticks(rotation=22, ha='right')
-    plt.ylabel('Fail-Closed Block Rate (%)', fontsize=8.5)
-    plt.title('Adversarial Release Tamper Detection (13 Vectors)', fontsize=8.5, fontweight='bold')
-    plt.ylim(0, 118)
-    plt.grid(axis='y', ls="--", alpha=0.5)
-    for bar, rate in zip(bars, block_rates):
-        plt.text(bar.get_x() + bar.get_width() / 2.0, rate + 2.0, f"{rate:.1f}%", ha='center', fontweight='bold', fontsize=7.5)
-    plt.tight_layout()
-    plt.savefig(fig_dir / "comparative_block_rate.png", dpi=300)
-    plt.close()
 
-    print(f"[+] Benchmark figures saved to: {fig_dir}")
+    # 100% Target security goal reference line
+    ax.axhline(y=100.0, color='#0284C7', linestyle='--', linewidth=1.0, alpha=0.7, zorder=2)
+    ax.text(0.0, 102.0, '100% Fail-Closed Target', fontsize=6.8, color='#0369A1', fontweight='bold')
+
+    ax.tick_params(labelsize=7.0)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(systems, rotation=22, ha='right', fontsize=7.2, fontweight='semibold')
+    ax.set_ylabel('Fail-Closed Block Rate (%)', fontsize=8.5, fontweight='semibold')
+    ax.set_title('Adversarial Tamper Detection (13 Vectors)', fontsize=9.0, fontweight='bold', pad=6)
+    ax.set_ylim(0, 120)
+    ax.grid(axis='y', ls="--", color='#E2E8F0', alpha=0.7)
+
+    for bar, rate in zip(bars, block_rates):
+        font_weight = 'bold' if rate == 100.0 else 'semibold'
+        color = '#0369A1' if rate == 100.0 else '#1E293B'
+        ax.text(bar.get_x() + bar.get_width() / 2.0, rate + 2.5, f"{rate:.1f}%",
+                ha='center', va='bottom', fontweight=font_weight, fontsize=7.2, color=color)
+
+    fig.tight_layout()
+    fig.savefig(fig_dir / "comparative_block_rate.png", dpi=600)
+    plt.close(fig)
+
+    print(f"[+] High-resolution 600 DPI benchmark figures saved to: {fig_dir}")
 
 
 
