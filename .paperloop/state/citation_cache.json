@@ -279,5 +279,37 @@
     "year": null,
     "container": "https://www.openpolicyagent.org/",
     "type": "misc"
+  },
+  "kyverno2022policy||kyverno  kubernetes native policy management engine": {
+    "source": "web",
+    "doi": "",
+    "title": "Kyverno: Kubernetes Native Policy Management Engine",
+    "year": null,
+    "container": "https://kyverno.io/docs/",
+    "type": "misc"
+  },
+  "shostack2014threat||threat modeling  designing for security": {
+    "source": "openalex",
+    "doi": "",
+    "title": "Threat Modeling: Designing for Security",
+    "year": 2014,
+    "container": "",
+    "type": "other"
+  },
+  "slsa2023supply||supply chain levels for software artifacts  slsa  framework specification": {
+    "source": "web",
+    "doi": "",
+    "title": "Supply-chain Levels for Software Artifacts (SLSA) Framework Specification",
+    "year": null,
+    "container": "https://slsa.dev/spec/v1.0/",
+    "type": "misc"
+  },
+  "spiffe2020spire||spiffe and spire  universal workload identity for cloud native infrastructure": {
+    "source": "web",
+    "doi": "",
+    "title": "SPIFFE and SPIRE: Universal Workload Identity for Cloud Native Infrastructure",
+    "year": null,
+    "container": "https://spiffe.io/docs/latest/",
+    "type": "misc"
   }
 }
