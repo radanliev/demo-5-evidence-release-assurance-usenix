@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-16 19:22
+**Run:** 2026-08-16 21:55
 
 | Severity | Count |
 |---|---|
@@ -18,7 +18,7 @@ Gated (human sign-off required): **0**
 ```
 === USENIX Security Paper PDF Builder & Figure Generator ===
 [!] Warning: Figure generation error (No module named 'matplotlib')
-[*] Froze headline metrics -> frozen_metrics.tex (throughput=7,372, overhead=0.000%)
+[*] Froze headline metrics -> frozen_metrics.tex (throughput=7,265, overhead=0.000%)
 [*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
 [SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
 
@@ -65,9 +65,9 @@ Crossref, OpenAlex, and Semantic Scholar are unreachable — citations not verif
 
 ### [INFO] science.artifact_missing
 
-indexed 148 distinct values from 6 artifacts
+indexed 149 distinct values from 6 artifacts
 
-- **id:** `cd82e2a22d248b71`
+- **id:** `e94ba1d6f9728421`
 
 ### [INFO] venue.font
 

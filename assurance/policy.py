@@ -14,7 +14,63 @@ from .crypto import (detect_duplicate_json_keys, build_merkle_tree, hash_sha256,
                      verify_signature_hmac, verify_signature_ed25519)
 
 
+from collections.abc import MutableSet
+import json
+
 _NONCE_TIMESTAMPS: Dict[str, datetime] = {}
+
+
+class PersistentNonceStore(MutableSet):
+    """Persistent nonce ledger for ephemeral CI/CD runner environments.
+
+    Provides cross-job replay protection when release gates execute inside
+    ephemeral containers or serverless runners where process-local RAM is
+    destroyed upon exit.
+    """
+    def __init__(self, filepath: Optional[Path | str] = None):
+        self.filepath = Path(filepath) if filepath else None
+        self._nonces: set[str] = set()
+        self._timestamps: Dict[str, str] = {}
+        self._load()
+
+    def _load(self) -> None:
+        if self.filepath and self.filepath.exists():
+            try:
+                data = json.loads(self.filepath.read_text(encoding="utf-8"))
+                self._nonces = set(data.get("nonces", []))
+                self._timestamps = data.get("timestamps", {})
+            except Exception:
+                pass
+
+    def _save(self) -> None:
+        if self.filepath:
+            try:
+                self.filepath.parent.mkdir(parents=True, exist_ok=True)
+                self.filepath.write_text(
+                    json.dumps({"nonces": list(self._nonces), "timestamps": self._timestamps}, indent=2),
+                    encoding="utf-8"
+                )
+            except Exception:
+                pass
+
+    def __contains__(self, item: object) -> bool:
+        return item in self._nonces
+
+    def __iter__(self):
+        return iter(self._nonces)
+
+    def __len__(self) -> int:
+        return len(self._nonces)
+
+    def add(self, value: str) -> None:
+        self._nonces.add(value)
+        self._timestamps[value] = datetime.now(timezone.utc).isoformat()
+        self._save()
+
+    def discard(self, value: str) -> None:
+        self._nonces.discard(value)
+        self._timestamps.pop(value, None)
+        self._save()
 
 
 class ReleasePolicyEngine:

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-16T18:21:18Z",
+  "timestamp": "2026-08-16T18:32:23Z",
   "baseline_execution": {
     "opa_schema_gate": "executed: OPA 1.19.0",
     "ci_exit_code_gate": "modeled (exit-code semantics)",
