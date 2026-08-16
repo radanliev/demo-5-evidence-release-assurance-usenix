@@ -95,16 +95,16 @@ def generate_benchmark_figures(docs_dir: Path):
 
     ax.set_xscale('log')
     ax.set_yscale('log')
+    ax.set_ylim(bottom=5e-4, top=3e3)
     ax.tick_params(labelsize=7.5)
     ax.set_xlabel('Trace Count $N$ (log scale)', fontsize=8.5, fontweight='semibold')
     ax.set_ylabel('Execution Time (ms, log scale)', fontsize=8.5, fontweight='semibold')
-    ax.set_title('Attestation Scaling up to $N=1,000,000$ Traces', fontsize=9.0, fontweight='bold', pad=6)
     
-    # Annotated callout at 1M
-    ax.annotate(f'383.5 ms\n(1M traces)', xy=(1000000, 383.48), xytext=(80000, 750.0),
+    # Annotated callout at 1M placed cleanly in the open upper-right space above the curves
+    ax.annotate('383.5 ms\n(1M traces)', xy=(1000000, 383.48), xytext=(120000, 900.0),
                 arrowprops=dict(arrowstyle='->', color='#B91C1C', lw=1.0),
-                fontsize=6.8, fontweight='bold', color='#7F1D1D',
-                bbox=dict(boxstyle='round,pad=0.2', facecolor='#FEF2F2', edgecolor='#F87171', lw=0.6))
+                fontsize=7.0, fontweight='bold', color='#7F1D1D',
+                bbox=dict(boxstyle='round,pad=0.25', facecolor='#FEF2F2', edgecolor='#F87171', lw=0.6))
 
     ax.legend(fontsize=7.2, frameon=True, facecolor='white', edgecolor='#CBD5E1', loc='upper left')
     fig.tight_layout()
@@ -135,8 +135,7 @@ def generate_benchmark_figures(docs_dir: Path):
     ax.set_xticklabels(labels, fontsize=8.0, fontweight='semibold')
     ax.set_xlabel('Process Pool Size (Workers)', fontsize=8.5, fontweight='semibold')
     ax.set_ylabel('Verifier Throughput (ops/sec)', fontsize=8.5, fontweight='semibold')
-    ax.set_title('Multi-Core Parallel Verification Throughput', fontsize=9.0, fontweight='bold', pad=6)
-    ax.set_ylim(0, max(ops) * 1.30)
+    ax.set_ylim(0, max(ops) * 1.25)
     ax.grid(axis='y', ls="--", color='#E2E8F0', alpha=0.7)
 
     # Bar value labels & peak callout
@@ -144,7 +143,7 @@ def generate_benchmark_figures(docs_dir: Path):
         if i == 2:  # Peak at 4 workers
             bar.set_facecolor('#047857')
             bar.set_hatch('\\\\')
-            ax.text(bar.get_x() + bar.get_width()/2.0, v + 280, f'{int(v):,} /s\n(2.0x Peak)',
+            ax.text(bar.get_x() + bar.get_width()/2.0, v + 250, f'{int(v):,} /s\n(2.0x Peak)',
                     ha='center', va='bottom', fontweight='bold', fontsize=7.2, color='#065F46')
         else:
             ax.text(bar.get_x() + bar.get_width()/2.0, v + 120, f'{int(v):,}',
@@ -185,7 +184,6 @@ def generate_benchmark_figures(docs_dir: Path):
     ax.set_xticks(x_pos)
     ax.set_xticklabels(systems, rotation=22, ha='right', fontsize=7.2, fontweight='semibold')
     ax.set_ylabel('Fail-Closed Block Rate (%)', fontsize=8.5, fontweight='semibold')
-    ax.set_title('Adversarial Tamper Detection (13 Vectors)', fontsize=9.0, fontweight='bold', pad=6)
     ax.set_ylim(0, 120)
     ax.grid(axis='y', ls="--", color='#E2E8F0', alpha=0.7)
 
