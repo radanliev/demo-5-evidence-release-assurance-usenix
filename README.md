@@ -29,10 +29,10 @@ Autonomous agentic deployments require reproducible, cryptographically verifiabl
 
 | Metric / Experiment | Result | Benchmark Details |
 | :--- | :---: | :--- |
-| **Fail-Closed Block Rate** | **100.0%** | **8 / 8** adversarial tamper vectors blocked (`V1` to `V8`) |
-| **Verifier Throughput** | **79,546 ops/sec** | Mean evaluation latency **0.0126 ms** (P95: 0.0156 ms) |
-| **Merkle Tree Packaging ($N=10,000$)** | **3.94 ms** | Scalable trace attestation for enterprise agent workloads |
-| **Test Suite Coverage** | **10/10 PASS** | 100% pass rate across cryptographic, policy, and tamper tests |
+| **Fail-Closed Block Rate** | **100.0%** | **13 / 13** adversarial tamper vectors blocked (`V1` to `V13`) |
+| **Verifier Throughput** | **7,321 ops/sec** | Multi-core parallel verification (steady-state warm engine) |
+| **Merkle Tree Packaging ($N=1,000,000$)** | **383.48 ms** | Scalable trace attestation for enterprise agent workloads |
+| **Test Suite Coverage** | **33/33 PASS** | 100% pass rate across cryptographic, policy, and tamper tests |
 
 
 ## 🚀 Quickstart & Reproduction
@@ -76,6 +76,7 @@ criteria are in [`docs/AGENT_WORKFLOW.md`](docs/AGENT_WORKFLOW.md).
 
 Manuscript PDF: [`docs/usenix_paper_manuscript.pdf`](docs/usenix_paper_manuscript.pdf)
 
+```bibtex
 @inproceedings{anonymous2027usenix,
   title={Evidence-Backed Release Assurance for Autonomous Agent Deployments: Cryptographic Attestation, Fail-Closed Gates, and Tamper-Resilient Audit Infrastructure},
   author={Anonymous Authors},
