@@ -29,3 +29,18 @@ def test_tamper_resilience_suite_13_vectors():
         assert passed is False, f"TAMPER DEFECT: Vector {vector_id} ({meta['name']}) unexpectedly passed policy gate!"
         assert len(violations) > 0, f"Vector {vector_id} failed without violation messages!"
         assert details["fail_closed_enforced"] is True
+
+
+def test_property_based_fuzzing_1000_mutations():
+    from benchmark.tamper_vectors import generate_fuzzing_mutation_suite
+    policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+
+    fuzz_suite = generate_fuzzing_mutation_suite(count=1000, seed=42)
+    assert len(fuzz_suite) == 1000
+
+    for mut_label, fuzzed_payload in fuzz_suite:
+        passed, violations, details = policy_engine.evaluate(fuzzed_payload)
+        assert passed is False, f"FUZZING DEFECT: Mutated payload {mut_label} unexpectedly passed policy gate!"
+        assert len(violations) > 0, f"Mutated payload {mut_label} failed without violation messages!"
+

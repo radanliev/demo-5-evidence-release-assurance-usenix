@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-16 22:05
+**Run:** 2026-08-16 22:18
 
 | Severity | Count |
 |---|---|
@@ -44,10 +44,10 @@ Recorded for the round log; no action implied.
 
 ### [INFO] figure.clipping
 
-rendered 20 page images for visual QA
+rendered 19 page images for visual QA
 
 - **found:** `/Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/.paperloop/state/pages`
-- **id:** `3e8705bea43410a2`
+- **id:** `6d7cb51fc5fa57c9`
 
 ### [INFO] refs.unverified
 
@@ -65,9 +65,9 @@ Crossref, OpenAlex, and Semantic Scholar are unreachable — citations not verif
 
 ### [INFO] science.artifact_missing
 
-indexed 149 distinct values from 6 artifacts
+indexed 150 distinct values from 6 artifacts
 
-- **id:** `e94ba1d6f9728421`
+- **id:** `3f461e732b96030b`
 
 ### [INFO] venue.font
 
@@ -81,7 +81,7 @@ body font size correct
 
 page count within limit
 
-- **found:** `13 body pages / 20 total`
+- **found:** `13 body pages / 19 total`
 - **expected:** <= 13
 - **id:** `1f0cf72111de700b`
 

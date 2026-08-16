@@ -2,7 +2,7 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-16T22:05:08"
+    "generated": "2026-08-16T22:18:12"
   },
   "summary": {
     "total": 7,
@@ -36,14 +36,14 @@
       "check": "figures",
       "category": "figure.clipping",
       "severity": "INFO",
-      "message": "rendered 20 page images for visual QA",
+      "message": "rendered 19 page images for visual QA",
       "file": null,
       "line": null,
       "page": null,
       "evidence": "/Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/.paperloop/state/pages",
       "expected": null,
       "remedy": null,
-      "fingerprint": "3e8705bea43410a2",
+      "fingerprint": "6d7cb51fc5fa57c9",
       "gated": false,
       "autofixable": true
     },
@@ -81,14 +81,14 @@
       "check": "science",
       "category": "science.artifact_missing",
       "severity": "INFO",
-      "message": "indexed 149 distinct values from 6 artifacts",
+      "message": "indexed 150 distinct values from 6 artifacts",
       "file": null,
       "line": null,
       "page": null,
       "evidence": null,
       "expected": null,
       "remedy": null,
-      "fingerprint": "e94ba1d6f9728421",
+      "fingerprint": "3f461e732b96030b",
       "gated": true,
       "autofixable": false
     },
@@ -115,7 +115,7 @@
       "file": null,
       "line": null,
       "page": null,
-      "evidence": "13 body pages / 20 total",
+      "evidence": "13 body pages / 19 total",
       "expected": "<= 13",
       "remedy": null,
       "fingerprint": "1f0cf72111de700b",

@@ -267,3 +267,75 @@ def generate_tampered_evidence_suite() -> List[Tuple[str, Dict[str, Any], Dict[s
     suite.append(("V13_OUT_OF_BOUNDS_KMS", TAMPER_VECTOR_TAXONOMY["V13_OUT_OF_BOUNDS_KMS"], v13_dict))
 
     return suite
+
+
+def generate_fuzzing_mutation_suite(count: int = 1000, seed: int = 42) -> List[Tuple[str, Dict[str, Any]]]:
+    """
+    Generate randomized property-based mutation fuzzing payloads.
+    Applies diverse corruptions across:
+    - Random signature bit flips
+    - Payload field mutations & deletions
+    - Timestamp skew injections
+    - Merkle leaf additions, omissions, and byte corruptions
+    - Nonce perturbations
+    - Quality threshold degradation
+    """
+    import random
+    rng = random.Random(seed)
+    fuzzed_suite = []
+
+    clean_eb = create_evidence_pack(use_ed25519=True, signed=True)
+    clean_dict = clean_eb.to_dict()
+
+    mutation_types = [
+        "sig_flip", "root_corrupt", "leaf_drop", "leaf_inject",
+        "timestamp_drift", "pass_rate_drop", "nonce_corrupt",
+        "key_id_spoof", "arn_tamper", "missing_field"
+    ]
+
+    for i in range(count):
+        mut_type = rng.choice(mutation_types)
+        fuzzed = deepcopy(clean_dict)
+        mut_label = f"FUZZ_{i+1:04d}_{mut_type}"
+
+        if mut_type == "sig_flip":
+            sig = list(fuzzed.get("signature", ""))
+            if sig:
+                idx = rng.randint(0, len(sig) - 1)
+                sig[idx] = "A" if sig[idx] != "A" else "B"
+                fuzzed["signature"] = "".join(sig)
+        elif mut_type == "root_corrupt":
+            root = list(fuzzed.get("merkle_root", ""))
+            if root:
+                idx = rng.randint(0, len(root) - 1)
+                root[idx] = "f" if root[idx] != "f" else "0"
+                fuzzed["merkle_root"] = "".join(root)
+        elif mut_type == "leaf_drop":
+            if len(fuzzed.get("traces", [])) > 1:
+                fuzzed["traces"] = fuzzed["traces"][:-1]
+        elif mut_type == "leaf_inject":
+            extra_leaf = deepcopy(fuzzed["traces"][0]) if fuzzed.get("traces") else {"trace_id": "injected"}
+            if isinstance(extra_leaf, dict):
+                extra_leaf["trace_id"] = f"injected_{i}"
+                extra_leaf["output_hash"] = "0" * 64
+            fuzzed.setdefault("traces", []).append(extra_leaf)
+        elif mut_type == "timestamp_drift":
+            shift = rng.choice([-7200, 7200, -86400, 86400])
+            dt = datetime.now(timezone.utc) + timedelta(seconds=shift)
+            fuzzed["timestamp"] = dt.isoformat()
+        elif mut_type == "pass_rate_drop":
+            fuzzed["test_pass_pct"] = rng.uniform(0.0, 99.9)
+        elif mut_type == "nonce_corrupt":
+            fuzzed["nonce"] = ""
+        elif mut_type == "key_id_spoof":
+            fuzzed["key_id"] = f"SPOOFED_KEY_{rng.randint(1000, 9999)}"
+        elif mut_type == "arn_tamper":
+            fuzzed["kms_key_arn"] = f"arn:aws:kms:us-east-1:{rng.randint(1000,9999)}:key/untrusted"
+        elif mut_type == "missing_field":
+            target = rng.choice(["merkle_root", "evidence_id", "execution_traces_count"])
+            fuzzed.pop(target, None)
+
+        fuzzed_suite.append((mut_label, fuzzed))
+
+    return fuzzed_suite
+

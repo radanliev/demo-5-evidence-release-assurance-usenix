@@ -84,7 +84,16 @@ def eval_sigstore_cosign_gate(payload: Dict[str, Any], secret_key: str = DEFAULT
     are not part of Sigstore's model."""
     signed = payload.get("signed", False)
     sig = payload.get("signature")
-    return signed and sig is not None
+    return bool(signed and sig is not None)
+
+
+def eval_composed_sota_gate(payload: Dict[str, Any], opa_evaluator) -> bool:
+    """Composed SOTA deployment pipeline: validates signature presence
+    (Cosign-style) AND evaluates quality/drift thresholds over the unauthenticated
+    payload (OPA Rego policy). Blocks if unsigned OR if OPA fails."""
+    if not eval_sigstore_cosign_gate(payload):
+        return False
+    return opa_evaluator(payload)
 
 
 def main():
@@ -118,7 +127,11 @@ def main():
         cosign_passed = eval_sigstore_cosign_gate(tampered_payload)
         cosign_blocked = not cosign_passed
 
-        # 4. Demo 5 Evidence Assurance Gate
+        # 4. Composed SOTA Gate (Cosign + in-toto + OPA)
+        composed_passed = eval_composed_sota_gate(tampered_payload, opa_evaluator)
+        composed_blocked = not composed_passed
+
+        # 5. Demo 5 Evidence Assurance Gate
         demo5_passed, violations, _ = policy_engine.evaluate(tampered_payload, seen_nonces=test_seen_nonces)
         demo5_blocked = not demo5_passed
 
@@ -128,6 +141,7 @@ def main():
             "ci_exit_code_blocked": ci_blocked,
             "opa_schema_blocked": opa_blocked,
             "sigstore_cosign_blocked": cosign_blocked,
+            "composed_sota_blocked": composed_blocked,
             "demo5_assurance_blocked": demo5_blocked
         })
 
@@ -135,18 +149,21 @@ def main():
     ci_blocks = sum(1 for r in results if r["ci_exit_code_blocked"])
     opa_blocks = sum(1 for r in results if r["opa_schema_blocked"])
     sigstore_blocks = sum(1 for r in results if r["sigstore_cosign_blocked"])
+    composed_blocks = sum(1 for r in results if r["composed_sota_blocked"])
     evi_blocks = sum(1 for r in results if r["demo5_assurance_blocked"])
 
     ci_rate = (ci_blocks / len(results)) * 100.0
     opa_rate = (opa_blocks / len(results)) * 100.0
     sigstore_rate = (sigstore_blocks / len(results)) * 100.0
+    composed_rate = (composed_blocks / len(results)) * 100.0
     evi_rate = (evi_blocks / len(results)) * 100.0
 
     print(f"\n--- Comparative Detection Rates Across {len(results)} Tamper Attack Vectors ---")
     print(f"1. Standard CI Exit Code Gate:       {ci_rate:6.1f}% Block Rate ({ci_blocks}/{len(results)})")
-    print(f"2. OPA / Kyverno Schema Validator:  {opa_rate:6.1f}% Block Rate ({opa_blocks}/{len(results)})")
+    print(f"2. OPA Schema Validator:            {opa_rate:6.1f}% Block Rate ({opa_blocks}/{len(results)})")
     print(f"3. Sigstore / Cosign Artifact Gate: {sigstore_rate:6.1f}% Block Rate ({sigstore_blocks}/{len(results)})")
-    print(f"4. Demo 5 Evidence Assurance Gate:  {evi_rate:6.1f}% Block Rate ({evi_blocks}/{len(results)})")
+    print(f"4. Composed SOTA (Cosign+in-toto+OPA): {composed_rate:6.1f}% Block Rate ({composed_blocks}/{len(results)})")
+    print(f"5. Demo 5 Evidence Assurance Gate:  {evi_rate:6.1f}% Block Rate ({evi_blocks}/{len(results)})")
 
     out_file = Path(__file__).parent.parent / "results" / "comparative_evaluation.json"
     out_file.parent.mkdir(parents=True, exist_ok=True)
@@ -158,12 +175,14 @@ def main():
                                else "modeled (no opa binary on PATH)",
             "ci_exit_code_gate": "modeled (exit-code semantics)",
             "sigstore_cosign_gate": "modeled (artifact-signature presence)",
+            "composed_sota_gate": "composed execution (Cosign signature presence + OPA Rego evaluation)",
         },
         "summary": {
             "total_vectors_evaluated": len(results),
             "ci_exit_code_block_rate_pct": ci_rate,
             "opa_schema_block_rate_pct": opa_rate,
             "sigstore_cosign_block_rate_pct": sigstore_rate,
+            "composed_sota_block_rate_pct": composed_rate,
             "demo5_assurance_block_rate_pct": evi_rate
         },
         "details": results

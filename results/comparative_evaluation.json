@@ -1,15 +1,17 @@
 {
-  "timestamp": "2026-08-16T18:32:23Z",
+  "timestamp": "2026-08-16T21:16:30Z",
   "baseline_execution": {
     "opa_schema_gate": "executed: OPA 1.19.0",
     "ci_exit_code_gate": "modeled (exit-code semantics)",
-    "sigstore_cosign_gate": "modeled (artifact-signature presence)"
+    "sigstore_cosign_gate": "modeled (artifact-signature presence)",
+    "composed_sota_gate": "composed execution (Cosign signature presence + OPA Rego evaluation)"
   },
   "summary": {
     "total_vectors_evaluated": 13,
     "ci_exit_code_block_rate_pct": 0.0,
     "opa_schema_block_rate_pct": 23.076923076923077,
     "sigstore_cosign_block_rate_pct": 7.6923076923076925,
+    "composed_sota_block_rate_pct": 30.76923076923077,
     "demo5_assurance_block_rate_pct": 100.0
   },
   "details": [
@@ -19,6 +21,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": true,
+      "composed_sota_blocked": true,
       "demo5_assurance_blocked": true
     },
     {
@@ -27,6 +30,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": false,
       "demo5_assurance_blocked": true
     },
     {
@@ -35,6 +39,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": false,
       "demo5_assurance_blocked": true
     },
     {
@@ -43,6 +48,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": false,
       "demo5_assurance_blocked": true
     },
     {
@@ -51,6 +57,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": false,
       "demo5_assurance_blocked": true
     },
     {
@@ -59,6 +66,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": true,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": true,
       "demo5_assurance_blocked": true
     },
     {
@@ -67,6 +75,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": true,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": true,
       "demo5_assurance_blocked": true
     },
     {
@@ -75,6 +84,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": false,
       "demo5_assurance_blocked": true
     },
     {
@@ -83,6 +93,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": false,
       "demo5_assurance_blocked": true
     },
     {
@@ -91,6 +102,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": true,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": true,
       "demo5_assurance_blocked": true
     },
     {
@@ -99,6 +111,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": false,
       "demo5_assurance_blocked": true
     },
     {
@@ -107,6 +120,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": false,
       "demo5_assurance_blocked": true
     },
     {
@@ -115,6 +129,7 @@
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,
+      "composed_sota_blocked": false,
       "demo5_assurance_blocked": true
     }
   ]
