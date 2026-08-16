@@ -2,7 +2,7 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-16T23:30:59"
+    "generated": "2026-08-16T23:39:54"
   },
   "summary": {
     "total": 5,
@@ -51,14 +51,14 @@
       "check": "science",
       "category": "science.artifact_missing",
       "severity": "INFO",
-      "message": "indexed 146 distinct values from 6 artifacts",
+      "message": "indexed 150 distinct values from 6 artifacts",
       "file": null,
       "line": null,
       "page": null,
       "evidence": null,
       "expected": null,
       "remedy": null,
-      "fingerprint": "9395f41b027fa0a9",
+      "fingerprint": "3f461e732b96030b",
       "gated": true,
       "autofixable": false
     },

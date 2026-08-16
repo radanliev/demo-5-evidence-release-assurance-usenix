@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-16T21:38:35Z",
+  "timestamp": "2026-08-16T22:39:36Z",
   "platform": {
     "python_version": "3.14.7",
     "logical_cores": 14
@@ -10,7 +10,7 @@
     "anomalous_profiles": 50,
     "distinct_anomaly_classes": 10
   },
-  "evaluation_elapsed_seconds": 0.61,
+  "evaluation_elapsed_seconds": 0.67,
   "layer_1_cryptographic_integrity": {
     "merkle_consistent": 1050,
     "inclusion_proofs_valid": 1050,

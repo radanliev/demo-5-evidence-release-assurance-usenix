@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-16 23:30
+**Run:** 2026-08-16 23:39
 
 | Severity | Count |
 |---|---|
@@ -18,7 +18,7 @@ Gated (human sign-off required): **0**
 ```
 === USENIX Security Paper PDF Builder & Figure Generator ===
 [+] High-resolution 600 DPI benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
-[*] Froze headline metrics -> frozen_metrics.tex (throughput=7,321, overhead=0.000%)
+[*] Froze headline metrics -> frozen_metrics.tex (throughput=7,152, overhead=0.000%)
 [*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
 [SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
 
@@ -50,9 +50,9 @@ rendered 18 page images for visual QA
 
 ### [INFO] science.artifact_missing
 
-indexed 146 distinct values from 6 artifacts
+indexed 150 distinct values from 6 artifacts
 
-- **id:** `9395f41b027fa0a9`
+- **id:** `3f461e732b96030b`
 
 ### [INFO] venue.font
 
