@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-16 23:21
+**Run:** 2026-08-16 23:30
 
 | Severity | Count |
 |---|---|
@@ -37,10 +37,10 @@ Recorded for the round log; no action implied.
 
 ### [INFO] figure.clipping
 
-rendered 20 page images for visual QA
+rendered 18 page images for visual QA
 
 - **found:** `/Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/.paperloop/state/pages`
-- **id:** `3e8705bea43410a2`
+- **id:** `bb224ae82fed499c`
 
 ### [INFO] refs.unverified
 
@@ -66,7 +66,7 @@ body font size correct
 
 page count within limit
 
-- **found:** `13 body pages / 20 total`
+- **found:** `13 body pages / 18 total`
 - **expected:** <= 13
 - **id:** `1f0cf72111de700b`
 
