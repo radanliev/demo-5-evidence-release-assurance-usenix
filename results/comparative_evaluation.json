@@ -1,14 +1,15 @@
 {
-  "timestamp": "2026-08-15T23:26:24Z",
+  "timestamp": "2026-08-16T18:21:18Z",
   "baseline_execution": {
     "opa_schema_gate": "executed: OPA 1.19.0",
     "ci_exit_code_gate": "modeled (exit-code semantics)",
     "sigstore_cosign_gate": "modeled (artifact-signature presence)"
   },
   "summary": {
+    "total_vectors_evaluated": 13,
     "ci_exit_code_block_rate_pct": 0.0,
-    "opa_schema_block_rate_pct": 25.0,
-    "sigstore_cosign_block_rate_pct": 8.333333333333332,
+    "opa_schema_block_rate_pct": 23.076923076923077,
+    "sigstore_cosign_block_rate_pct": 7.6923076923076925,
     "demo5_assurance_block_rate_pct": 100.0
   },
   "details": [
@@ -103,6 +104,14 @@
     {
       "vector_id": "V12",
       "vector_name": "Truncated Partial Merkle Proof Path",
+      "ci_exit_code_blocked": false,
+      "opa_schema_blocked": false,
+      "sigstore_cosign_blocked": false,
+      "demo5_assurance_blocked": true
+    },
+    {
+      "vector_id": "V13",
+      "vector_name": "Out of Bounds KMS Key ARN",
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": false,
       "sigstore_cosign_blocked": false,

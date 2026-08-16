@@ -33,6 +33,7 @@ from checks.check_refs import parse_bib  # noqa: E402
 CROSSREF = "https://api.crossref.org/works"
 OPENALEX = "https://api.openalex.org/works"
 DBLP = "https://dblp.org/search/publ/api"
+S2 = "https://api.semanticscholar.org/graph/v1/paper/search"
 TIMEOUT = 20
 PAUSE = 0.15          # be polite; both APIs are free and unmetered
 CACHE_VERSION = 1
@@ -87,6 +88,44 @@ def _openalex_key() -> str | None:
             pass
     return None
 
+
+
+def _s2_key() -> str | None:
+    for var in ("S2_API_KEY", "SEMANTIC_SCHOLAR_API_KEY"):
+        v = os.environ.get(var, "").strip()
+        if v:
+            return v
+    for cand in (Path.home() / "Projects" / ".paperloop-env",
+                 Path.cwd() / ".paperloop-env",
+                 Path.cwd().parent / ".paperloop-env"):
+        try:
+            if cand.exists():
+                m = re.search(r'^export\s+(?:S2_API_KEY|SEMANTIC_SCHOLAR_API_KEY)="?([^"\n]+)"?',
+                              cand.read_text(), re.MULTILINE)
+                if m:
+                    return m.group(1).strip()
+        except Exception:
+            pass
+    return None
+
+def _get_s2(url: str, mailto: str) -> dict | None:
+    headers = {"User-Agent": f"paperloop/1.0 (mailto:{mailto})", "Accept": "application/json"}
+    key = _s2_key()
+    if key:
+        headers["x-api-key"] = key
+    req = urllib.request.Request(url, headers=headers)
+    for attempt in (0, 1):
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                return json.loads(r.read().decode("utf-8", "replace"))
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 500, 502, 503) and attempt == 0:
+                import time; time.sleep(2)
+                continue
+            return None
+        except Exception:
+            return None
+    return None
 
 def _get(url: str, mailto: str) -> dict | None:
     """Return parsed JSON, or None if the API is unreachable or rejects us."""
@@ -232,6 +271,19 @@ def _lookup_title(title: str, mailto: str) -> dict | None:
                         "title": cand, "year": int(info.get("year", 0) or 0),
                         "container": info.get("venue", ""),
                         "type": "inproceedings"}
+    
+    # Semantic Scholar API fallback
+    q = urllib.parse.quote(title[:250])
+    d = _get_s2(f"{S2}?query={q}&limit=3&fields=title,year,venue,externalIds", mailto)
+    if d and d.get("data"):
+        for it in d.get("data", []):
+            cand = it.get("title", "")
+            if cand and _similar(cand, title) >= 0.87:
+                doi = it.get("externalIds", {}).get("DOI", "")
+                return {"source": "semanticscholar", "doi": doi,
+                        "title": cand, "year": it.get("year"),
+                        "container": it.get("venue", ""),
+                        "type": "inproceedings"}
     return None
 
 
@@ -256,14 +308,14 @@ def check(cfg: Config) -> list[Finding]:
         for m in re.finditer(r"\\cite[a-zA-Z]*\*?(?:\[[^\]]*\])*\{([^}]+)\}", t):
             cited.update(k.strip() for k in m.group(1).split(",") if k.strip())
 
-    if not _openalex_key():
+    if not _openalex_key() and not _s2_key():
         out.append(Finding(
             "citations", "refs.unverified", "MINOR",
-            "no OPENALEX_API_KEY — OpenAlex has required a key for all requests "
+            "no OPENALEX_API_KEY or S2_API_KEY set — APIs require keys for all requests "
             "since 2026-02-13, so only Crossref is being queried",
-            expected="OPENALEX_API_KEY set",
+            expected="OPENALEX_API_KEY or S2_API_KEY set",
             remedy="Free key at https://openalex.org/settings/api, then "
-                   "./set-key.sh OPENALEX_API_KEY. Crossref alone misses "
+                   "./set-key.sh OPENALEX_API_KEY or S2_API_KEY. Crossref alone misses "
                    "preprints and some CS venues, so coverage is reduced."))
 
     cache = _load_cache(cfg)
@@ -312,8 +364,8 @@ def check(cfg: Config) -> list[Finding]:
                     if reachable is False:
                         out.append(Finding(
                             "citations", "refs.unverified", "INFO",
-                            "Crossref and OpenAlex are unreachable — citations not verified",
-                            expected="network access to api.crossref.org and api.openalex.org",
+                            "Crossref, OpenAlex, and Semantic Scholar are unreachable — citations not verified",
+                            expected="network access to citation APIs",
                             remedy="Add both to the network allowlist, then re-run. "
                                    "Offline, citation existence cannot be checked at all."))
                 else:
@@ -401,7 +453,7 @@ def check(cfg: Config) -> list[Finding]:
     _save_cache(cfg, cache)
     if verified:
         out.append(Finding("citations", "refs.unverified", "INFO",
-                           f"{verified} citation(s) verified against Crossref/OpenAlex"
+                           f"{verified} citation(s) verified against Crossref/OpenAlex/SemanticScholar"
                            + (f", {unverified} unresolved" if unverified else "")))
     return out
 

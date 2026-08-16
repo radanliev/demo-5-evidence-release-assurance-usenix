@@ -96,6 +96,13 @@ TAMPER_VECTOR_TAXONOMY = {
         "category": "Integrity",
         "description": "Removing execution trace entries from the bundle while leaving count unchanged.",
         "expected_result": "BLOCKED"
+    },
+    "V13_OUT_OF_BOUNDS_KMS": {
+        "id": "V13",
+        "name": "Out of Bounds KMS Key ARN",
+        "category": "Key Governance",
+        "description": "Evidence signed by a valid trusted key but issued from outside the allowed KMS boundary.",
+        "expected_result": "BLOCKED"
     }
 }
 
@@ -189,6 +196,21 @@ def generate_tampered_evidence_suite() -> List[Tuple[str, Dict[str, Any], Dict[s
     # V9: Revoked Key ID
     v9_dict = deepcopy(clean_dict)
     v9_dict["key_id"] = "KEY-REVOKED-9999"
+    v9_payload = {
+        "evidence_id": v9_dict["evidence_id"],
+        "timestamp": v9_dict["timestamp"],
+        "nonce": v9_dict["nonce"],
+        "agent_system_version": v9_dict["agent_system_version"],
+        "test_pass_pct": v9_dict["test_pass_pct"],
+        "unresolved_drift": v9_dict["unresolved_drift"],
+        "execution_traces_count": v9_dict["execution_traces_count"],
+        "merkle_root": v9_dict["merkle_root"],
+        "artifact_digests": v9_dict["artifact_digests"],
+        "sig_alg": v9_dict["sig_alg"],
+        "key_id": "KEY-REVOKED-9999",
+        "kms_key_arn": v9_dict.get("kms_key_arn")
+    }
+    v9_dict["signature"] = sign_payload_ed25519(v9_payload, DEMO_PRIV_KEY)
     suite.append(("V9_REVOKED_KEY_SIGNATURE", TAMPER_VECTOR_TAXONOMY["V9_REVOKED_KEY_SIGNATURE"], v9_dict))
 
     # V10: JSON Key Malleability -- a genuine duplicate-key wire attack (N5).
@@ -222,5 +244,26 @@ def generate_tampered_evidence_suite() -> List[Tuple[str, Dict[str, Any], Dict[s
     if v12_dict["traces"]:
         v12_dict["traces"] = v12_dict["traces"][:1]
     suite.append(("V12_PARTIAL_MERKLE_TREE", TAMPER_VECTOR_TAXONOMY["V12_PARTIAL_MERKLE_TREE"], v12_dict))
+
+    # V13: Out of Bounds KMS ARN
+    v13_dict = deepcopy(clean_dict)
+    invalid_arn = "kms://aws/arn:aws:kms:us-west-2:000000000000:key/UNAUTHORIZED"
+    v13_dict["kms_key_arn"] = invalid_arn
+    v13_payload = {
+        "evidence_id": v13_dict["evidence_id"],
+        "timestamp": v13_dict["timestamp"],
+        "nonce": v13_dict["nonce"],
+        "agent_system_version": v13_dict["agent_system_version"],
+        "test_pass_pct": v13_dict["test_pass_pct"],
+        "unresolved_drift": v13_dict["unresolved_drift"],
+        "execution_traces_count": v13_dict["execution_traces_count"],
+        "merkle_root": v13_dict["merkle_root"],
+        "artifact_digests": v13_dict["artifact_digests"],
+        "sig_alg": v13_dict["sig_alg"],
+        "key_id": v13_dict["key_id"],
+        "kms_key_arn": invalid_arn
+    }
+    v13_dict["signature"] = sign_payload_ed25519(v13_payload, DEMO_PRIV_KEY)
+    suite.append(("V13_OUT_OF_BOUNDS_KMS", TAMPER_VECTOR_TAXONOMY["V13_OUT_OF_BOUNDS_KMS"], v13_dict))
 
     return suite

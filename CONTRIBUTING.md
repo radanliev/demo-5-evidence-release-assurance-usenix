@@ -8,7 +8,7 @@ listed below clones the same repository and pushes branches directly to it
 
 | Role | GitHub username |
 | --- | --- |
-| Maintainer | [@radanliev](https://github.com/radanliev) |
+| Maintainer | [@anonymous-author](https://github.com/anonymous-author) |
 | Contributor | [@md-jakir84](https://github.com/md-jakir84) |
 
 ## Rules
@@ -69,12 +69,12 @@ Configured on `main` via the GitHub API:
 To raise the required approvals to 2 once everyone has access:
 
 ```bash
-gh api repos/radanliev/demo-5-evidence-release-assurance-usenix/branches/main/protection/required_pull_request_reviews \
+gh api repos/anonymous-author/demo-5-evidence-release-assurance-usenix/branches/main/protection/required_pull_request_reviews \
   -X PATCH -f required_approving_review_count=2
 ```
 
 To add the third teammate as a collaborator:
 
 ```bash
-gh api repos/radanliev/demo-5-evidence-release-assurance-usenix/collaborators/<username> -X PUT -f permission=push
+gh api repos/anonymous-author/demo-5-evidence-release-assurance-usenix/collaborators/<username> -X PUT -f permission=push
 ```
