@@ -8,6 +8,8 @@ and 12-vector tamper resilience.
 
 import sys
 import time
+
+import yaml
 import json
 import uuid
 import statistics
@@ -296,6 +298,58 @@ def measure_ui_attestation_hashing(n_steps: int = 1_000, repeats: int = 5) -> Di
     }
 
 
+def evaluate_ablation() -> Dict[str, Any]:
+    """Per-check ablation: disable one enforcement at a time and count how
+    many of the 12 vectors escape. Marginal contribution of each check.
+    """
+    policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
+    suite = generate_tampered_evidence_suite()
+
+    # (label, condition overrides, engine attribute mutation)
+    variants = [
+        ("full_gate", {}, None),
+        ("no_signature_check", {"require_signed_evidence": False}, None),
+        ("no_key_registry", {}, "empty_registry"),
+        ("no_crl", {}, "empty_crl"),
+        ("no_kms_arn_bound", {"kms_key_arn_pattern": None}, None),
+        ("no_merkle_check", {"verify_merkle_root": False}, None),
+        ("no_count_binding", {"enforce_trace_count": False}, None),
+        ("no_quality_gate", {"min_passing_tests_pct": 0.0}, None),
+        ("no_drift_gate", {"allowed_drift_findings": 999}, None),
+        ("no_freshness", {"max_evidence_age_seconds": 10**9,
+                           "max_future_clock_skew_seconds": 10**9}, None),
+        ("no_replay_cache", {}, "no_nonce_state"),
+    ]
+
+    rows = []
+    for label, conds, attr in variants:
+        # from_yaml so every variant carries the real trusted-key registry
+        engine = ReleasePolicyEngine.from_yaml(policy_path)
+        engine.release_conditions.update(conds)
+        if attr == "empty_registry":
+            engine.trusted_keys = {}
+        elif attr == "empty_crl":
+            engine.revoked_key_ids = set()
+
+        blocked = 0
+        escaped = []
+        seen_nonces = set()
+        for vid, meta, ev in suite:
+            test_nonces = seen_nonces.copy()
+            if vid == "V4_REPLAYED_NONCE":
+                test_nonces.add(ev["nonce"])
+            use_nonces = None if attr == "no_nonce_state" else test_nonces
+            passed, _, _ = engine.evaluate(ev, seen_nonces=use_nonces)
+            if not passed:
+                blocked += 1
+            else:
+                escaped.append(meta["id"])
+        rows.append({"variant": label, "blocked": blocked, "escaped_vectors": escaped})
+
+    return {"note": "one enforcement disabled per row; full_gate is the configured gate",
+            "rows": rows}
+
+
 def evaluate_tamper_resilience() -> Dict[str, Any]:
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
     policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
@@ -417,7 +471,8 @@ def main():
         "sparse_proof": sparse_proof,
         "blinding_overhead": blinding,
         "ui_attestation_hashing": ui_hashing,
-        "tamper_resilience": tamper_res
+        "tamper_resilience": tamper_res,
+        "ablation": evaluate_ablation()
     }
 
     out_file = Path(__file__).parent.parent / "results" / "benchmark_summary.json"

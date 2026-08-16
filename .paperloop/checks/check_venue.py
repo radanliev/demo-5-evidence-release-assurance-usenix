@@ -305,9 +305,15 @@ def check(cfg: Config) -> list[Finding]:
     if limit:
         ref_page = None
         appendix_page = None
-        ref_head = re.compile(r"^[ \t]*references[ \t]*$", re.IGNORECASE | re.MULTILINE)
-        app_head = re.compile(r"^[ \t]*[A-Z][ \t]+[A-Za-z]*appendix[ \t]*$|"
-                              r"^[ \t]*appendices[ \t]*$", re.IGNORECASE | re.MULTILINE)
+        # Two-column extraction merges columns per line, so a heading often
+        # shares its line with the other column's body text. Anchor on the
+        # line END with real heading typography (title case) instead of
+        # demanding a standalone line.
+        ref_head = re.compile(r"^[ \t]*References[ \t]*$|References[ \t]*$",
+                              re.MULTILINE)
+        app_head = re.compile(r"^[ \t]*[A-Z](?:[ \t]+Open[ \t]+Science)?[ \t]+Appendix[ \t]*$|"
+                              r"Appendix[ \t]*$|"
+                              r"^[ \t]*Appendices[ \t]*$", re.MULTILINE)
         for p in pages:
             # headings can sit mid-column in two-column layouts, so scan the whole page
             if ref_page is None and ref_head.search(p["text"]):

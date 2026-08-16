@@ -17,6 +17,7 @@ release_conditions:
   min_passing_tests_pct: 100.0
   allowed_drift_findings: 0
   verify_merkle_root: true
+  enforce_trace_count: true
   max_evidence_age_seconds: 3600
   max_future_clock_skew_seconds: 30
   require_slsa_envelope: false

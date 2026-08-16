@@ -256,8 +256,10 @@ class ReleasePolicyEngine:
         # 2b. Signed trace-count binding: the signed execution_traces_count
         # must match the traces actually present - auditors derive Merkle
         # proof depth from this count, so a lie here breaks proof binding.
+        # (Condition-gated like every other check so the ablation study can
+        # measure its marginal contribution; default ON = fail-closed.)
         claimed_count = bundle_dict.get("execution_traces_count")
-        if claimed_count is not None and claimed_count != len(traces):
+        if rc.get("enforce_trace_count", True) and claimed_count is not None and claimed_count != len(traces):
             violations.append(
                 f"POLICY_VIOLATION: Execution trace count mismatch ({claimed_count} claimed, {len(traces)} present)."
             )
