@@ -42,9 +42,12 @@
     urlcolor=blue!80!black
 }
 
-\newtheorem{definition}{Definition}
+\theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
 
 % Extra inter-word stretch before TeX resorts to an overfull line.
 % Changes no page geometry.
@@ -413,12 +416,15 @@ Fix a policy version $P$ and a trusted key registry $\mathcal{K}_{\text{trusted}
     \item[(iii)] \emph{Freshness:} the timestamp lies within the validity window $\Delta T_{\text{max}}$ and the skew bound $\delta_{\text{skew}}$, and the nonce has not been processed within the window; the release is not a replay of an earlier approved bundle.
     \item[(iv)] \emph{Policy compliance:} all declared thresholds (test pass rate, unresolved drift, KMS ARN boundary, signature threshold $K$) satisfy policy version $P$; an APPROVED verdict under a different policy version is not an APPROVED verdict for this release.
 \end{enumerate}
-The guarantees hold conditionally on (a) the \emph{collector assumption} of Definition~\ref{def:completeness} --- the evidence collector observed and recorded every action of the release execution --- which supplies the completeness half of the guarantee, and (b) the \emph{key-management assumption} --- registry keys are honestly generated and the HSM/KMS enforces the ARN boundary. The theorem asserts nothing about actions that never reached the collector, nor about the semantic correctness of recorded trace content; both are defined in the threat model and handled by the out-of-band semantic inspection layer.
 \end{theorem}
+
+\paragraph{Scope and Operational Assumptions.}
+The guarantees hold conditionally on (a) the \emph{collector assumption} of Definition~\ref{def:completeness} --- the evidence collector observed and recorded every action of the release execution --- which supplies the completeness half of the guarantee, and (b) the \emph{key-management assumption} --- registry keys are honestly generated and the HSM/KMS enforces the ARN boundary. The theorem asserts nothing about actions that never reached the collector, nor about the semantic correctness of recorded trace content; both are defined in the threat model and handled by the out-of-band semantic inspection layer.
 
 \begin{proof}
 \textbf{(i)} Follows from Theorem~\ref{thm:failclosed}, Game$_1$, plus the deterministic registry checks enforced before any signature verification (\texttt{policy.py}): unknown key IDs, bundle-supplied keys disagreeing with the registry, and revoked keys are rejected outright, so per-signature success is bounded by $\text{Adv}_{\text{Ed25519}}^{\text{euf-cma}}(\mathcal{A})$. \textbf{(ii)} Follows from Theorem~\ref{thm:failclosed}, Game$_2$, plus the deterministic signed-count check $N = |\text{traces}|$; substitution requires either a hash collision or a broken signature. \textbf{(iii)} Freshness, skew, and nonce checks are deterministic (Game$_3$; Listing~\ref{lst:proto2}) and hold with probability $1$ given correct gate state, with the disclosed caveat that replay protection requires sharing the nonce cache across gate replicas in distributed environments. \textbf{(iv)} Threshold comparisons are deterministic over the signed payload and the pinned policy version. Composition yields the statement; the only probabilistic terms reduce to the primitive advantages of Theorem~\ref{thm:failclosed}.
 \end{proof}
+
 \section{Real-World Case Study and Production CI/CD Integration}
 To evaluate operational deployment feasibility, EviAssure was integrated into a production CI/CD workflow. This section presents the GitHub Action architecture, browser UI attestation runner, and the 1,050-profile agent execution trace corpus.
 
