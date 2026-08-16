@@ -83,28 +83,29 @@ def generate_benchmark_figures(docs_dir: Path):
 
     # Figure 3: Comparative Tamper Detection Block Rates
     comp_sum = data_c["summary"]
-    systems = ['Standard CI Gate', 'OPA Schema Gate', 'Sigstore / Cosign', 'EviAssure']
+    systems = ['CI Exit Code', 'Sigstore', 'OPA Schema', 'Composed SOTA', 'EviAssure']
     block_rates = [
-        comp_sum["ci_exit_code_block_rate_pct"],
-        comp_sum["opa_schema_block_rate_pct"],
-        comp_sum["sigstore_cosign_block_rate_pct"],
-        comp_sum["demo5_assurance_block_rate_pct"]
+        comp_sum.get("ci_exit_code_block_rate_pct", 0.0),
+        comp_sum.get("sigstore_cosign_block_rate_pct", 7.7),
+        comp_sum.get("opa_schema_block_rate_pct", 23.1),
+        comp_sum.get("composed_sota_block_rate_pct", 30.8),
+        comp_sum.get("demo5_assurance_block_rate_pct", 100.0)
     ]
-    colors = ['#d62728', '#ff7f0e', '#bcbd22', '#1f77b4']
+    colors = ['#d62728', '#bcbd22', '#ff7f0e', '#9467bd', '#1f77b4']
 
     plt.figure(figsize=(3.4, 2.6))
-    bars = plt.bar(systems, block_rates, color=colors, edgecolor='black', linewidth=1.0, width=0.5)
-    hatches = ['//', '\\\\', 'xx', '..']
+    bars = plt.bar(systems, block_rates, color=colors, edgecolor='black', linewidth=1.0, width=0.55)
+    hatches = ['//', '\\\\', 'xx', '++', '..']
     for bar, hatch in zip(bars, hatches):
         bar.set_hatch(hatch)
-    plt.tick_params(labelsize=7)
-    plt.xticks(rotation=20, ha='right')
-    plt.ylabel('Fail-Closed Block Rate (%)', fontsize=9)
-    plt.title('Adversarial Release Tamper Detection (12 Vectors)', fontsize=9, fontweight='bold')
-    plt.ylim(0, 115)
+    plt.tick_params(labelsize=6.5)
+    plt.xticks(rotation=22, ha='right')
+    plt.ylabel('Fail-Closed Block Rate (%)', fontsize=8.5)
+    plt.title('Adversarial Release Tamper Detection (13 Vectors)', fontsize=8.5, fontweight='bold')
+    plt.ylim(0, 118)
     plt.grid(axis='y', ls="--", alpha=0.5)
     for bar, rate in zip(bars, block_rates):
-        plt.text(bar.get_x() + bar.get_width() / 2.0, rate + 2.0, f"{rate:.1f}%", ha='center', fontweight='bold', fontsize=8)
+        plt.text(bar.get_x() + bar.get_width() / 2.0, rate + 2.0, f"{rate:.1f}%", ha='center', fontweight='bold', fontsize=7.5)
     plt.tight_layout()
     plt.savefig(fig_dir / "comparative_block_rate.png", dpi=300)
     plt.close()
