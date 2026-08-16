@@ -5,10 +5,12 @@ Defines 12 atomic attack scenarios targeting evidence-backed release gates.
 
 from copy import deepcopy
 from datetime import datetime, timezone, timedelta
+import json
 from typing import Dict, Any, List, Tuple
 
 from assurance.evidence import create_evidence_pack, EvidenceBundle, DEFAULT_SECRET_KEY, DEMO_PRIV_KEY, DEMO_PUB_KEY_B64
-from assurance.crypto import hash_sha256, generate_ed25519_keypair, sign_payload_ed25519
+from assurance.crypto import (hash_sha256, canonical_json, generate_ed25519_keypair,
+                              sign_payload_ed25519)
 
 TAMPER_VECTOR_TAXONOMY = {
     "V1_UNSIGNED_EVIDENCE": {
@@ -189,9 +191,22 @@ def generate_tampered_evidence_suite() -> List[Tuple[str, Dict[str, Any], Dict[s
     v9_dict["key_id"] = "KEY-REVOKED-9999"
     suite.append(("V9_REVOKED_KEY_SIGNATURE", TAMPER_VECTOR_TAXONOMY["V9_REVOKED_KEY_SIGNATURE"], v9_dict))
 
-    # V10: JSON Key Malleability
-    v10_dict = deepcopy(clean_dict)
-    v10_dict["test_pass_pct"] = 99.9
+    # V10: JSON Key Malleability -- a genuine duplicate-key wire attack (N5).
+    # The canonical bundle is signed with test_pass_pct=100.0. The attacker
+    # ships a raw wire document that REPEATS the "test_pass_pct" key with a
+    # second value (85.5): json.loads keeps the LAST occurrence (85.5) while
+    # other parsers keep the FIRST (100.0), so the same signed bytes evaluate
+    # differently per reader. The ingestion boundary must reject the document
+    # as non-canonical before any policy or signature logic runs. The parsed
+    # (last-wins) dict is passed alongside the raw wire text so the gate can
+    # perform that check.
+    v10_clean = deepcopy(clean_dict)
+    v10_wire = canonical_json(v10_clean)
+    assert '"test_pass_pct":100.0' in v10_wire, "expected signed canonical value in wire doc"
+    v10_wire_dup = v10_wire[:-1] + ',"test_pass_pct":85.5}'
+    v10_dict = json.loads(v10_wire_dup)
+    assert v10_dict["test_pass_pct"] == 85.5, "last-wins parse must differ from signed value"
+    v10_dict["raw_wire_json"] = v10_wire_dup
     suite.append(("V10_JSON_MALLEABILITY", TAMPER_VECTOR_TAXONOMY["V10_JSON_MALLEABILITY"], v10_dict))
 
     # V11: Future Clock Skew

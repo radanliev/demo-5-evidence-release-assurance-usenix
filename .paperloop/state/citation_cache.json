@@ -1,5 +1,21 @@
 {
   "_version": 1,
+  "aas12026agent-audit||agent auditability standard  aas 1  working paper v0 1": {
+    "source": "web",
+    "doi": "",
+    "title": "Agent Auditability Standard (AAS-1), Working Paper v0.1",
+    "year": null,
+    "container": "https://aas-1.org/",
+    "type": "misc"
+  },
+  "apas2026agent-provenance||agent provenance attestation standard  apas": {
+    "source": "web",
+    "doi": "",
+    "title": "Agent Provenance Attestation Standard (APAS)",
+    "year": null,
+    "container": "https://github.com/agentic-research/signet/blob/main/docs/apas/agent-provenance-standard.md",
+    "type": "misc"
+  },
   "bellare1993random|10.1145/168588.168596|random oracles are practical  a paradigm for designing efficient protocols": {
     "source": "crossref",
     "doi": "10.1145/168588.168596",
@@ -64,6 +80,14 @@
     "container": "Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security",
     "type": "proceedings-article"
   },
+  "intoto2026agent-decision||rfc  agent decision v0 1 predicate for ai agent policy decisions": {
+    "source": "web",
+    "doi": "",
+    "title": "RFC: agent-decision/v0.1 Predicate for AI Agent Policy Decisions",
+    "year": null,
+    "container": "https://github.com/in-toto/attestation/issues/554",
+    "type": "misc"
+  },
   "krawczyk1997hmac|10.17487/RFC2104|hmac  keyed hashing for message authentication": {
     "source": "crossref",
     "doi": "10.17487/RFC2104",
@@ -80,7 +104,14 @@
     "container": "Networked Systems Design and Implementation",
     "type": "article"
   },
-  "kyverno2022policy|10.5281/zenodo.6891024|kyverno  kubernetes native policy management engine": null,
+  "kyverno2022policy|10.5281/zenodo.6891024|kyverno  kubernetes native policy management engine": {
+    "source": "web",
+    "doi": "",
+    "title": "Kyverno: Kubernetes Native Policy Management Engine",
+    "year": null,
+    "container": "https://kyverno.io/docs/",
+    "type": "misc"
+  },
   "ladisa2023sok|10.1109/SP46215.2023.10179304|sok  taxonomy of attacks on open source software supply chains": {
     "source": "crossref",
     "doi": "10.1109/SP46215.2023.10179304",
@@ -129,8 +160,22 @@
     "container": "Proceedings of the 2022 ACM Workshop on Software Supply Chain Offensive Research and Ecosystem Defenses",
     "type": "proceedings-article"
   },
-  "opa2021openpolicy|10.5281/zenodo.5562141|open policy agent  opa  declarative fine grained policy engine for cloud native ": null,
-  "papernot2016cleverhans|10.48550/arXiv.1610.00768|technical report on the cleverhans v1 0 0 adversarial examples library": null,
+  "opa2021openpolicy|10.5281/zenodo.5562141|open policy agent  opa  declarative fine grained policy engine for cloud native ": {
+    "source": "web",
+    "doi": "",
+    "title": "Open Policy Agent (OPA): Declarative Fine-Grained Policy Engine for Cloud Native Environments",
+    "year": null,
+    "container": "https://www.openpolicyagent.org/docs/",
+    "type": "misc"
+  },
+  "papernot2016cleverhans|10.48550/arXiv.1610.00768|technical report on the cleverhans v1 0 0 adversarial examples library": {
+    "source": "web",
+    "doi": "",
+    "title": "Technical Report on the CleverHans v1.0.0 Adversarial Examples Library",
+    "year": null,
+    "container": "https://arxiv.org/abs/1610.00768",
+    "type": "misc"
+  },
   "samuel2010surviving|10.1145/1866307.1866315|survivable key compromise in software update systems": {
     "source": "crossref",
     "doi": "10.1145/1866307.1866315",
@@ -163,8 +208,22 @@
     "container": "Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security",
     "type": "proceedings-article"
   },
-  "slsa2023supply|10.5281/zenodo.7845612|supply chain levels for software artifacts  slsa  framework specification": null,
-  "spiffe2020spire|10.5281/zenodo.4312091|spiffe and spire  universal workload identity for cloud native infrastructure": null,
+  "slsa2023supply|10.5281/zenodo.7845612|supply chain levels for software artifacts  slsa  framework specification": {
+    "source": "web",
+    "doi": "",
+    "title": "Supply-chain Levels for Software Artifacts (SLSA) Framework Specification",
+    "year": null,
+    "container": "https://slsa.dev/spec/v1.0/",
+    "type": "misc"
+  },
+  "spiffe2020spire|10.5281/zenodo.4312091|spiffe and spire  universal workload identity for cloud native infrastructure": {
+    "source": "web",
+    "doi": "",
+    "title": "SPIFFE and SPIRE: Universal Workload Identity for Cloud Native Infrastructure",
+    "year": null,
+    "container": "https://spiffe.io/docs/latest/",
+    "type": "misc"
+  },
   "taly2011definitive|10.1109/SP.2011.39|automated analysis of security critical javascript apis": {
     "source": "crossref",
     "doi": "10.1109/SP.2011.39",
@@ -189,7 +248,14 @@
     "container": "ICLR",
     "type": "inproceedings"
   },
-  "yao2023react||react  synergizing reasoning and acting in language models": null,
+  "yao2023react||react  synergizing reasoning and acting in language models": {
+    "source": "dblp",
+    "doi": "",
+    "title": "ReAct: Synergizing Reasoning and Acting in Language Models.",
+    "year": 2023,
+    "container": "ICLR",
+    "type": "inproceedings"
+  },
   "zheng2023judging||judging llm as a judge with mt bench and chatbot arena": {
     "source": "crossref",
     "doi": "10.52202/075280-2020",
@@ -197,8 +263,5 @@
     "year": 2023,
     "container": "Advances in Neural Information Processing Systems 36",
     "type": "proceedings-article"
-  },
-  "aas12026agent-audit||agent auditability standard  aas 1  working paper v0 1": null,
-  "apas2026agent-provenance||agent provenance attestation standard  apas": null,
-  "intoto2026agent-decision||rfc  agent decision v0 1 predicate for ai agent policy decisions": null
+  }
 }

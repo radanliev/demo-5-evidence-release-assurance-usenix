@@ -8,7 +8,8 @@ import time
 import hashlib
 from typing import List, Dict, Any, Tuple
 from assurance.crypto import hash_sha256
-from assurance.evidence import BrowserActionTraceRecord, ExecutionTraceRecord, create_evidence_pack, EvidenceBundle
+from assurance.evidence import (BrowserActionTraceRecord, ExecutionTraceRecord,
+                                create_evidence_pack, EvidenceBundle, realistic_dom_fragment)
 
 
 class WebBrowserAgentSpecimen:
@@ -21,7 +22,7 @@ class WebBrowserAgentSpecimen:
 
     def navigate(self, url: str = "http://localhost:8080/dashboard") -> Dict[str, Any]:
         t0 = time.perf_counter()
-        dom_content = f"<html><body><div id='app'>Dashboard Loaded for {url}</div></body></html>"
+        dom_content = realistic_dom_fragment(1)
         dom_hash = hash_sha256(dom_content)
         screenshot_hash = hash_sha256(f"SCREENSHOT_PNG_{url}_{dom_hash[:8]}")
         dt = (time.perf_counter() - t0) * 1000.0 + 15.0
@@ -52,7 +53,7 @@ class WebBrowserAgentSpecimen:
 
     def click_button(self, selector: str = "button#deploy-release") -> Dict[str, Any]:
         t0 = time.perf_counter()
-        dom_content = f"<html><body><div id='app'>Button {selector} Clicked -> Modal Open</div></body></html>"
+        dom_content = realistic_dom_fragment(2)
         dom_hash = hash_sha256(dom_content)
         screenshot_hash = hash_sha256(f"SCREENSHOT_PNG_CLICK_{selector}")
         dt = (time.perf_counter() - t0) * 1000.0 + 8.2

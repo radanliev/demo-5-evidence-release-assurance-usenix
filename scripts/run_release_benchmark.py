@@ -9,35 +9,85 @@ and 12-vector tamper resilience.
 import sys
 import time
 import json
+import uuid
 import statistics
 import concurrent.futures
+from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, Any, List, Tuple
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from assurance.evidence import create_evidence_pack, ExecutionTraceRecord, DEFAULT_SECRET_KEY
+from assurance.evidence import (EvidenceBundle, create_evidence_pack, ExecutionTraceRecord,
+                                DEMO_PRIV_KEY, DEMO_PUB_KEY_B64, DEFAULT_SECRET_KEY,
+                                realistic_dom_fragment)
 from assurance.crypto import hash_sha256, build_merkle_tree, generate_merkle_proof, verify_merkle_proof
 from assurance.policy import ReleasePolicyEngine
 from benchmark.tamper_vectors import generate_tampered_evidence_suite
 
+# N14: the throughput benchmark must measure a WARM policy engine. Each worker
+# process lazily loads the engine once from YAML and reuses it for every task;
+# the per-task re-parse the earlier benchmark did inflated cold-start cost and
+# did not represent steady-state verification.
+_ENGINE_CACHE: Dict[str, ReleasePolicyEngine] = {}
+
+
+def _cpu_model() -> str:
+    """Best-effort CPU model string (Darwin and Linux); falls back to 'unknown'."""
+    try:
+        if sys.platform == "darwin":
+            import subprocess
+            out = subprocess.run(
+                ["sysctl", "-n", "machdep.cpu.brand_string"],
+                capture_output=True, text=True, check=True, timeout=5
+            ).stdout.strip()
+            return out or "unknown"
+        with open("/proc/cpuinfo", "r", encoding="utf-8") as f:
+            for line in f:
+                if line.lower().startswith("model name"):
+                    return line.split(":", 1)[1].strip()
+    except Exception:
+        pass
+    return "unknown"
+
+
+def _get_engine(policy_path: str) -> ReleasePolicyEngine:
+    if policy_path not in _ENGINE_CACHE:
+        _ENGINE_CACHE[policy_path] = ReleasePolicyEngine.from_yaml(policy_path)
+    return _ENGINE_CACHE[policy_path]
+
 
 def _eval_worker(task: Tuple[str, Dict[str, Any]]) -> bool:
-    policy_path = task[0]
-    evidence_dict = task[1]
-    engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_path, evidence_dict = task
+    engine = _get_engine(policy_path)
     passed, _, _ = engine.evaluate(evidence_dict)
     return passed
+
+
+def _realistic_dom_fragment(i: int) -> str:
+    """A non-stub DOM serialization sample (N8): shared with the web specimen
+    via assurance.evidence so the benchmark and the specimen hash the same
+    realistic HTML fragment."""
+    return realistic_dom_fragment(i)
 
 
 def measure_merkle_scaling(repeats: int = 5) -> List[Dict[str, Any]]:
     """Packaging latency and Merkle build time per trace count.
 
-    Each point is the mean over `repeats` runs; the standard deviation across
-    runs is recorded alongside so the paper can report dispersion honestly.
+    The Merkle tree is built exactly ONCE per repetition and its latency is
+    recorded; the bundle is then constructed from that same tree, so the two
+    numbers are measured on a single build rather than two redundant ones
+    (N15). Packaging latency therefore excludes the (separately reported)
+    Merkle construction, and both timings are means over `repeats` runs.
     """
     results = []
     trace_counts = [10, 100, 1000, 10000, 100000, 1000000]
+
+    artifact_digests = {
+        "model_weights": hash_sha256("MODEL_WEIGHTS_V1.2"),
+        "agent_prompt_spec": hash_sha256("SYSTEM_PROMPT_CONSTRAINED"),
+        "policy_definition": hash_sha256("FAIL_CLOSED_POLICY_V1"),
+    }
 
     for count in trace_counts:
         traces = [
@@ -52,16 +102,29 @@ def measure_merkle_scaling(repeats: int = 5) -> List[Dict[str, Any]]:
             for i in range(count)
         ]
         leaf_hashes = [t.to_hash() for t in traces]
+        trace_dicts = [asdict(t) for t in traces]
 
         pkg_times, merkle_times, sizes = [], [], []
         for _ in range(repeats):
-            t0 = time.perf_counter()
-            bundle = create_evidence_pack(traces=traces, use_ed25519=True, signed=True)
-            pkg_times.append((time.perf_counter() - t0) * 1000.0)
-
             t1 = time.perf_counter()
-            _, levels = build_merkle_tree(leaf_hashes)
+            merkle_root, levels = build_merkle_tree(leaf_hashes)
             merkle_times.append((time.perf_counter() - t1) * 1000.0)
+
+            t0 = time.perf_counter()
+            bundle = EvidenceBundle(
+                evidence_id=f"EVD-{hash_sha256(f'{time.time_ns()}')[:8]}",
+                timestamp=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                nonce=str(uuid.uuid4()),
+                agent_system_version="v1.2.0-release",
+                test_pass_pct=100.0,
+                unresolved_drift=0,
+                execution_traces_count=len(traces),
+                merkle_root=merkle_root,
+                traces=trace_dicts,
+                artifact_digests=artifact_digests,
+            )
+            bundle.sign_ed25519(DEMO_PRIV_KEY, DEMO_PUB_KEY_B64)
+            pkg_times.append((time.perf_counter() - t0) * 1000.0)
 
             sizes.append(len(json.dumps(bundle.to_dict())) / 1024.0)
 
@@ -72,6 +135,7 @@ def measure_merkle_scaling(repeats: int = 5) -> List[Dict[str, Any]]:
             "trace_count": count,
             "packaging_latency_ms": round(t_pkg, 3),
             "packaging_latency_ms_std": round(statistics.stdev(pkg_times), 3) if repeats > 1 else 0.0,
+            "packaging_excludes_merkle_build": True,
             "merkle_tree_build_ms": round(t_merkle, 3),
             "merkle_tree_build_ms_std": round(statistics.stdev(merkle_times), 3) if repeats > 1 else 0.0,
             "merkle_tree_depth": len(levels),
@@ -84,15 +148,25 @@ def measure_merkle_scaling(repeats: int = 5) -> List[Dict[str, Any]]:
 
 def measure_parallel_throughput(repeats: int = 5) -> Dict[str, Any]:
     policy_path = str(Path(__file__).parent.parent / "governance" / "release_policy.yaml")
-    bundle = create_evidence_pack(use_ed25519=True, signed=True)
-    b_dict = bundle.to_dict()
 
     workers_list = [1, 2, 4, 8, 16]
     total_evals = 1000
     parallel_results = {}
 
+    # N14: each evaluation is an honest gate check. We generate `total_evals`
+    # DISTINCT, freshly signed bundles up front (unique nonce each) so the
+    # timed region measures steady-state policy evaluation, not evidence
+    # creation; no evaluation replays another's nonce. The engine itself is
+    # warm (loaded once per worker process). Replay-path cost is exercised
+    # separately in the tamper suite (V4), not conflated with throughput.
+    unique_bundles = [
+        create_evidence_pack(use_ed25519=True, signed=True).to_dict()
+        for _ in range(total_evals)
+    ]
+    assert len({b["nonce"] for b in unique_bundles}) == total_evals, "bundles must carry distinct nonces"
+
     for num_workers in workers_list:
-        tasks = [(policy_path, b_dict) for _ in range(total_evals)]
+        tasks = [(policy_path, b_dict) for b_dict in unique_bundles]
         rates = []
         elapsed_s = 0.0
         for _ in range(repeats):
@@ -112,7 +186,9 @@ def measure_parallel_throughput(repeats: int = 5) -> Dict[str, Any]:
             "elapsed_seconds": round(elapsed_s, 4),
             "throughput_ops_sec": round(ops_per_sec, 2),
             "throughput_ops_sec_std": round(statistics.stdev(rates), 2) if repeats > 1 else 0.0,
-            "mean_latency_per_eval_ms": round((elapsed_s / total_evals) * 1000.0, 4)
+            "mean_latency_per_eval_ms": round((elapsed_s / total_evals) * 1000.0, 4),
+            "distinct_nonce_bundles": True,
+            "warm_engine": True,
         }
 
     return parallel_results
@@ -201,7 +277,7 @@ def measure_ui_attestation_hashing(n_steps: int = 1_000, repeats: int = 5) -> Di
     for _ in range(repeats):
         t0 = time.perf_counter()
         for i in range(n_steps):
-            dom = f"<html><body><div id='app'>Dashboard Loaded for https://app/{i}</div></body></html>"
+            dom = _realistic_dom_fragment(i)
             hash_sha256(dom)
         dom_steps.append(((time.perf_counter() - t0) * 1000.0) / n_steps)
 
@@ -308,11 +384,33 @@ def main():
         "platform": {
             "python_version": sys.version.split()[0],
             "logical_cores": __import__("os").cpu_count(),
+            "cpu_model": _cpu_model(),
         },
         "benchmark_params": {
             "synthetic_step_duration_ms": 1.5,
             "throughput_evals_per_worker": 1000,
             "repeats": repeats,
+        },
+        "disclosures": {
+            "packaging_latency_excludes_merkle_build": (
+                "packaging_latency_ms times the post-Merkle packaging path "
+                "(bundle construction, signing, serialization); Merkle tree "
+                "construction is reported separately as merkle_tree_build_ms "
+                "from the same single build (N15)."),
+            "packaging_overhead_pct": (
+                "synthetic ratio: packaging_latency_ms divided by the assumed "
+                "1.5 ms/step trace execution time (count * 1.5 ms); it is an "
+                "order-of-magnitude illustration, not a production cost model "
+                "(N11)."),
+            "throughput": (
+                "each evaluation is a distinct fresh-nonce bundle against a "
+                "warm policy engine; replay-state cost is measured separately "
+                "in the tamper suite, not here (N14)."),
+            "ui_attestation_hashing": (
+                "DOM hashing uses a realistic multi-node HTML fragment with "
+                "attributes and per-step dynamic content, mirroring the web "
+                "specimen; it is not the empty stub from the earlier "
+                "prototype (N8)."),
         },
         "merkle_scaling": merkle_scaling,
         "parallel_throughput": parallel_throughput,

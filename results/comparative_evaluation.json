@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-15T19:34:09Z",
+  "timestamp": "2026-08-15T23:26:24Z",
   "baseline_execution": {
     "opa_schema_gate": "executed: OPA 1.19.0",
     "ci_exit_code_gate": "modeled (exit-code semantics)",
@@ -8,7 +8,7 @@
   "summary": {
     "ci_exit_code_block_rate_pct": 0.0,
     "opa_schema_block_rate_pct": 25.0,
-    "sigstore_cosign_block_rate_pct": 25.0,
+    "sigstore_cosign_block_rate_pct": 8.333333333333332,
     "demo5_assurance_block_rate_pct": 100.0
   },
   "details": [
@@ -65,7 +65,7 @@
       "vector_name": "Sub-threshold Test Pass Rate",
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": true,
-      "sigstore_cosign_blocked": true,
+      "sigstore_cosign_blocked": false,
       "demo5_assurance_blocked": true
     },
     {
@@ -89,7 +89,7 @@
       "vector_name": "JSON Key Malleability Payload Injection",
       "ci_exit_code_blocked": false,
       "opa_schema_blocked": true,
-      "sigstore_cosign_blocked": true,
+      "sigstore_cosign_blocked": false,
       "demo5_assurance_blocked": true
     },
     {

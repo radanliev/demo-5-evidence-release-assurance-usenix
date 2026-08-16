@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-15T22:26:21Z",
+  "timestamp": "2026-08-16T06:51:57Z",
   "platform": {
     "python_version": "3.14.7",
     "logical_cores": 14
@@ -21,7 +21,7 @@
     "clean_approved_pct": 100.0,
     "anomalous_approved": 50,
     "anomalous_approved_pct": 100.0,
-    "note": "anomalous profiles are sematically misbehaving but cryptographically well-formed signed bundles, so the cryptographic gate approves them; they are surfaced by per-leaf inspection instead"
+    "note": "anomalous profiles are semantically misbehaving but cryptographically well-formed signed bundles, so the cryptographic gate approves them; they are surfaced by per-leaf inspection instead"
   },
   "layer_3_per_leaf_semantic_inspection": {
     "anomalous_flagged": 50,
@@ -29,6 +29,6 @@
     "clean_inspected": 1000,
     "clean_flagged_false_positive": 0,
     "false_positive_rate_pct": 0.0,
-    "note": "per-leaf inspection flags any trace whose status is not SUCCESS; on this synthetic corpus every one of the 50 anomaly profiles carries at least one such leaf and no clean profile carries any"
+    "note": "per-leaf semantic inspection flags any trace whose status is not SUCCESS or whose action is on the forensic sensitive-action list; on this synthetic corpus every anomalous profile carries at least one such leaf and no clean profile carries any"
   }
 }

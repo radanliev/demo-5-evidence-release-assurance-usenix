@@ -71,10 +71,23 @@ def test_threshold_signature_policy():
     assert passed is False  # Rejected because min_required_signatures is 2 but only 1 exists
     assert any("Insufficient valid signatures" in v for v in violations)
 
-    # 2. Add second signature and re-evaluate
-    bundle.sign_hmac_multi("another-secret-key")  # Adds a second signature to the list
-    passed, violations, details = policy_engine.evaluate(bundle, secret_key="another-secret-key")
+    # 2. The SAME key signing a second time must NOT satisfy the threshold:
+    # K-of-M counts DISTINCT authorized signers (N10). A single compromised
+    # key re-signing a bundle is one signer, not two.
+    bundle.sign_ed25519_multi()  # second signature, same demo key
+    passed, violations, details = policy_engine.evaluate(bundle)
+    assert passed is False
+    assert any("Insufficient valid signatures" in v for v in violations)
+
+    # 3. A second, DISTINCT key pinned in the trusted registry satisfies the
+    # threshold.
+    from assurance.crypto import generate_ed25519_keypair
+    second_priv, _, second_pub_b64, second_key_id = generate_ed25519_keypair()
+    policy_engine.trusted_keys[second_key_id] = second_pub_b64
+    bundle.sign_ed25519_multi(private_key=second_priv, pub_key_b64=second_pub_b64)
+    passed, violations, details = policy_engine.evaluate(bundle)
     assert passed is True
+    assert len(violations) == 0
 
 
 def test_seen_nonces_eviction():
@@ -92,6 +105,9 @@ def test_seen_nonces_eviction():
     
     passed, violations, details = policy_engine.evaluate(bundle, seen_nonces=seen_nonces)
     
-    assert bundle.nonce not in seen_nonces
+    # The stale pre-seeded nonce is evicted before the replay check, so the
+    # evaluation proceeds and the engine records the nonce freshly (N3):
+    # an engine that processes a nonce must commit it to the seen-set.
+    assert bundle.nonce in seen_nonces
 
 

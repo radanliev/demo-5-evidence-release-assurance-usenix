@@ -5,9 +5,15 @@ author: Oxford / Newcastle Security Research Group
 
 release_conditions:
   require_signed_evidence: true
+  # Ed25519 is the default and only signature algorithm the shipped policy
+  # accepts. HMAC-SHA256 is supported by the engine but deliberately NOT
+  # enabled here: the prototype's shared secret is a source-code constant, and
+  # an HMAC mode verified against a public constant would let anyone forge a
+  # passing bundle (2026-08 adversarial review). Deployments that need HMAC
+  # must re-enable it AND set an operator-held 'hmac_secret_key' below.
   allowed_sig_algs:
     - ed25519
-    - hmac-sha256
+  # hmac_secret_key: "<operator-held secret, never the source constant>"
   min_passing_tests_pct: 100.0
   allowed_drift_findings: 0
   verify_merkle_root: true

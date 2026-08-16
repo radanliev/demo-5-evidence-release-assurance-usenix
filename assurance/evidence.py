@@ -68,8 +68,21 @@ class ExecutionTraceRecord:
         )
 
     def to_hash(self) -> str:
-        raw = f"{self.trace_id}:{self.agent_id}:{self.action}:{self.status}:{self.output_hash}"
-        return hash_sha256(raw)
+        return hash_sha256(execution_trace_leaf_string(self))
+
+
+
+def execution_trace_leaf_string(trace: Any) -> str:
+    """Canonical leaf content for one execution trace record.
+
+    Single source of truth for the Merkle leaf string, shared by the packager
+    (to_hash), the verifier's root re-derivation (policy.py), the forensic
+    audit engine (forensics.py), and sparse-proof generation. Every field the
+    trace schema declares -- including duration_ms -- is committed; changing
+    any of them invalidates the root (2026-08 adversarial review, N2)."""
+    if hasattr(trace, "duration_ms"):
+        return f"{trace.trace_id}:{trace.agent_id}:{trace.action}:{trace.status}:{trace.duration_ms}:{trace.output_hash}"
+    return f"{trace['trace_id']}:{trace['agent_id']}:{trace['action']}:{trace['status']}:{trace['duration_ms']}:{trace['output_hash']}"
 
 
 @dataclass
@@ -85,8 +98,30 @@ class BrowserActionTraceRecord:
     screenshot_sha256: Optional[str] = None
 
     def to_hash(self) -> str:
-        raw = f"{self.trace_id}:{self.agent_id}:{self.action}:{self.status}:{self.url}:{self.element_selector}:{self.dom_state_hash}:{self.screenshot_sha256 or ''}"
+        raw = f"{self.trace_id}:{self.agent_id}:{self.action}:{self.status}:{self.duration_ms}:{self.url}:{self.element_selector}:{self.dom_state_hash}:{self.screenshot_sha256 or ''}"
         return hash_sha256(raw)
+
+
+def realistic_dom_fragment(i: int) -> str:
+    """A realistic DOM serialization sample: nested nodes, attributes, and
+    per-step dynamic content, mirroring what a browser agent would serialize.
+
+    Shared by the web/UI specimen (specimens/web_app_runner.py) and the
+    UI-attestation hashing benchmark so the measured cost reflects real DOM
+    content rather than a stub string (2026-08 adversarial review, N8)."""
+    return (
+        "<html><head><title>Release Control Plane</title></head>"
+        "<body><div id='app'><header class='navbar'><h1>Release Dashboard</h1>"
+        "<nav><a href='/releases' class='active'>Releases</a><a href='/agents'>Agents</a></nav>"
+        "</header><main><section class='panel' data-step='{i}'><div class='metric-card'>"
+        "<span class='label'>deploy-status</span><span class='value'>Ready</span></div>"
+        "<div class='metric-card'><span class='label'>build-id</span>"
+        "<span class='value'>bld-{i:04d}</span></div>"
+        "<form id='release-form' action='/api/release' method='POST' "
+        "data-agent='web-browser-agent-v1'><input type='hidden' name='csrf' "
+        "value='tok-{i:04d}'/><button id='deploy-release' type='submit'>Deploy</button>"
+        "</form></section></main><footer>EviAssure runtime 1.2.0</footer></div></body></html>"
+    ).format(i=i)
 
 
 
@@ -220,8 +255,7 @@ class EvidenceBundle:
             return []
         leaf_hashes = []
         for t in self.traces:
-            raw = f"{t.get('trace_id')}:{t.get('agent_id')}:{t.get('action')}:{t.get('status')}:{t.get('output_hash')}"
-            leaf_hashes.append(hash_sha256(raw))
+            leaf_hashes.append(hash_sha256(execution_trace_leaf_string(t)))
 
         _, levels = build_merkle_tree(leaf_hashes)
 
@@ -258,8 +292,13 @@ class EvidenceBundle:
         return statement
 
     def to_dict(self) -> Dict[str, Any]:
-        res = asdict(self)
-        return res
+        # raw_payload must NEVER serialize: bundles carry digests only. A
+        # plain asdict() would leak collector-side PII if the field were set
+        # (2026-08 check: the Sec 3.2 exclusion claim was previously true only
+        # by accident of no caller setting it).
+        def _drop_raw_payload(pairs):
+            return {k: v for k, v in pairs if k != "raw_payload"}
+        return asdict(self, dict_factory=_drop_raw_payload)
 
 
 def create_evidence_pack(
@@ -306,7 +345,12 @@ def create_evidence_pack(
     if blind_privacy:
         traces = [t.blind_payload(privacy_salt) for t in traces]
 
-    trace_dicts = [asdict(t) for t in traces]
+    # Digests only: raw_payload must never enter the bundle (Sec 3.2).
+    # asdict's dict_factory does not reach plain dicts, so filter here.
+    trace_dicts = [
+        {k: v for k, v in asdict(t).items() if k != "raw_payload"}
+        for t in traces
+    ]
     leaf_hashes = [t.to_hash() for t in traces]
     merkle_root, _ = build_merkle_tree(leaf_hashes)
 

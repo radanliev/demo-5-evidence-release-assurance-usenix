@@ -77,10 +77,14 @@ def eval_opa_schema_gate_modeled(payload: Dict[str, Any]) -> bool:
 
 
 def eval_sigstore_cosign_gate(payload: Dict[str, Any], secret_key: str = DEFAULT_SECRET_KEY) -> bool:
-    """Container digest signature validator: checks signature presence, but ignores execution trace Merkle root."""
+    """Container digest signature validator: presence-only check that an
+    artifact signature exists, ignoring execution trace Merkle root AND any
+    quality/policy fields (N6). A signed-but-misbehaving release therefore
+    passes, exactly as a real signature-presence gate would; quality signals
+    are not part of Sigstore's model."""
     signed = payload.get("signed", False)
     sig = payload.get("signature")
-    return signed and sig is not None and payload.get("test_pass_pct", 0.0) >= 100.0
+    return signed and sig is not None
 
 
 def main():

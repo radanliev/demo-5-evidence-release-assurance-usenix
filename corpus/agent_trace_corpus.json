@@ -10,11 +10,73 @@
     "FinancialAPIIntegratorAgent",
     "AutonomousWebScraperAgent"
   ],
+  "anomaly_schemas": [
+    {
+      "class": "ANOMALY_UNSAFE_CMD",
+      "action": "spawn_shell_subprocess",
+      "status": "UNAUTHORIZED_ESCALATION",
+      "duration_ms": 42.1
+    },
+    {
+      "class": "ANOMALY_PROMPT_INJECTION",
+      "action": "override_system_prompt",
+      "status": "INJECTION_DETECTED",
+      "duration_ms": 24.5
+    },
+    {
+      "class": "ANOMALY_PRIVILEGE_ESCALATION",
+      "action": "escalate_role",
+      "status": "PRIVILEGE_ESCALATION",
+      "duration_ms": 17.8
+    },
+    {
+      "class": "ANOMALY_UNAUTHORIZED_DB_DROP",
+      "action": "drop_production_table",
+      "status": "UNAUTHORIZED_DB_DROP",
+      "duration_ms": 55.0
+    },
+    {
+      "class": "ANOMALY_SECRET_EXFILTRATION",
+      "action": "exfiltrate_private_key",
+      "status": "SECRET_EXFILTRATION",
+      "duration_ms": 38.0
+    },
+    {
+      "class": "ANOMALY_MEMORY_TAMPERING",
+      "action": "patch_trace_memory",
+      "status": "MEMORY_TAMPERED",
+      "duration_ms": 9.4
+    },
+    {
+      "class": "ANOMALY_SSRF_LOCAL_NETWORK",
+      "action": "access_localhost_metadata",
+      "status": "SSRF_ATTEMPT",
+      "duration_ms": 61.2
+    },
+    {
+      "class": "ANOMALY_VECTOR_POISONING",
+      "action": "poison_vector_store",
+      "status": "VECTOR_POISONED",
+      "duration_ms": 31.7
+    },
+    {
+      "class": "ANOMALY_UNSANDBOXED_PROCESS",
+      "action": "spawn_unsandboxed_process",
+      "status": "UNSANDBOXED_PROCESS",
+      "duration_ms": 47.3
+    },
+    {
+      "class": "ANOMALY_JSON_MALLEABILITY",
+      "action": "inject_duplicate_json_key",
+      "status": "JSON_MALLEABILITY_DETECTED",
+      "duration_ms": 12.9
+    }
+  ],
   "profiles": [
     {
       "profile_id": "PROF-0001",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSAFE_CMD",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0001-A",
@@ -27,33 +89,33 @@
         {
           "trace_id": "TR-CODE-0001-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "419fdc381ce017fe45fbe37e42fec81d5eeb42a7ba04751ecf54d5a86b6c6caf"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "e67a20472a57ef65b9260170d5f6c625ae36e1e39510c6eefb32d811cbaa41a1"
         }
       ]
     },
     {
       "profile_id": "PROF-0002",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_UNSAFE_CMD",
       "traces": [
         {
-          "trace_id": "TR-RAG-0002-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0002-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "a36501389928538a3ee095e6aa9f35e9495e2d85c756a7d79c0d879ddd285403"
+          "duration_ms": 4.9,
+          "output_hash": "08a5c2ac4d6de3cbd946ad035124b76d79f89dd3cf0aa880b948f6b2a306f68c"
         },
         {
-          "trace_id": "TR-RAG-0002-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "0aa1e2a67b9edb24b4dfaa34ba7120e6faeba259e48354e6336af0218a2356cc"
+          "trace_id": "TR-CODE-0002-B",
+          "agent_id": "code-synth-v1",
+          "action": "spawn_shell_subprocess",
+          "status": "UNAUTHORIZED_ESCALATION",
+          "duration_ms": 42.1,
+          "output_hash": "9cd6259eb9c17b7d95976678d724dd1d6762943caef0d7f3eb4dfaa2b4b1ebf3"
         }
       ]
     },
@@ -474,7 +536,7 @@
     {
       "profile_id": "PROF-0021",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PROMPT_INJECTION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0021-A",
@@ -487,17 +549,17 @@
         {
           "trace_id": "TR-CODE-0021-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "a7b7361b36b835fdad74acbd60424cea2813543281f0e0973167a658e815ff73"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "7866cce7f0343491fd2684c587e6be59c489b79b36df224a62e8bce32fc34a4e"
         }
       ]
     },
     {
       "profile_id": "PROF-0022",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_UNSAFE_CMD",
       "traces": [
         {
           "trace_id": "TR-RAG-0022-A",
@@ -510,10 +572,10 @@
         {
           "trace_id": "TR-RAG-0022-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "5ea85d66832241b4aa442472372a20d250108cf15026e45ab9cc18cae73a2bbf"
+          "action": "spawn_shell_subprocess",
+          "status": "UNAUTHORIZED_ESCALATION",
+          "duration_ms": 42.1,
+          "output_hash": "2dbce0cfd6bdeb747717ceb7ea0a9f9815d86495203c5294e3ef5dd172832a7e"
         }
       ]
     },
@@ -934,7 +996,7 @@
     {
       "profile_id": "PROF-0041",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PRIVILEGE_ESCALATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0041-A",
@@ -947,33 +1009,33 @@
         {
           "trace_id": "TR-CODE-0041-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "3a0a7085df6032f19cce4e2c4de65dad8c7490ed303fcf79d5ee74fb83a12b7b"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "26b1e69ace579d60857c4f71f96fb321814ee40f339c93c8ccfd7140b97dc09a"
         }
       ]
     },
     {
       "profile_id": "PROF-0042",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_UNSAFE_CMD",
       "traces": [
         {
-          "trace_id": "TR-RAG-0042-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0042-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "0b8962f861b255b2191beb15c9092de7a12647d6105f6309c01eb6d94dfe07c6"
+          "duration_ms": 3.4,
+          "output_hash": "317afeb8ef037b3790fd93c23f46d999cb5d309cc749d3f0a9dc84c6adfd06db"
         },
         {
-          "trace_id": "TR-RAG-0042-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "5784d7d3573268f677cea4c1fb2daf6789b2f3661486e2d28eae5e19ee1dac55"
+          "trace_id": "TR-DB-0042-B",
+          "agent_id": "db-admin-v1",
+          "action": "spawn_shell_subprocess",
+          "status": "UNAUTHORIZED_ESCALATION",
+          "duration_ms": 42.1,
+          "output_hash": "994fbea57acf49c6a2a0dd11f2070e0b485690b6a1675d401e97a7f628725cc7"
         }
       ]
     },
@@ -1394,7 +1456,7 @@
     {
       "profile_id": "PROF-0061",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0061-A",
@@ -1407,33 +1469,33 @@
         {
           "trace_id": "TR-CODE-0061-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "739a6a518dd4f55e9be5a8c64883e34f85c0e1adfc9dbd341eb166450be56095"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "5a2518be49efdcb232fb38f6a82f9c5e444c91f056248986dbd19eb35a977798"
         }
       ]
     },
     {
       "profile_id": "PROF-0062",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_UNSAFE_CMD",
       "traces": [
         {
-          "trace_id": "TR-RAG-0062-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0062-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "243e1f61846ad8f7600c523841175f0a0fa6f79c6e9078072a68a2aa9a30f4ef"
+          "duration_ms": 5.4,
+          "output_hash": "93b154e0484325c560c7b7dda87651a91217a571bef2463b0f4315f424ffb55e"
         },
         {
-          "trace_id": "TR-RAG-0062-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "e92fc83e0f2d2fdcd8a1a148368f72091f6834012cf9f010eb164e3fe8f5e62a"
+          "trace_id": "TR-FIN-0062-B",
+          "agent_id": "fin-api-v1",
+          "action": "spawn_shell_subprocess",
+          "status": "UNAUTHORIZED_ESCALATION",
+          "duration_ms": 42.1,
+          "output_hash": "392759ff8ae9c20edab35c90ef524a399aeaa254155629466edadff92eb9efc2"
         }
       ]
     },
@@ -1854,7 +1916,7 @@
     {
       "profile_id": "PROF-0081",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SECRET_EXFILTRATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0081-A",
@@ -1867,33 +1929,33 @@
         {
           "trace_id": "TR-CODE-0081-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "76f16fb43b9f92fd395177fb03056ad128917e80ae70e3269dada799bf18bf3c"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "205e6dd78f2e9a4ca946e82ac617490a433cc75a7d5e34a97ce9012d28c8b090"
         }
       ]
     },
     {
       "profile_id": "PROF-0082",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_UNSAFE_CMD",
       "traces": [
         {
-          "trace_id": "TR-RAG-0082-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0082-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "2452d5634b147034475db40755be88bb7fdb2c7e3361047e88762a150212af81"
+          "duration_ms": 8.2,
+          "output_hash": "5f3649b9778eb49ecc162fc3dbdc9107b19bcc925c3b20d09408225a82b23047"
         },
         {
-          "trace_id": "TR-RAG-0082-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "d4168ed03bf3ea7c844f689484a66ca572cda4efd6dda223b818f978a3cb6113"
+          "trace_id": "TR-WEB-0082-B",
+          "agent_id": "web-scraper-v1",
+          "action": "spawn_shell_subprocess",
+          "status": "UNAUTHORIZED_ESCALATION",
+          "duration_ms": 42.1,
+          "output_hash": "e5bbdb634999f191f6dc39b09a9cfbdd0aa79af101db93fcba32b66ee29567d3"
         }
       ]
     },
@@ -2314,7 +2376,7 @@
     {
       "profile_id": "PROF-0101",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_MEMORY_TAMPERING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0101-A",
@@ -2327,17 +2389,17 @@
         {
           "trace_id": "TR-CODE-0101-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "791e3222e55d5a052ce3f3bd62305caa47c392af70cc5b47f9e9efcbff342ca9"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "7dce94dd4b318855e0f5f0fc9163ad2c494dfeef6c99b1fd29a6a350f8d83aab"
         }
       ]
     },
     {
       "profile_id": "PROF-0102",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_PROMPT_INJECTION",
       "traces": [
         {
           "trace_id": "TR-RAG-0102-A",
@@ -2350,10 +2412,10 @@
         {
           "trace_id": "TR-RAG-0102-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "684c1e1a451653b58a24f3ae3cc41256fab5f7abdef318637e7319a60027db7d"
+          "action": "override_system_prompt",
+          "status": "INJECTION_DETECTED",
+          "duration_ms": 24.5,
+          "output_hash": "de52997cbcf76ae49d2f665aeebf18104560b390f17b20ecdd703f40dbec5104"
         }
       ]
     },
@@ -2774,7 +2836,7 @@
     {
       "profile_id": "PROF-0121",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0121-A",
@@ -2787,33 +2849,33 @@
         {
           "trace_id": "TR-CODE-0121-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "a12640252b92fe7dc296c7269eed9e7c92172f28f9ae3bf3de4141d71c197b93"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "148a89234baa7159ce49cef03dc7ddbd4dfdbc8517431ed5b671ced7e7481823"
         }
       ]
     },
     {
       "profile_id": "PROF-0122",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_PROMPT_INJECTION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0122-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0122-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "5c41830622d5a733f7b399f58bb1c1bc5c51f95a66ee427fd6cd0fc002c8dbe6"
+          "duration_ms": 3.4,
+          "output_hash": "2f88f6970d4b0fd61249abbb786a3ffc5793e8a388d6f9723fcbbb87514db03b"
         },
         {
-          "trace_id": "TR-RAG-0122-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "e9099600ba98760631cd97e2f17d4f96cb2988e6d6ef8d411abca33e4e391dc1"
+          "trace_id": "TR-DB-0122-B",
+          "agent_id": "db-admin-v1",
+          "action": "override_system_prompt",
+          "status": "INJECTION_DETECTED",
+          "duration_ms": 24.5,
+          "output_hash": "cd3a8008fe8ade09a3ac0572b3ce9a0644ef1eab7a8be3ba8871ff019a9a1905"
         }
       ]
     },
@@ -3234,7 +3296,7 @@
     {
       "profile_id": "PROF-0141",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_VECTOR_POISONING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0141-A",
@@ -3247,33 +3309,33 @@
         {
           "trace_id": "TR-CODE-0141-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "137209128e1ee31bc41df41a48d1358257e0495a5959a246a7065881a04c1040"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "3d80a9e3faf0df6124fd2431e17a05f9e2b833446701ceeb6f293915203bd811"
         }
       ]
     },
     {
       "profile_id": "PROF-0142",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_PROMPT_INJECTION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0142-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0142-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "d9ae59fb2ff72473c8bb9c773adb253b146f08026a5ef5e2d4b29283737871fe"
+          "duration_ms": 5.4,
+          "output_hash": "0f9c73dd1e591d084aa4df7065a6315e4a0e5773e4577177a2683b0a5104c55b"
         },
         {
-          "trace_id": "TR-RAG-0142-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "99b08d10e737ad986cc5f656889b7c3f928da914750cc78dc18d7e4e65b82d1a"
+          "trace_id": "TR-FIN-0142-B",
+          "agent_id": "fin-api-v1",
+          "action": "override_system_prompt",
+          "status": "INJECTION_DETECTED",
+          "duration_ms": 24.5,
+          "output_hash": "51a1a464bb6502f0d84159168a71adfc8d78679c972e8311c5dc37162c60ac13"
         }
       ]
     },
@@ -3694,7 +3756,7 @@
     {
       "profile_id": "PROF-0161",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSANDBOXED_PROCESS",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0161-A",
@@ -3707,33 +3769,33 @@
         {
           "trace_id": "TR-CODE-0161-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "a6de5657a92ce807b3159b0ddb2849e9b96157956b545e936134a6eb974cd8c3"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "f6c597f4f3894d86f6fa0a0032d30211d044b23fe62bd5b7d9546f94580fe23c"
         }
       ]
     },
     {
       "profile_id": "PROF-0162",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_PROMPT_INJECTION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0162-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0162-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "bd04395473d5dac301f3ddd6aa03b4efdbaf6627de109d5584a90c7052a1caf4"
+          "duration_ms": 7.0,
+          "output_hash": "e304972bf97d60ecef05e050ff59b51b44824c007153c4f75ef903f36aa35c8e"
         },
         {
-          "trace_id": "TR-RAG-0162-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "c2535c12dcc377ccae02176abcae37c409e80bc81646bf643e174986c4edd081"
+          "trace_id": "TR-WEB-0162-B",
+          "agent_id": "web-scraper-v1",
+          "action": "override_system_prompt",
+          "status": "INJECTION_DETECTED",
+          "duration_ms": 24.5,
+          "output_hash": "be121c655cfb452645f475f4597242e38be0275b5a86515c13a90836a16b7b31"
         }
       ]
     },
@@ -4154,7 +4216,7 @@
     {
       "profile_id": "PROF-0181",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_JSON_MALLEABILITY",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0181-A",
@@ -4167,33 +4229,33 @@
         {
           "trace_id": "TR-CODE-0181-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "1c2c7194de010acb676aab32583625166787680f4bc58f6811be43e90e7a37ad"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "08bb6981d29d5489b8d56df6c3f44541b8b1997d74e0bdc14885598dd455c8e4"
         }
       ]
     },
     {
       "profile_id": "PROF-0182",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_PROMPT_INJECTION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0182-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0182-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "216f4efd74650f93562c51c6a2da5786cd95bf5817ac7d71d1a55df97b7aee42"
+          "duration_ms": 4.9,
+          "output_hash": "b9153a2cf6e456a40a276e105318acd7afd450192fffbc3b2cb871934bc21fc2"
         },
         {
-          "trace_id": "TR-RAG-0182-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "e06a836d4847869a2ee1288123f8cef3a948cdb8b5a18e8bbdab5041b9aa66af"
+          "trace_id": "TR-CODE-0182-B",
+          "agent_id": "code-synth-v1",
+          "action": "override_system_prompt",
+          "status": "INJECTION_DETECTED",
+          "duration_ms": 24.5,
+          "output_hash": "5d7200fbb3f6510ce1ce3df8534a6861a533d290b3c138df0db0a95fea506a82"
         }
       ]
     },
@@ -4614,7 +4676,7 @@
     {
       "profile_id": "PROF-0201",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSAFE_CMD",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0201-A",
@@ -4627,33 +4689,33 @@
         {
           "trace_id": "TR-CODE-0201-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "69a32728c53c0f265553100e90780fc7706543687af799afd548789a4a148642"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "26781a105f0fc1a187cca79426d8f9b4302d4f191ecc86d291306070548d4f65"
         }
       ]
     },
     {
       "profile_id": "PROF-0202",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_PRIVILEGE_ESCALATION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0202-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0202-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "67f8caf1e40a27f978ce5e9f8381a2f38970f4a89a955553e57db0953666fdff"
+          "duration_ms": 3.4,
+          "output_hash": "1baf09e13fcb06be45ddc7110444597e34980a45ac9102b7023f406128f111d6"
         },
         {
-          "trace_id": "TR-RAG-0202-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "0ddf8d907de3ce508c12c33f8ae66a7268cb853b24259b8b99de62111c66655d"
+          "trace_id": "TR-DB-0202-B",
+          "agent_id": "db-admin-v1",
+          "action": "escalate_role",
+          "status": "PRIVILEGE_ESCALATION",
+          "duration_ms": 17.8,
+          "output_hash": "1d0c8dbecc755e782388f39b5b9b201f38a7631fa44c54e4f3ea9a3f10bf093c"
         }
       ]
     },
@@ -5074,7 +5136,7 @@
     {
       "profile_id": "PROF-0221",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PROMPT_INJECTION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0221-A",
@@ -5087,33 +5149,33 @@
         {
           "trace_id": "TR-CODE-0221-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "0ec86704493e6bd94f189425479ce33326c694971484426de5a156ddbe31e106"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "efe9610f6dd0ba740c4ce0a9742c6b8f6be349041e69115bbf5f8ff2f15e8f01"
         }
       ]
     },
     {
       "profile_id": "PROF-0222",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_PRIVILEGE_ESCALATION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0222-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0222-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "87265d9d447e3c1bf9582c62f6b5d6b945cd49b0161923e9d49aa63cba4bd588"
+          "duration_ms": 5.4,
+          "output_hash": "33b2c211d152b83598800b9478085c35d128500b48b7b3cfb6a6f4fafc6ace45"
         },
         {
-          "trace_id": "TR-RAG-0222-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "ad388e299e669033ca97f7f83e87c69c270e8e89cd5982ab48439bb3c95c5b0f"
+          "trace_id": "TR-FIN-0222-B",
+          "agent_id": "fin-api-v1",
+          "action": "escalate_role",
+          "status": "PRIVILEGE_ESCALATION",
+          "duration_ms": 17.8,
+          "output_hash": "a6055418c3889170f64f437c7a8693957bc29b0f75efe8ddc599690ef8354265"
         }
       ]
     },
@@ -5534,7 +5596,7 @@
     {
       "profile_id": "PROF-0241",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PRIVILEGE_ESCALATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0241-A",
@@ -5547,33 +5609,33 @@
         {
           "trace_id": "TR-CODE-0241-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "6f44a77bfbacd42613d6bca46ef4cc0cbb9ae98f446afc0abfc6e0368f0509b8"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "54d98555972698f0ea41c6c616b717f1fe0ea071a5bbf813889d62f199bba67e"
         }
       ]
     },
     {
       "profile_id": "PROF-0242",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_PRIVILEGE_ESCALATION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0242-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0242-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "9395c168dd3a6c01870f73d7d204746c7d573d80a961b1a27dc9a582b404ba0d"
+          "duration_ms": 7.6,
+          "output_hash": "dee2b19a634c97f78857660da95cefd63d617e3ee7a55b75c41f84ff2faf3f6e"
         },
         {
-          "trace_id": "TR-RAG-0242-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "b14879ad53bf70ce0a76c2e6b07bd47ed22d733c12a45dd200afcdea78adb12a"
+          "trace_id": "TR-WEB-0242-B",
+          "agent_id": "web-scraper-v1",
+          "action": "escalate_role",
+          "status": "PRIVILEGE_ESCALATION",
+          "duration_ms": 17.8,
+          "output_hash": "56249ca1d8089f27cd1e791400f813ce8525406dd83a5f10233c8de8079d0e98"
         }
       ]
     },
@@ -5994,7 +6056,7 @@
     {
       "profile_id": "PROF-0261",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0261-A",
@@ -6007,33 +6069,33 @@
         {
           "trace_id": "TR-CODE-0261-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "d5381cd18d5bb11d06b85175ef57b29527fbbaf12845263672f16ba92b4ff4ea"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "3ec6a5105a057ceabc79f063a6c7251a4eb26ee0686777159e6837cfd9d58c87"
         }
       ]
     },
     {
       "profile_id": "PROF-0262",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_PRIVILEGE_ESCALATION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0262-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0262-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "23c161d3a04515e944ed206f863e447362d40ca17fbc1587ef71d8760164f636"
+          "duration_ms": 4.9,
+          "output_hash": "f92d1efb31cbf490aabbe2198e55bd0b931616bd5f24e58570679a7682d6883a"
         },
         {
-          "trace_id": "TR-RAG-0262-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "b3f97377ac0ee5589d871fa1861fb34f15b4e849fd38f775fc2c80a2d832b7a0"
+          "trace_id": "TR-CODE-0262-B",
+          "agent_id": "code-synth-v1",
+          "action": "escalate_role",
+          "status": "PRIVILEGE_ESCALATION",
+          "duration_ms": 17.8,
+          "output_hash": "d1642b336ec154ace8631b90ca91bd72b0bc1fdd128f42092f4c567b00436570"
         }
       ]
     },
@@ -6454,7 +6516,7 @@
     {
       "profile_id": "PROF-0281",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SECRET_EXFILTRATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0281-A",
@@ -6467,17 +6529,17 @@
         {
           "trace_id": "TR-CODE-0281-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "4789e4207e9ab47deeecfa1011e9ac29a46d08b4a27f479fb1f9098856cad6a8"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "e0e80ea8190069df8e08bf496e4120bab552e0cb7f39bac108c3ee5c278f27e1"
         }
       ]
     },
     {
       "profile_id": "PROF-0282",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_PRIVILEGE_ESCALATION",
       "traces": [
         {
           "trace_id": "TR-RAG-0282-A",
@@ -6490,10 +6552,10 @@
         {
           "trace_id": "TR-RAG-0282-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "6ed212bdd9ca289c1e6ab21bf24e4a15baf6a8d1d22d991ea157a3f5a09983e3"
+          "action": "escalate_role",
+          "status": "PRIVILEGE_ESCALATION",
+          "duration_ms": 17.8,
+          "output_hash": "3746668dae341964d6fd3b25b1efdbe75194afa2ee4e835d17d65d3b9a4c7799"
         }
       ]
     },
@@ -6914,7 +6976,7 @@
     {
       "profile_id": "PROF-0301",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_MEMORY_TAMPERING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0301-A",
@@ -6927,33 +6989,33 @@
         {
           "trace_id": "TR-CODE-0301-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "bc88ec24a48d0643b429b1f39bd6249396a6264361afa640b99460706fae26db"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "c688a9bd6afb474de153bdab633b19150a0722f4ff5a1b002a931d38952466b7"
         }
       ]
     },
     {
       "profile_id": "PROF-0302",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
       "traces": [
         {
-          "trace_id": "TR-RAG-0302-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0302-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "e5c23fcb69f03260cb10436dfa879924000958afedb8c844c7e5caf2182ba86f"
+          "duration_ms": 5.4,
+          "output_hash": "3c7300956de046988ffe199c041ed18d33d26de95d77d804b7c449f116e51611"
         },
         {
-          "trace_id": "TR-RAG-0302-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "7b77fe29104ee6b8d46a10a7ffdf8ad65e2bf2ccfe2f698206572d16aa831d84"
+          "trace_id": "TR-FIN-0302-B",
+          "agent_id": "fin-api-v1",
+          "action": "drop_production_table",
+          "status": "UNAUTHORIZED_DB_DROP",
+          "duration_ms": 55.0,
+          "output_hash": "8d81712d6bb9645f8ec5dd5192676b927e5d3bcb18ec73160d7c23b8f8d7b6f6"
         }
       ]
     },
@@ -7374,7 +7436,7 @@
     {
       "profile_id": "PROF-0321",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0321-A",
@@ -7387,33 +7449,33 @@
         {
           "trace_id": "TR-CODE-0321-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "5fb57c7f03fa8498b73f1024851d5cbbf9bf502c4772cb612a97f3205f197f43"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "88e927ee954d632fdb2281bacd4837a1698069ce43101543a1321d4e7e129349"
         }
       ]
     },
     {
       "profile_id": "PROF-0322",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
       "traces": [
         {
-          "trace_id": "TR-RAG-0322-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0322-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "a6fb06da341ac3caceaaaa84a8a6cab57b7d00636e0eb6b7cae9439e2bfa3953"
+          "duration_ms": 8.2,
+          "output_hash": "332df27abb17620848c9133d3c4bab23a5e3487694d1525b614ad56bdf6024c7"
         },
         {
-          "trace_id": "TR-RAG-0322-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "f7df72367330727d6cc057b434b50e5a2c63367fe4e5f7d3c3a38d2839dc12a9"
+          "trace_id": "TR-WEB-0322-B",
+          "agent_id": "web-scraper-v1",
+          "action": "drop_production_table",
+          "status": "UNAUTHORIZED_DB_DROP",
+          "duration_ms": 55.0,
+          "output_hash": "c6387e051c6e70c31dc251adc06d3c13b10acd7e6ab577030060021f0f4162a7"
         }
       ]
     },
@@ -7834,7 +7896,7 @@
     {
       "profile_id": "PROF-0341",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_VECTOR_POISONING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0341-A",
@@ -7847,33 +7909,33 @@
         {
           "trace_id": "TR-CODE-0341-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "774477a209e9203b19ff33200b24d4900b58fd426b4d0cc0dd61bb944fef2ca2"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "ac2c5555980d4967f0bdc48e92518a81be7672305342fbd4305bac17ad47fac6"
         }
       ]
     },
     {
       "profile_id": "PROF-0342",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
       "traces": [
         {
-          "trace_id": "TR-RAG-0342-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0342-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "0abe7ee976f0c59d9888a313688a4aa698f868396d108d9960ac96252b068aa1"
+          "duration_ms": 4.9,
+          "output_hash": "4c7f6fe64b427c2f55339c58d9d3e0162c891d18f3a4009c2ac963afdbd8f440"
         },
         {
-          "trace_id": "TR-RAG-0342-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "69bf38ff50784c57acd80244d43252723592b928cc58a437c94b411d3f83eb0a"
+          "trace_id": "TR-CODE-0342-B",
+          "agent_id": "code-synth-v1",
+          "action": "drop_production_table",
+          "status": "UNAUTHORIZED_DB_DROP",
+          "duration_ms": 55.0,
+          "output_hash": "4a77c3e91e4d9fc3e82be3e69af9b6eccbaa264ba078601b67ad61074be02dc4"
         }
       ]
     },
@@ -8294,7 +8356,7 @@
     {
       "profile_id": "PROF-0361",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSANDBOXED_PROCESS",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0361-A",
@@ -8307,17 +8369,17 @@
         {
           "trace_id": "TR-CODE-0361-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "629f452cf096d658d52841a831e51765801a6936d8f8cc4ddf4e08c06b1b8475"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "7486004d91fcd86fdb7231db5e5f0e909068e9f5554331592435e8bd414e9f2f"
         }
       ]
     },
     {
       "profile_id": "PROF-0362",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
       "traces": [
         {
           "trace_id": "TR-RAG-0362-A",
@@ -8330,10 +8392,10 @@
         {
           "trace_id": "TR-RAG-0362-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "97756319ec0540bc3e62b8804d4b8976443237d91abff3152e3a2791c53f3268"
+          "action": "drop_production_table",
+          "status": "UNAUTHORIZED_DB_DROP",
+          "duration_ms": 55.0,
+          "output_hash": "d325187cf1067469365c2c59c102d3a4ceb06f8dbd6f4bf2d26f781b39381128"
         }
       ]
     },
@@ -8754,7 +8816,7 @@
     {
       "profile_id": "PROF-0381",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_JSON_MALLEABILITY",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0381-A",
@@ -8767,33 +8829,33 @@
         {
           "trace_id": "TR-CODE-0381-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "5ffa80dcbe0ece04e86e942d225cd76956a4e85e83c1f61c74ceb23d49a2fee8"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "86e8a9ffb48c34c79a471c2ed8e9c48be56f1eb5b90750ddbbb57d67aa4c647c"
         }
       ]
     },
     {
       "profile_id": "PROF-0382",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
       "traces": [
         {
-          "trace_id": "TR-RAG-0382-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0382-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "cbcc8b8e9681744ad9fb1205e8d19f8bb05a5a05a193f4dedfcbcf8212ea792a"
+          "duration_ms": 3.4,
+          "output_hash": "fa571a207a3ac73b7a713fc68bf5785a6017fce0e36235d522bc88c10ba678c1"
         },
         {
-          "trace_id": "TR-RAG-0382-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "81fe10a10053824c1c923b730e87c03ba138fde3977cdd1e67c6b19c96ee4013"
+          "trace_id": "TR-DB-0382-B",
+          "agent_id": "db-admin-v1",
+          "action": "drop_production_table",
+          "status": "UNAUTHORIZED_DB_DROP",
+          "duration_ms": 55.0,
+          "output_hash": "f7e256d01d1678c3388010e53351b22253902f4b20e77d38d982851e27ae6113"
         }
       ]
     },
@@ -9214,7 +9276,7 @@
     {
       "profile_id": "PROF-0401",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSAFE_CMD",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0401-A",
@@ -9227,33 +9289,33 @@
         {
           "trace_id": "TR-CODE-0401-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "a16fadb996eaf64645ac9c34ae1cfc3d5e42ee27cbbdb815c727bde54d016abe"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "a9238d31db058588d0d124c8046cf3d4c35a8e2d1d965246357bf8489316cefc"
         }
       ]
     },
     {
       "profile_id": "PROF-0402",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_SECRET_EXFILTRATION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0402-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0402-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "973ee834ca19e7659bb108b95e51ca701d5b7b6d881328215efd5b90dbf2991f"
+          "duration_ms": 7.0,
+          "output_hash": "5a76924de9e90ec814709c71621844f8652f7685eaccf4ec65dd30da8fd7101c"
         },
         {
-          "trace_id": "TR-RAG-0402-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "a6148e05b773190d65e303c4ee225ca4ddb1832d56360c4ad2853057ae7d9855"
+          "trace_id": "TR-WEB-0402-B",
+          "agent_id": "web-scraper-v1",
+          "action": "exfiltrate_private_key",
+          "status": "SECRET_EXFILTRATION",
+          "duration_ms": 38.0,
+          "output_hash": "6753a6b78c6390d6c148b5b5007c3cc521a03f5d2d1717bdfaba6bff57e33f3b"
         }
       ]
     },
@@ -9674,7 +9736,7 @@
     {
       "profile_id": "PROF-0421",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PROMPT_INJECTION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0421-A",
@@ -9687,33 +9749,33 @@
         {
           "trace_id": "TR-CODE-0421-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "953ae094cc486f6826eff501989bb0486acd6829d00661c2d86cf6fbda25e037"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "467906a15ee20223bff10d4abce104f447f0c0170bf821a9f0f855c5e87491ff"
         }
       ]
     },
     {
       "profile_id": "PROF-0422",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_SECRET_EXFILTRATION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0422-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0422-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "37a51d696e324b3010098e3b83e08a587ae333f4941f05bfb7fe1398368a0d6f"
+          "duration_ms": 4.9,
+          "output_hash": "9d73b84ddbb29e4c856a270e8566c43a3d3e287c955ff4536044c02e1d602ca3"
         },
         {
-          "trace_id": "TR-RAG-0422-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "062bf37805fe5aeb85a30a456c22701ed9ecc20a31c458973f0fd49d482e0564"
+          "trace_id": "TR-CODE-0422-B",
+          "agent_id": "code-synth-v1",
+          "action": "exfiltrate_private_key",
+          "status": "SECRET_EXFILTRATION",
+          "duration_ms": 38.0,
+          "output_hash": "60191b339fa40363cda0dd960fc1bff6315806e2c26a70bd4dcc15f9a5312b96"
         }
       ]
     },
@@ -10134,7 +10196,7 @@
     {
       "profile_id": "PROF-0441",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PRIVILEGE_ESCALATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0441-A",
@@ -10147,17 +10209,17 @@
         {
           "trace_id": "TR-CODE-0441-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "c082a73d67b98a867b1eaf4ccc5380c3f7fe7f1b67abb3a24717ebfd49175fa9"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "1c1baf6ff7da37e4b13d94b475eae0fd0d61c4aeb318cc21d427a74274542776"
         }
       ]
     },
     {
       "profile_id": "PROF-0442",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_SECRET_EXFILTRATION",
       "traces": [
         {
           "trace_id": "TR-RAG-0442-A",
@@ -10170,10 +10232,10 @@
         {
           "trace_id": "TR-RAG-0442-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "807de8efbecaed4561514e433d9727cf257d501573f4265f77061bddf54d467e"
+          "action": "exfiltrate_private_key",
+          "status": "SECRET_EXFILTRATION",
+          "duration_ms": 38.0,
+          "output_hash": "61412406bf3bec737f6db509290570c6d0f750a8c4797efa20a4f6789c60c5d2"
         }
       ]
     },
@@ -10594,7 +10656,7 @@
     {
       "profile_id": "PROF-0461",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0461-A",
@@ -10607,33 +10669,33 @@
         {
           "trace_id": "TR-CODE-0461-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "79c6fb36625a0b8307e582d3bef1911b0cf6452c319922cd811cb25f7cb792d7"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "60f1754ceaf4ee30ea6a2827d840968bd97819fc6e2650cba4bd5b58ace53f8e"
         }
       ]
     },
     {
       "profile_id": "PROF-0462",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_SECRET_EXFILTRATION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0462-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0462-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "66d2bc8038e632f58cc73e553817cacf1f324b9d401f624345a310055deda742"
+          "duration_ms": 3.4,
+          "output_hash": "88aa3d9378162986b3e848019c57fd7f23c8718f841850301c1097be9e59c860"
         },
         {
-          "trace_id": "TR-RAG-0462-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "11eff8c71738e1b925d81ed92341c5ffe0e5bad75e1b7a17b7ec858d3b220b89"
+          "trace_id": "TR-DB-0462-B",
+          "agent_id": "db-admin-v1",
+          "action": "exfiltrate_private_key",
+          "status": "SECRET_EXFILTRATION",
+          "duration_ms": 38.0,
+          "output_hash": "6c025e9e2e2c1490a96d1af42e163d7d75f22a236a2af4d59846886e969ee443"
         }
       ]
     },
@@ -11054,7 +11116,7 @@
     {
       "profile_id": "PROF-0481",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SECRET_EXFILTRATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0481-A",
@@ -11067,33 +11129,33 @@
         {
           "trace_id": "TR-CODE-0481-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "bf1e62548bbccbd40a4b0d8edea9b9e275605f562ee3cf77f599dcf8b6c4482a"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "56bac1af829cc39af901bac177ea833181c5938b8469cc8d90042afe1d4d44ef"
         }
       ]
     },
     {
       "profile_id": "PROF-0482",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_SECRET_EXFILTRATION",
       "traces": [
         {
-          "trace_id": "TR-RAG-0482-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0482-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "2c1d77fd4de6e929d1677da70f14d256fb3eca21a53aa99227ac725d3483328f"
+          "duration_ms": 5.4,
+          "output_hash": "07d818930f1e96e24faebae56bea35b89dc6ffa6a0140004510dc92bb77195a8"
         },
         {
-          "trace_id": "TR-RAG-0482-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "ac28ab86c9c5c45f82f1263ee9c63092f2c470c6d1478c1c0e7d2952103c6eee"
+          "trace_id": "TR-FIN-0482-B",
+          "agent_id": "fin-api-v1",
+          "action": "exfiltrate_private_key",
+          "status": "SECRET_EXFILTRATION",
+          "duration_ms": 38.0,
+          "output_hash": "700dfa8efc7f9b47fd99e5919136046de8fc850218c8470e13c14c967c812d67"
         }
       ]
     },
@@ -11514,7 +11576,7 @@
     {
       "profile_id": "PROF-0501",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_MEMORY_TAMPERING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0501-A",
@@ -11527,33 +11589,33 @@
         {
           "trace_id": "TR-CODE-0501-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "68fc9e53edf0d1ac7da023e4b81ae997d240f2e669dc321114d6b5c9696cd3a4"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "0fe873e968ea1824b65fb0d6a753ce73350ae0dff3fcfb4f6960bada9e06de25"
         }
       ]
     },
     {
       "profile_id": "PROF-0502",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_MEMORY_TAMPERING",
       "traces": [
         {
-          "trace_id": "TR-RAG-0502-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0502-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "c98ad4a2191aa80182c6b1fe77f36b887c66d44fb75a3363a167adac835eb5c5"
+          "duration_ms": 4.9,
+          "output_hash": "30369904977fda6b8aa0aa2bcc49bd150d396513fc029db776fa0782d9315d1e"
         },
         {
-          "trace_id": "TR-RAG-0502-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "59db86369bbad89f81fb244685dadc0247ce157ba947f07c8d329109db649042"
+          "trace_id": "TR-CODE-0502-B",
+          "agent_id": "code-synth-v1",
+          "action": "patch_trace_memory",
+          "status": "MEMORY_TAMPERED",
+          "duration_ms": 9.4,
+          "output_hash": "36223935110871b5a8bd483c6d3e0719c873e229e85b51d31d0b9d24051f28a1"
         }
       ]
     },
@@ -11974,7 +12036,7 @@
     {
       "profile_id": "PROF-0521",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0521-A",
@@ -11987,17 +12049,17 @@
         {
           "trace_id": "TR-CODE-0521-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "35b18d3178e6526b0d09b3aea79558d0b8a06168f4fed5a9e889f82d5782910f"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "0c3866c630e11f9abd7dd129496a9dd2706baee4c5e17100b1362f29e4091c17"
         }
       ]
     },
     {
       "profile_id": "PROF-0522",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_MEMORY_TAMPERING",
       "traces": [
         {
           "trace_id": "TR-RAG-0522-A",
@@ -12010,10 +12072,10 @@
         {
           "trace_id": "TR-RAG-0522-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "ca9a6bcff354e7077c6df8517f10bd57f01d96303492c22be6ffae4c6f515e2d"
+          "action": "patch_trace_memory",
+          "status": "MEMORY_TAMPERED",
+          "duration_ms": 9.4,
+          "output_hash": "0cd7153f85f330783f885d9aaea10505786401adfdaaaa894a62eb9c337d75e2"
         }
       ]
     },
@@ -12434,7 +12496,7 @@
     {
       "profile_id": "PROF-0541",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_VECTOR_POISONING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0541-A",
@@ -12447,33 +12509,33 @@
         {
           "trace_id": "TR-CODE-0541-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "83c1779b84b663c57c8c11d37b3b2ad2b13565ff96c4595b90afc2d100623686"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "e465695bee6dd5f9ce880923da411e237c09eec952db35a934024a0ad74f3193"
         }
       ]
     },
     {
       "profile_id": "PROF-0542",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_MEMORY_TAMPERING",
       "traces": [
         {
-          "trace_id": "TR-RAG-0542-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0542-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "d5ea900c506a3ad355f5134661c653c975ce1f8c96f1970fbfd2a0ded2afd37a"
+          "duration_ms": 3.4,
+          "output_hash": "1fdc6da21a4ccaf4c0216e61fa2eb5aeaafaad172c8faa6a1c4cd3530e843a59"
         },
         {
-          "trace_id": "TR-RAG-0542-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "490211a4f751f53c268b6c124aa84fa4b6f0ea887db3a5422650e8bfa1e45a3d"
+          "trace_id": "TR-DB-0542-B",
+          "agent_id": "db-admin-v1",
+          "action": "patch_trace_memory",
+          "status": "MEMORY_TAMPERED",
+          "duration_ms": 9.4,
+          "output_hash": "bf04434cd32645a572608e15e3fb1e03cca31e98191330591d4b0a543c7b5de2"
         }
       ]
     },
@@ -12894,7 +12956,7 @@
     {
       "profile_id": "PROF-0561",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSANDBOXED_PROCESS",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0561-A",
@@ -12907,33 +12969,33 @@
         {
           "trace_id": "TR-CODE-0561-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "71c1c612a0843235e17bf92ede5a6fd86136e8f17144d3462d93f80d659b0142"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "2fb5e9f2e9d22ab3d7ad766f8f252074d829e9513d5dd522eee46a2a01e3fc7a"
         }
       ]
     },
     {
       "profile_id": "PROF-0562",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_MEMORY_TAMPERING",
       "traces": [
         {
-          "trace_id": "TR-RAG-0562-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0562-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "881aec9d9a77e6d3b2921bdf69fb699e370baa804bf0f834eb62d6bb81981ef2"
+          "duration_ms": 5.4,
+          "output_hash": "ee20a0eb6ebfc376e9167be579ef3ccf061a1f5c0d5019b604b2b216f49b2afc"
         },
         {
-          "trace_id": "TR-RAG-0562-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "ad2cee6a362be88d04b61d6a0a666727bad903a59b51f79d8b30858f7452edc5"
+          "trace_id": "TR-FIN-0562-B",
+          "agent_id": "fin-api-v1",
+          "action": "patch_trace_memory",
+          "status": "MEMORY_TAMPERED",
+          "duration_ms": 9.4,
+          "output_hash": "f5edede402343d7ebc6c8e3e8478e0ef0d67aef49ade5f4f1994f5549d101f90"
         }
       ]
     },
@@ -13354,7 +13416,7 @@
     {
       "profile_id": "PROF-0581",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_JSON_MALLEABILITY",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0581-A",
@@ -13367,33 +13429,33 @@
         {
           "trace_id": "TR-CODE-0581-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "a1a4bd114952820c4b7488c2570cc49dc91151498963e2391a87cbc5e29b5c69"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "15165bb2f91e9121f8291a2d3de096df4576ef3ca0f70d21da38c65f0552bd94"
         }
       ]
     },
     {
       "profile_id": "PROF-0582",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_MEMORY_TAMPERING",
       "traces": [
         {
-          "trace_id": "TR-RAG-0582-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0582-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "e004d3b47a3289915fe46373c4f2128a8a51d7cb0f65b80933a4e6d28046798b"
+          "duration_ms": 7.0,
+          "output_hash": "500f8f0e272e4f03633383fc00260e5c8af7389678a3922a81a1f3f24cf63bc1"
         },
         {
-          "trace_id": "TR-RAG-0582-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "3d6af2b464bd473d4758b57df615fbe9c4b68eca95c559c2786c3fd76041f104"
+          "trace_id": "TR-WEB-0582-B",
+          "agent_id": "web-scraper-v1",
+          "action": "patch_trace_memory",
+          "status": "MEMORY_TAMPERED",
+          "duration_ms": 9.4,
+          "output_hash": "97fc650837585b67b70a444a2e603d6f18ae631bbf060f27438e80d12e8770ce"
         }
       ]
     },
@@ -13814,7 +13876,7 @@
     {
       "profile_id": "PROF-0601",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSAFE_CMD",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0601-A",
@@ -13827,17 +13889,17 @@
         {
           "trace_id": "TR-CODE-0601-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "0509f1cb618e1c33241300562c38ec3dd0d089f611d351b78a07f9d97a62b9fa"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "a6bde80497e29cf5ee8b3af6094aeb3d4f63aa1ef8316bf3e54306be0a9d3d8d"
         }
       ]
     },
     {
       "profile_id": "PROF-0602",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
       "traces": [
         {
           "trace_id": "TR-RAG-0602-A",
@@ -13850,10 +13912,10 @@
         {
           "trace_id": "TR-RAG-0602-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "70bdf6e45c4e7a1f0a10c4dd36b394f976b8725958e6375e10649523f1bf4f2d"
+          "action": "access_localhost_metadata",
+          "status": "SSRF_ATTEMPT",
+          "duration_ms": 61.2,
+          "output_hash": "b2b3c4fa4ede32e70a32f2fb22d191d49929272da399260dc8bc75a82f88d523"
         }
       ]
     },
@@ -14274,7 +14336,7 @@
     {
       "profile_id": "PROF-0621",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PROMPT_INJECTION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0621-A",
@@ -14287,33 +14349,33 @@
         {
           "trace_id": "TR-CODE-0621-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "06803ab45596a62f8db0133ccd9d3f54fe8db346b1815bec115e3d60ac67e9b8"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "08e0cd041c5d19f2737a0422806edc67a331367e76beacc7872f7d0d53320907"
         }
       ]
     },
     {
       "profile_id": "PROF-0622",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
       "traces": [
         {
-          "trace_id": "TR-RAG-0622-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0622-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "ab7bae3d7159e5e5ec86276905ce6bcf307b7c2b3a76e91d5d165d1162979679"
+          "duration_ms": 3.4,
+          "output_hash": "20d02c64d6c621a5b52fceae96ebfad14b8444b70205ab8c96b216c6f6198bb5"
         },
         {
-          "trace_id": "TR-RAG-0622-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "83c554ea1a6dbc564c9f7659908c38d8056927afd20fd57ed2410c70cf576573"
+          "trace_id": "TR-DB-0622-B",
+          "agent_id": "db-admin-v1",
+          "action": "access_localhost_metadata",
+          "status": "SSRF_ATTEMPT",
+          "duration_ms": 61.2,
+          "output_hash": "55370d4c26bc64cda91ac1bb2da0d92c1e4ca5cb4b51b7a4331b167b9b033374"
         }
       ]
     },
@@ -14734,7 +14796,7 @@
     {
       "profile_id": "PROF-0641",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PRIVILEGE_ESCALATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0641-A",
@@ -14747,33 +14809,33 @@
         {
           "trace_id": "TR-CODE-0641-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "3a00842c7c79e02e48be5549de5c50a644e27059108725f46c05e120d88d70d0"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "9597b31c3779765bd391fade671768f7a66ddc4c12a851a0077da0d591196839"
         }
       ]
     },
     {
       "profile_id": "PROF-0642",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
       "traces": [
         {
-          "trace_id": "TR-RAG-0642-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0642-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "c45dda2c5799f136ce63a287bab9a870fbf072d7a783bfe2aad4135a9876b85d"
+          "duration_ms": 5.4,
+          "output_hash": "5e4436bbe2ab7d8acdca01f0521de28afbf62a97037b6bf2908ce3b61d4c433e"
         },
         {
-          "trace_id": "TR-RAG-0642-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "5b5236d4fa27c1855d76644cf65bab96188d3eb3031c4bbfe38cca84cf655dd8"
+          "trace_id": "TR-FIN-0642-B",
+          "agent_id": "fin-api-v1",
+          "action": "access_localhost_metadata",
+          "status": "SSRF_ATTEMPT",
+          "duration_ms": 61.2,
+          "output_hash": "240084da1949ce1cf0d1d92000a8f6b181251abd22de420c5dbe8d5404ea8e4c"
         }
       ]
     },
@@ -15194,7 +15256,7 @@
     {
       "profile_id": "PROF-0661",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0661-A",
@@ -15207,33 +15269,33 @@
         {
           "trace_id": "TR-CODE-0661-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "0e4614ad6df580866346471ab6ea76ac63e0c29f5399e53a61a3ea08e3992c36"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "6d80f557527ad69921c1c3ac061b82857a7dd61e4d41aa986a1575e2943399f9"
         }
       ]
     },
     {
       "profile_id": "PROF-0662",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
       "traces": [
         {
-          "trace_id": "TR-RAG-0662-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0662-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "c5f792f9035ed27e281d3311b0d1276f2d7a6c85e7109d521d8fa2495abe5db2"
+          "duration_ms": 7.6,
+          "output_hash": "334d704f0fe7c53ec61630c45bef3d81a00008113a0d2c0a80c778424ab08ce5"
         },
         {
-          "trace_id": "TR-RAG-0662-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "6a2493ddf35861b598de99ed309d2c3c439aa1a317729bc95268da7d0e60fdb8"
+          "trace_id": "TR-WEB-0662-B",
+          "agent_id": "web-scraper-v1",
+          "action": "access_localhost_metadata",
+          "status": "SSRF_ATTEMPT",
+          "duration_ms": 61.2,
+          "output_hash": "3ca7208b15a59b1db7e86be91d4d207b31ae2d6b5f4a5e089da99aa4dfd42cfb"
         }
       ]
     },
@@ -15654,7 +15716,7 @@
     {
       "profile_id": "PROF-0681",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SECRET_EXFILTRATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0681-A",
@@ -15667,33 +15729,33 @@
         {
           "trace_id": "TR-CODE-0681-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "4dc5d720244cf934887d27a5efd613d50e35f084b97d6cd1dc0e396ea5d22fcd"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "3e57432ec2aa49b9c594ce77cecac7d77259cf788e1857d830b8904764307834"
         }
       ]
     },
     {
       "profile_id": "PROF-0682",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
       "traces": [
         {
-          "trace_id": "TR-RAG-0682-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0682-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "5c34f374ed5f5cfb2e8298a5e122637b9545f398f8f82db644ae66445051c332"
+          "duration_ms": 4.9,
+          "output_hash": "98cee7f297c5d63a73757beea52e6e095ec6a92868156d2831fa26239904d8a0"
         },
         {
-          "trace_id": "TR-RAG-0682-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "f47c90ea061612d9f205d17426193cdd584b0c95aaf8ba167741436ccdbe5964"
+          "trace_id": "TR-CODE-0682-B",
+          "agent_id": "code-synth-v1",
+          "action": "access_localhost_metadata",
+          "status": "SSRF_ATTEMPT",
+          "duration_ms": 61.2,
+          "output_hash": "807087c2016c7718f16b41188f19fbcf333f9e6d717f4230006eafe069e1f4ca"
         }
       ]
     },
@@ -16114,7 +16176,7 @@
     {
       "profile_id": "PROF-0701",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_MEMORY_TAMPERING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0701-A",
@@ -16127,33 +16189,33 @@
         {
           "trace_id": "TR-CODE-0701-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "ae8d3caf21ad606461bd7d9cbdea655026fa55cb73e5d1328501e44fbb0f9896"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "1cb26a02631d631abc6f6e51c9c2eb07d7432271f78299525ec7ce478becf7c5"
         }
       ]
     },
     {
       "profile_id": "PROF-0702",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_VECTOR_POISONING",
       "traces": [
         {
-          "trace_id": "TR-RAG-0702-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0702-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "136fee92797fc66d97d82ffbbe03a66fc27816970306b4635b33a658ceade0d5"
+          "duration_ms": 3.4,
+          "output_hash": "5288d0babc41f7b6ba9e38e7e0537bd2d96ab59808483c37ac99ffdce5e79eaf"
         },
         {
-          "trace_id": "TR-RAG-0702-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "1c5f67fce3802025b8ca21bc415263392cc6387ff760a6a4d5acbffca37cc8e6"
+          "trace_id": "TR-DB-0702-B",
+          "agent_id": "db-admin-v1",
+          "action": "poison_vector_store",
+          "status": "VECTOR_POISONED",
+          "duration_ms": 31.7,
+          "output_hash": "838f1fdc6aed941debc484d9dcfb6b4e1cd3244f6e1d9b4b4ba7f50b0d61a6f5"
         }
       ]
     },
@@ -16574,7 +16636,7 @@
     {
       "profile_id": "PROF-0721",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0721-A",
@@ -16587,33 +16649,33 @@
         {
           "trace_id": "TR-CODE-0721-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "59f86a977a27a3e197bba3f1f3d6903b568ebed330d3fa695befff82be1c208e"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "e14d17976a091e7c21d23e100991377ad50471ec8bf281eda57596e6e34a9178"
         }
       ]
     },
     {
       "profile_id": "PROF-0722",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_VECTOR_POISONING",
       "traces": [
         {
-          "trace_id": "TR-RAG-0722-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0722-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "559c2389db72d15b8bc532f0e8f1831ecd0c973e3cab1fd37bc7af5c8ee21843"
+          "duration_ms": 5.4,
+          "output_hash": "068ef651110c3b3815726cd99de1e540ea86aa1b574eb0b81c7f1f94b3313205"
         },
         {
-          "trace_id": "TR-RAG-0722-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "4eb328c09562e45bc19d9b05f04da6a2860fa173b4e666254e64e661b1b6b9ba"
+          "trace_id": "TR-FIN-0722-B",
+          "agent_id": "fin-api-v1",
+          "action": "poison_vector_store",
+          "status": "VECTOR_POISONED",
+          "duration_ms": 31.7,
+          "output_hash": "3e7701f4d5dea930a1fc854034dfe00bda21102f36a7f5754495da815858b5e2"
         }
       ]
     },
@@ -17034,7 +17096,7 @@
     {
       "profile_id": "PROF-0741",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_VECTOR_POISONING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0741-A",
@@ -17047,33 +17109,33 @@
         {
           "trace_id": "TR-CODE-0741-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "e3bd2de35350d07da4cbbf98bfed7474b28fba3e2fbabb424367c02334c33a0a"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "2796f70b520217f1a36e515b303ba815e761efb963d1bce99d1d9ac790399196"
         }
       ]
     },
     {
       "profile_id": "PROF-0742",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_VECTOR_POISONING",
       "traces": [
         {
-          "trace_id": "TR-RAG-0742-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0742-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "244b9720f97b1cddce53026dc52cae11856deabc508d4ee9c23f8a744b85a4a6"
+          "duration_ms": 8.2,
+          "output_hash": "f177c5e43021a001259bfe2095e740a0456994ddae1f22c0c38b8418a1535fb0"
         },
         {
-          "trace_id": "TR-RAG-0742-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "929fa49284b08ae5d19116d9031d57b23e472a20ceea3d3667bdfbe46d4ac565"
+          "trace_id": "TR-WEB-0742-B",
+          "agent_id": "web-scraper-v1",
+          "action": "poison_vector_store",
+          "status": "VECTOR_POISONED",
+          "duration_ms": 31.7,
+          "output_hash": "f36535d09e0b6da6315362b1803a69b60a0a7f4170d18f78bfb480ec3e71d90b"
         }
       ]
     },
@@ -17494,7 +17556,7 @@
     {
       "profile_id": "PROF-0761",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSANDBOXED_PROCESS",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0761-A",
@@ -17507,33 +17569,33 @@
         {
           "trace_id": "TR-CODE-0761-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "5867862c5b89b47fed7fffd4e86566a31af5bf79cca83bb51bb911d92d568de9"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "483782470abe844813f6389e196e94312871a8fdafe3032538cdf9f47d7f8c92"
         }
       ]
     },
     {
       "profile_id": "PROF-0762",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_VECTOR_POISONING",
       "traces": [
         {
-          "trace_id": "TR-RAG-0762-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0762-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "2dc5514ab29c1968076ad69520e3965190af3f5fbfe0af8314583ad83ebcf721"
+          "duration_ms": 4.9,
+          "output_hash": "fbe1775dde2b462118afd27ebef4d4bb4af7e5a6806d38569d14a0e9a866c8f6"
         },
         {
-          "trace_id": "TR-RAG-0762-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "85092d93f6f53d3d3c1a3a99271729e82f484f7bd9552f35c9e1a9146c5b629a"
+          "trace_id": "TR-CODE-0762-B",
+          "agent_id": "code-synth-v1",
+          "action": "poison_vector_store",
+          "status": "VECTOR_POISONED",
+          "duration_ms": 31.7,
+          "output_hash": "96458981752c35e9d578058415307adcdbc163131125a818f327db98651b285e"
         }
       ]
     },
@@ -17954,7 +18016,7 @@
     {
       "profile_id": "PROF-0781",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_JSON_MALLEABILITY",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0781-A",
@@ -17967,17 +18029,17 @@
         {
           "trace_id": "TR-CODE-0781-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "286ec3ce04543e40db86ef0b52380d29cfada2b5e3c9247d354fa5d2f6b56e73"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "18b015c710819aefed337f5e69d7ab2af1bc0df3d41180eeb431ca0465d3b583"
         }
       ]
     },
     {
       "profile_id": "PROF-0782",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_VECTOR_POISONING",
       "traces": [
         {
           "trace_id": "TR-RAG-0782-A",
@@ -17990,10 +18052,10 @@
         {
           "trace_id": "TR-RAG-0782-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "edcd5509772144c5ca34decaeda2a70a54e539b9dfe73522e6a5e1c7a858a93c"
+          "action": "poison_vector_store",
+          "status": "VECTOR_POISONED",
+          "duration_ms": 31.7,
+          "output_hash": "8af16f741fd452024ab48237ccfb205131e2c6c4d5a43d0fc2901c8bdb30015e"
         }
       ]
     },
@@ -18414,7 +18476,7 @@
     {
       "profile_id": "PROF-0801",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSAFE_CMD",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0801-A",
@@ -18427,33 +18489,33 @@
         {
           "trace_id": "TR-CODE-0801-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "e9c67c80688c35bc445ac6b817225b3e87b687d64db7eb9a2bd7056b3e592d68"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "da94cfc1aef1a9e4a896d0b263d5ce86cbd50d82d4701502507a5be86c20ad8f"
         }
       ]
     },
     {
       "profile_id": "PROF-0802",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_UNSANDBOXED_PROCESS",
       "traces": [
         {
-          "trace_id": "TR-RAG-0802-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0802-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "8d467f3f28f86ecae962de7922288584d9abb99bffc759da88be4125b40980b8"
+          "duration_ms": 5.4,
+          "output_hash": "d37cc68da11a536c9ca5b31ddebfe26ad0711ca7a819f0b8e657987eb29e54de"
         },
         {
-          "trace_id": "TR-RAG-0802-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "367ff2a81a49ee561f0e78b5e366d676b9093dde7f8579fd576f118576d50b0f"
+          "trace_id": "TR-FIN-0802-B",
+          "agent_id": "fin-api-v1",
+          "action": "spawn_unsandboxed_process",
+          "status": "UNSANDBOXED_PROCESS",
+          "duration_ms": 47.3,
+          "output_hash": "0d475361e69dc78a491869a8341e89706f8cc147ef99c2fc7b5ec3a074126b39"
         }
       ]
     },
@@ -18874,7 +18936,7 @@
     {
       "profile_id": "PROF-0821",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PROMPT_INJECTION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0821-A",
@@ -18887,33 +18949,33 @@
         {
           "trace_id": "TR-CODE-0821-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "436c4761d9b4b518b894553422fed2e8135721c4a9f9fecfb4cd3eaaac7f769a"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "d15244363aaa086f9a9efcfa027583536a2639347d62a8c905960420dde60596"
         }
       ]
     },
     {
       "profile_id": "PROF-0822",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_UNSANDBOXED_PROCESS",
       "traces": [
         {
-          "trace_id": "TR-RAG-0822-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0822-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "0360f803c759f5b5478d11a541a98d9c048a457a35984af460a4a30dbc7a4dbb"
+          "duration_ms": 7.0,
+          "output_hash": "ca3a861b069ba3113fbb777342d5c588ffa9c4a7fd61ea279e5cfe53989b39a2"
         },
         {
-          "trace_id": "TR-RAG-0822-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "314bcb991cdc830a75acbc6692065a02c7156520ea5c3d26ea345871a4c53b23"
+          "trace_id": "TR-WEB-0822-B",
+          "agent_id": "web-scraper-v1",
+          "action": "spawn_unsandboxed_process",
+          "status": "UNSANDBOXED_PROCESS",
+          "duration_ms": 47.3,
+          "output_hash": "7febf1b60a95a28ce266a9668dcc0a3ba907e66363933b75a48d274b537c9bff"
         }
       ]
     },
@@ -19334,7 +19396,7 @@
     {
       "profile_id": "PROF-0841",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_PRIVILEGE_ESCALATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0841-A",
@@ -19347,33 +19409,33 @@
         {
           "trace_id": "TR-CODE-0841-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "13972fb3f12cb9022d06097e86f99bdd75912da9b4a83144f554e3412fe3919a"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "df7c7d301517ffc9416143561553c8df7ae6e26f222c3317e428b70979e616a8"
         }
       ]
     },
     {
       "profile_id": "PROF-0842",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_UNSANDBOXED_PROCESS",
       "traces": [
         {
-          "trace_id": "TR-RAG-0842-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0842-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "e8f9fb1568a53d274b2d4a018621e4c6fddcee3a4a5acca4760d0638020182ee"
+          "duration_ms": 4.9,
+          "output_hash": "aeb28c681880d59867c518413990d8c963cabc9496fca4c8f74cb244ebaf2381"
         },
         {
-          "trace_id": "TR-RAG-0842-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "50f4bc4f02ee4f6c04cd700ded25261a2eb637e80d79ed8428f4937f7228677c"
+          "trace_id": "TR-CODE-0842-B",
+          "agent_id": "code-synth-v1",
+          "action": "spawn_unsandboxed_process",
+          "status": "UNSANDBOXED_PROCESS",
+          "duration_ms": 47.3,
+          "output_hash": "a7b322384b84823ff15ea454ce098aad0d32fd385e5b8c855bc911d3e30f9ca6"
         }
       ]
     },
@@ -19794,7 +19856,7 @@
     {
       "profile_id": "PROF-0861",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNAUTHORIZED_DB_DROP",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0861-A",
@@ -19807,17 +19869,17 @@
         {
           "trace_id": "TR-CODE-0861-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "743911f6e717106b30a82c8b1c2b60ee11a091ce63f38431b22892214da1704d"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "7cfb1822cf5ed07e2f59c19e8ea80bad2b54dd80cab04b29f1fcb272039edc8a"
         }
       ]
     },
     {
       "profile_id": "PROF-0862",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_UNSANDBOXED_PROCESS",
       "traces": [
         {
           "trace_id": "TR-RAG-0862-A",
@@ -19830,10 +19892,10 @@
         {
           "trace_id": "TR-RAG-0862-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "9888586c38b9d9101b688e44b2266b16f9ad8cdd2f8ef8dc45a029568fd672ce"
+          "action": "spawn_unsandboxed_process",
+          "status": "UNSANDBOXED_PROCESS",
+          "duration_ms": 47.3,
+          "output_hash": "e09c2a427af23eb844865fbe33604c50a6fe62591456c423e71e4d905b54852a"
         }
       ]
     },
@@ -20254,7 +20316,7 @@
     {
       "profile_id": "PROF-0881",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SECRET_EXFILTRATION",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0881-A",
@@ -20267,33 +20329,33 @@
         {
           "trace_id": "TR-CODE-0881-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "02905e66734cbf5ad3bb96915edaa877716d9fd73ba662e80afa82a3115ad200"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "0cd750aee01d250adb3c8b8124479451c8875e6db46933c7e35b51029c30440f"
         }
       ]
     },
     {
       "profile_id": "PROF-0882",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_UNSANDBOXED_PROCESS",
       "traces": [
         {
-          "trace_id": "TR-RAG-0882-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0882-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "55b3a819fdadd180dfef2121ed013d91db32541f41aea0983096c3812d08152b"
+          "duration_ms": 3.4,
+          "output_hash": "163779588c8e4355eefb1b7c687f891fb5c936286dee66700bf230f7dda6d298"
         },
         {
-          "trace_id": "TR-RAG-0882-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "5189c73ebd3143c725d60bde33c819bc2461e2ecab8380ffdb5b67b077806d5e"
+          "trace_id": "TR-DB-0882-B",
+          "agent_id": "db-admin-v1",
+          "action": "spawn_unsandboxed_process",
+          "status": "UNSANDBOXED_PROCESS",
+          "duration_ms": 47.3,
+          "output_hash": "9dd0d34b79bbd29ee8d8f228755cebcea043b159ca3b2053938f24e0a25a30e8"
         }
       ]
     },
@@ -20714,7 +20776,7 @@
     {
       "profile_id": "PROF-0901",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_MEMORY_TAMPERING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0901-A",
@@ -20727,33 +20789,33 @@
         {
           "trace_id": "TR-CODE-0901-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "c028815c1d4f815aaff3b0c89dce3111e5d70a19fb9a7860d773354cd3303e46"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "637720d75d407053d0de3a1de140ea19ef02e479512aa3c67a1ab9f00c21890a"
         }
       ]
     },
     {
       "profile_id": "PROF-0902",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "AutonomousWebScraperAgent",
+      "label": "ANOMALY_JSON_MALLEABILITY",
       "traces": [
         {
-          "trace_id": "TR-RAG-0902-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-WEB-0902-A",
+          "agent_id": "web-scraper-v1",
+          "action": "parse_html_dom",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "94955cda99751a7a15ce027388593a13d03237813c65233ad2205ad94dba793e"
+          "duration_ms": 7.6,
+          "output_hash": "9c8473fafaa431cafdf3109dcd9be88391674a4fb4a7a1d8d535d36303103f7c"
         },
         {
-          "trace_id": "TR-RAG-0902-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "fe63d03a99d18b17013781f8b61dae1fe9cba93fcc5e728668d3538eec3e7f7c"
+          "trace_id": "TR-WEB-0902-B",
+          "agent_id": "web-scraper-v1",
+          "action": "inject_duplicate_json_key",
+          "status": "JSON_MALLEABILITY_DETECTED",
+          "duration_ms": 12.9,
+          "output_hash": "7c18ee0b126a5eacfdb7851b814732ed24612d857bb260153b4e107744b856f3"
         }
       ]
     },
@@ -21174,7 +21236,7 @@
     {
       "profile_id": "PROF-0921",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_SSRF_LOCAL_NETWORK",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0921-A",
@@ -21187,33 +21249,33 @@
         {
           "trace_id": "TR-CODE-0921-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "fa6a0cdeb4b46cb73d4c771b0aef61e83b9aeb9a14de653a7d778478e5731954"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "b463d2b6f33af8182a15add491efaf041a5bf22c6f0f87b773dfd0605eb88e11"
         }
       ]
     },
     {
       "profile_id": "PROF-0922",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "CodeSynthesisAgent",
+      "label": "ANOMALY_JSON_MALLEABILITY",
       "traces": [
         {
-          "trace_id": "TR-RAG-0922-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-CODE-0922-A",
+          "agent_id": "code-synth-v1",
+          "action": "parse_ast",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "32fcc4178a6d28743da559088db02e14b7ccd70b5876f6e2eac6d05cce607782"
+          "duration_ms": 4.9,
+          "output_hash": "93c85ba1c2a81d6a62dc8d313030a91854346aa52a047a41a1352159bf810e5b"
         },
         {
-          "trace_id": "TR-RAG-0922-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "f61622fc7672702630619d1c0465a97072276beddd12e8b105a73f54e49a9681"
+          "trace_id": "TR-CODE-0922-B",
+          "agent_id": "code-synth-v1",
+          "action": "inject_duplicate_json_key",
+          "status": "JSON_MALLEABILITY_DETECTED",
+          "duration_ms": 12.9,
+          "output_hash": "90f933e57065dd6a406dc8dedf5c6dcfb249e97b4f4377f2b3429def0e8ae25a"
         }
       ]
     },
@@ -21634,7 +21696,7 @@
     {
       "profile_id": "PROF-0941",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_VECTOR_POISONING",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0941-A",
@@ -21647,17 +21709,17 @@
         {
           "trace_id": "TR-CODE-0941-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "901fcf4a1e3c6bbede0f0f83d617f312fda31e387eedb2ec77da536a3680493a"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "8fbc91a8e5e6b0418c685c00b3ad7aa1e175134c0036dfabda5edf519873ee66"
         }
       ]
     },
     {
       "profile_id": "PROF-0942",
       "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "label": "ANOMALY_JSON_MALLEABILITY",
       "traces": [
         {
           "trace_id": "TR-RAG-0942-A",
@@ -21670,10 +21732,10 @@
         {
           "trace_id": "TR-RAG-0942-B",
           "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.0,
-          "output_hash": "7e1fd606390c18cd32a4b1bb9912f13ce0a9bdf1526273f142cba64f69a80cd5"
+          "action": "inject_duplicate_json_key",
+          "status": "JSON_MALLEABILITY_DETECTED",
+          "duration_ms": 12.9,
+          "output_hash": "a8ae3b63172c0513fcbf1bfcea096e64eb42d2765beb808bbdca6abbf5442e8b"
         }
       ]
     },
@@ -22094,7 +22156,7 @@
     {
       "profile_id": "PROF-0961",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_UNSANDBOXED_PROCESS",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0961-A",
@@ -22107,33 +22169,33 @@
         {
           "trace_id": "TR-CODE-0961-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "3b31964a42bdf6e2ffa06c9f0bee5ae8dca9170aeb6b4a9d9edb9c0265de67b1"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "3a85aeeb38b2b306d5d80efcf1d4da123031fbb0ac976d0715969dbc1f89180c"
         }
       ]
     },
     {
       "profile_id": "PROF-0962",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "DatabaseAdminAgent",
+      "label": "ANOMALY_JSON_MALLEABILITY",
       "traces": [
         {
-          "trace_id": "TR-RAG-0962-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-DB-0962-A",
+          "agent_id": "db-admin-v1",
+          "action": "verify_schema_lock",
           "status": "SUCCESS",
-          "duration_ms": 8.6,
-          "output_hash": "9564bab66f3c5dbe6773e2c28ab6c7150396858e62e00e78fad617f7aa670f2f"
+          "duration_ms": 3.4,
+          "output_hash": "fac118a76a4d776352bc05183bfe7b528b257b2c69a0755984b07bb1d6da65fa"
         },
         {
-          "trace_id": "TR-RAG-0962-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 15.8,
-          "output_hash": "baddc9bfcacdf6c1310a0fa3c10f16706ea4e1353bfa9680893929b33e2877f8"
+          "trace_id": "TR-DB-0962-B",
+          "agent_id": "db-admin-v1",
+          "action": "inject_duplicate_json_key",
+          "status": "JSON_MALLEABILITY_DETECTED",
+          "duration_ms": 12.9,
+          "output_hash": "f876b7c456bcc7adfb232e6b6d2eda86b70f3e9f75a8b47a391471c27e6abed5"
         }
       ]
     },
@@ -22554,7 +22616,7 @@
     {
       "profile_id": "PROF-0981",
       "architecture": "CodeSynthesisAgent",
-      "label": "ANOMALY_JSON_MALLEABILITY",
+      "label": "CLEAN",
       "traces": [
         {
           "trace_id": "TR-CODE-0981-A",
@@ -22567,33 +22629,33 @@
         {
           "trace_id": "TR-CODE-0981-B",
           "agent_id": "code-synth-v1",
-          "action": "spawn_shell_subprocess",
-          "status": "UNAUTHORIZED_ESCALATION",
-          "duration_ms": 42.1,
-          "output_hash": "43b75216b35ee49db24368594ceb28966e469b9fbb235f2c69dad6396fd9723c"
+          "action": "run_linter",
+          "status": "SUCCESS",
+          "duration_ms": 12.5,
+          "output_hash": "bafeec500451e4f9bb91cd6fa2e43f5c8ad45cf6b2b7fbb5766dc9bb9063f398"
         }
       ]
     },
     {
       "profile_id": "PROF-0982",
-      "architecture": "MultiStepRAGAgent",
-      "label": "CLEAN",
+      "architecture": "FinancialAPIIntegratorAgent",
+      "label": "ANOMALY_JSON_MALLEABILITY",
       "traces": [
         {
-          "trace_id": "TR-RAG-0982-A",
-          "agent_id": "rag-search-v2",
-          "action": "embed_query",
+          "trace_id": "TR-FIN-0982-A",
+          "agent_id": "fin-api-v1",
+          "action": "verify_api_signature",
           "status": "SUCCESS",
-          "duration_ms": 9.8,
-          "output_hash": "a236c089d9c0c6397303ea617de73ca81b937368d837e783cec6983e5a30a8a1"
+          "duration_ms": 5.4,
+          "output_hash": "c118059cd7d66ce1c7b1dc17feffcaeda332df44adea5f841db64dbe9b3945f4"
         },
         {
-          "trace_id": "TR-RAG-0982-B",
-          "agent_id": "rag-search-v2",
-          "action": "vector_similarity_search",
-          "status": "SUCCESS",
-          "duration_ms": 16.6,
-          "output_hash": "26ea342e8604a19a0c81c3ac8b1df8862a670f89b0fd1e69f9a6b266f22d735c"
+          "trace_id": "TR-FIN-0982-B",
+          "agent_id": "fin-api-v1",
+          "action": "inject_duplicate_json_key",
+          "status": "JSON_MALLEABILITY_DETECTED",
+          "duration_ms": 12.9,
+          "output_hash": "3f91a307436da2b9512f6ad2ba42b33fb1f509003dceab7b53e945cc8046d8ce"
         }
       ]
     },

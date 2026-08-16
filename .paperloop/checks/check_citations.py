@@ -327,6 +327,30 @@ def check(cfg: Config) -> list[Finding]:
 
         loc = dict(file=rel(e["file"]), line=e["line"])
         if rec is None:
+            # Draft standards, specs, and whitepapers (@misc with a url or
+            # howpublished link) are not scholarly-DB material. Verify the
+            # cited location actually resolves instead of calling it
+            # unverified; a dead link is a real finding, a live one is a
+            # hand-checkable reference.
+            url_m = _field(blob, "url")
+            if not url_m:
+                hp = _field(blob, "howpublished") or ""
+                um = re.search(r"https?://[^ \\}]+", hp)
+                url_m = um.group(0).rstrip(".,") if um else None
+            if url_m:
+                try:
+                    req = urllib.request.Request(
+                        url_m, method="HEAD",
+                        headers={"User-Agent": f"paperloop/1.0 (mailto:{mailto})"})
+                    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                        live = r.status < 400
+                except Exception:
+                    live = False
+                if live:
+                    verified += 1
+                    cache[ck] = {"source": "web", "doi": "", "title": title,
+                                 "year": None, "container": url_m, "type": "misc"}
+                    continue
             unverified += 1
             out.append(Finding(
                 "citations", "refs.unverified", "MAJOR",

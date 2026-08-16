@@ -25,6 +25,34 @@ def canonical_json(data: Dict[str, Any]) -> str:
     return json.dumps(data, sort_keys=True, separators=(',', ':'))
 
 
+def detect_duplicate_json_keys(wire_json: str) -> List[str]:
+    """Return the list of object keys that occur more than once in a raw JSON
+    wire document.
+
+    Duplicate keys are a parser-dependent malleability vector: `json.loads`
+    keeps the LAST occurrence while other parsers keep the FIRST, so the same
+    signed bytes can evaluate to different values depending on the reader. The
+    ingestion boundary rejects such documents outright (2026-08 adversarial
+    review, N5)."""
+    duplicates: List[str] = []
+    seen: Dict[str, int] = {}
+
+    def _pairs_hook(pairs: List[Tuple[str, Any]]) -> Dict[str, Any]:
+        for key, value in pairs:
+            seen[key] = seen.get(key, 0) + 1
+        return dict(pairs)
+
+    try:
+        # A duplicate-preserving parse surfaces duplicate keys at every object
+        # level; the values are ignored, only the key counts matter.
+        json.loads(wire_json, object_pairs_hook=_pairs_hook)
+    except json.JSONDecodeError:
+        return ["<unparseable-json>"]
+
+    duplicates = [k for k, c in seen.items() if c > 1]
+    return sorted(duplicates)
+
+
 # --- Merkle Tree Engine ---
 
 def build_merkle_tree(leaves: List[str]) -> Tuple[str, List[List[str]]]:

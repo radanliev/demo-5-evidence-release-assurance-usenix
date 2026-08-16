@@ -9,11 +9,12 @@ and every leaf inclusion proof verifies against the committed tree depth.
 Layer 2 (release policy): the fail-closed ReleasePolicyEngine verdicts over
 the 1,050 profiles.
 
-Layer 3 (per-leaf forensic inspection): anomalous profiles carry at least one
-non-SUCCESS trace status; clean profiles carry only SUCCESS statuses. This
-semantic signal is surfaced by per-leaf inspection, NOT by the cryptographic
-gate -- the artifact records gate verdicts and forensic flags separately so
-the paper can state both numbers honestly.
+Layer 3 (per-leaf forensic inspection): the ForensicAuditEngine's semantic
+inspection surfaces leaves whose status is not SUCCESS or whose action is a
+known-sensitive action; anomalous profiles carry at least one such leaf, clean
+profiles carry none. This semantic signal is surfaced by per-leaf inspection,
+NOT by the cryptographic gate -- the artifact records gate verdicts and
+forensic flags separately so the paper can state both numbers honestly.
 
 Output: results/corpus_evaluation.json
 """
@@ -34,15 +35,12 @@ _CORPUS = _ROOT / "corpus" / "agent_trace_corpus.json"
 _POLICY = _ROOT / "governance" / "release_policy.yaml"
 _OUT = _ROOT / "results" / "corpus_evaluation.json"
 
-OK_STATUSES = {"SUCCESS"}
 
-
-def _per_leaf_inspection_flag(traces) -> bool:
-    """True if per-leaf inspection finds at least one trace whose status is
-    not SUCCESS (unauthorized escalation, dropped table, exfiltrated secret,
-    prompt injection, etc.). This is the semantic signal the forensics layer
-    surfaces per leaf."""
-    return any(t.get("status") not in OK_STATUSES for t in traces)
+def _per_leaf_inspection_flag(audit) -> bool:
+    """True if the forensic audit's semantic per-leaf inspection surfaced any
+    anomaly (non-SUCCESS status or sensitive action). Uses the layer the
+    artifact actually implements rather than a script-local duplicate."""
+    return bool(audit.get("semantic_anomaly_detected"))
 
 
 def main():
@@ -89,14 +87,14 @@ def main():
         if prof["label"] == "CLEAN":
             if passed:
                 clean_approved += 1
-            if _per_leaf_inspection_flag(prof["traces"]):
+            if _per_leaf_inspection_flag(audit):
                 clean_flagged += 1
             clean_inspected += 1
         else:
             distinct_types.add(prof["label"])
             if passed:
                 anom_approved += 1
-            if _per_leaf_inspection_flag(prof["traces"]):
+            if _per_leaf_inspection_flag(audit):
                 anom_flagged += 1
 
     elapsed_s = time.perf_counter() - t0
@@ -126,7 +124,7 @@ def main():
             "clean_approved_pct": round(clean_approved / n_clean * 100.0, 1) if n_clean else 0.0,
             "anomalous_approved": anom_approved,
             "anomalous_approved_pct": round(anom_approved / n_anom * 100.0, 1) if n_anom else 0.0,
-            "note": ("anomalous profiles are sematically misbehaving but cryptographically "
+            "note": ("anomalous profiles are semantically misbehaving but cryptographically "
                      "well-formed signed bundles, so the cryptographic gate approves them; "
                      "they are surfaced by per-leaf inspection instead"),
         },
@@ -136,9 +134,10 @@ def main():
             "clean_inspected": clean_inspected,
             "clean_flagged_false_positive": clean_flagged,
             "false_positive_rate_pct": round(clean_flagged / n_clean * 100.0, 1) if n_clean else 0.0,
-            "note": ("per-leaf inspection flags any trace whose status is not SUCCESS; "
-                     "on this synthetic corpus every one of the 50 anomaly profiles carries "
-                     "at least one such leaf and no clean profile carries any"),
+            "note": ("per-leaf semantic inspection flags any trace whose status is not "
+                     "SUCCESS or whose action is on the forensic sensitive-action list; "
+                     "on this synthetic corpus every anomalous profile carries at least "
+                     "one such leaf and no clean profile carries any"),
         },
     }
 

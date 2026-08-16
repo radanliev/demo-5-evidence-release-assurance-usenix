@@ -147,7 +147,7 @@ def write_frozen_metrics(res_dir, docs_dir):
         f"\\newcommand{{\\merkleBuildMs}}{{{n100['merkle_tree_build_ms']:.1f}}}\n"
         f"\\newcommand{{\\merkleBuildOneMMs}}{{{n1m['merkle_tree_build_ms']:.2f}}}\n"
         f"\\newcommand{{\\merkleBuildOneMStd}}{{{n1m.get('merkle_tree_build_ms_std', 0):.2f}}}\n"
-        f"\\newcommand{{\\packagingOverhead}}{{{n100['packaging_overhead_pct']:.3f}}}\n"
+        f"\\newcommand{{\\packagingOverhead}}{{{n100['packaging_overhead_pct']:.4f}}}\n"
         f"\\newcommand{{\\sparseProofNodes}}{{{sp['proof_nodes']}}}\n"
         f"\\newcommand{{\\sparseProofSizeKb}}{{{sp['proof_size_kb']:.2f}}}\n"
         f"\\newcommand{{\\sparseProofGenMs}}{{{sp['gen_latency_ms']:.3f}}}\n"

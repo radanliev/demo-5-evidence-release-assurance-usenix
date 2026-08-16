@@ -9,8 +9,9 @@ import re
 import yaml
 from pathlib import Path
 
-from .evidence import EvidenceBundle, DEFAULT_SECRET_KEY, DEMO_PUB_KEY_B64
-from .crypto import build_merkle_tree, hash_sha256, verify_signature_ed25519, verify_signature_hmac
+from .evidence import EvidenceBundle, DEFAULT_SECRET_KEY, DEMO_PUB_KEY_B64, execution_trace_leaf_string
+from .crypto import (detect_duplicate_json_keys, build_merkle_tree, hash_sha256,
+                     verify_signature_hmac, verify_signature_ed25519)
 
 
 _NONCE_TIMESTAMPS: Dict[str, datetime] = {}
@@ -110,10 +111,29 @@ class ReleasePolicyEngine:
 
         rc = self.release_conditions
 
+        # 0. Serialization ingestion check (N5): a wire document that contains
+        # duplicate JSON keys is ambiguous -- `json.loads` keeps the last
+        # occurrence while other parsers keep the first, so the same signed
+        # bytes evaluate differently per reader. The ingestion boundary rejects
+        # it before any policy or signature logic runs. If no raw wire text is
+        # present (e.g., in-process API callers), this check is vacuous.
+        if isinstance(evidence, dict) and isinstance(evidence.get("raw_wire_json"), str):
+            dup_keys = detect_duplicate_json_keys(evidence["raw_wire_json"])
+            if dup_keys:
+                violations.append(
+                    "SERIALIZATION_VIOLATION: non-canonical wire document with duplicate "
+                    f"JSON keys ({', '.join(dup_keys)}); parser-dependent values rejected."
+                )
+
         # 1. Signature & Key Validity Checks
         req_sig = rc.get("require_signed_evidence", True)
         allowed_algs = rc.get("allowed_sig_algs", ["ed25519", "hmac-sha256"])
         min_sigs = rc.get("min_required_signatures", 1)
+        # HMAC verification uses the operator-configured policy secret ONLY.
+        # Falling back to a source-code constant would make the signature
+        # forgeable by anyone who can read the repository (2026-08 adversarial
+        # review, N1). No policy secret => HMAC signatures are rejected.
+        hmac_secret_key = rc.get("hmac_secret_key")
 
         if req_sig:
             sig_list = list(bundle_dict.get("signatures", []))
@@ -134,6 +154,11 @@ class ReleasePolicyEngine:
                 violations.append("POLICY_VIOLATION: Unsigned evidence bundle rejected.")
             else:
                 valid_sigs_count = 0
+                # N10: a signature threshold counts DISTINCT authorized keys.
+                # The same key re-signing a bundle (or the same signature
+                # copied) advances no threshold; "K-of-M" means K different
+                # signers, so a single compromised key cannot satisfy it.
+                valid_sig_key_ids: set[str] = set()
                 for sig_entry in sig_list:
                     s_sig = sig_entry.get("signature")
                     s_alg = sig_entry.get("sig_alg", "ed25519")
@@ -190,12 +215,23 @@ class ReleasePolicyEngine:
                             violations.append("POLICY_VIOLATION: Missing public key for Ed25519 verification.")
                         else:
                             if verify_signature_ed25519(payload_to_verify, s_sig, verify_pub):
-                                valid_sigs_count += 1
+                                if s_key_id not in valid_sig_key_ids:
+                                    valid_sig_key_ids.add(s_key_id)
+                                    valid_sigs_count += 1
                             else:
                                 violations.append("POLICY_VIOLATION: Invalid or forged Ed25519 signature.")
                     else:
-                        if verify_signature_hmac(payload_to_verify, s_sig, secret_key):
-                            valid_sigs_count += 1
+                        if not hmac_secret_key:
+                            violations.append(
+                                "POLICY_VIOLATION: HMAC-SHA256 signatures require an "
+                                "operator-configured 'hmac_secret_key' in the policy; "
+                                "the source-code default constant is not a secret."
+                            )
+                            continue
+                        if verify_signature_hmac(payload_to_verify, s_sig, hmac_secret_key):
+                            if (s_key_id or s_sig) not in valid_sig_key_ids:
+                                valid_sig_key_ids.add(s_key_id or s_sig)
+                                valid_sigs_count += 1
                         else:
                             violations.append("POLICY_VIOLATION: Invalid or forged HMAC signature.")
                             
@@ -210,8 +246,7 @@ class ReleasePolicyEngine:
             leaf_hashes = []
             for t in traces:
                 if isinstance(t, dict):
-                    raw = f"{t.get('trace_id')}:{t.get('agent_id')}:{t.get('action')}:{t.get('status')}:{t.get('output_hash')}"
-                    leaf_hashes.append(hash_sha256(raw))
+                    leaf_hashes.append(hash_sha256(execution_trace_leaf_string(t)))
             recalculated_root, _ = build_merkle_tree(leaf_hashes)
             if recalculated_root != merkle_root:
                 violations.append(
@@ -286,6 +321,12 @@ class ReleasePolicyEngine:
 
             if nonce in seen_nonces:
                 violations.append(f"POLICY_VIOLATION: Replayed evidence nonce detected ({nonce}).")
+            else:
+                # The engine itself records the nonce once it has been
+                # processed, so a caller sharing one set across evaluations
+                # gets real replay detection without manual bookkeeping
+                # (2026-08 adversarial review, N3).
+                seen_nonces.add(nonce)
 
         # 7. SLSA Provenance Envelope check
         require_slsa = rc.get("require_slsa_envelope", False)

@@ -13,8 +13,28 @@ from .crypto import (
     verify_signature_ed25519,
     verify_signature_hmac,
 )
-from .evidence import EvidenceBundle, DEFAULT_SECRET_KEY
+from .evidence import EvidenceBundle, DEFAULT_SECRET_KEY, execution_trace_leaf_string
 from .policy import ReleasePolicyEngine
+
+# Actions that a release-run trace should never record. This is the semantic
+# per-leaf signal the inspection layer surfaces: a cryptographically valid
+# bundle may record these, and the integrity gate cannot (and must not) reject
+# them -- that is exactly the division of labor the corpus evaluation measures
+# (2026-08 adversarial review, N9).
+SENSITIVE_ACTIONS = {
+    "spawn_shell_subprocess",
+    "override_system_prompt",
+    "escalate_role",
+    "drop_production_table",
+    "exfiltrate_private_key",
+    "patch_trace_memory",
+    "access_localhost_metadata",
+    "poison_vector_store",
+    "spawn_unsandboxed_process",
+    "inject_duplicate_json_key",
+    "drop_database",
+    "delete_credentials",
+}
 
 
 class ForensicAuditEngine:
@@ -84,8 +104,7 @@ class ForensicAuditEngine:
         # 2. Merkle Tree & Inclusion Proof Inspection
         leaf_hashes = []
         for t in traces:
-            raw = f"{t.get('trace_id')}:{t.get('agent_id')}:{t.get('action')}:{t.get('status')}:{t.get('output_hash')}"
-            leaf_hashes.append(hash_sha256(raw))
+            leaf_hashes.append(hash_sha256(execution_trace_leaf_string(t)))
 
         recalculated_root, levels = build_merkle_tree(leaf_hashes)
         merkle_valid = (recalculated_root == merkle_root)
@@ -104,7 +123,30 @@ class ForensicAuditEngine:
                 "inclusion_proof_valid": proof_ok
             })
 
-        # 3. Policy Evaluation Integration
+        # 3. Per-leaf semantic inspection: surface recorded actions that
+        # should not have occurred, independent of cryptographic validity.
+        # A well-formed signed bundle may record these; the integrity gate
+        # approves it and this layer flags it (Section 6.7 of the paper).
+        semantic_flags = []
+        for i, t in enumerate(traces):
+            status = t.get("status")
+            action = t.get("action")
+            flag = None
+            if status != "SUCCESS":
+                flag = f"non-SUCCESS status '{status}'"
+            elif action in SENSITIVE_ACTIONS:
+                flag = f"sensitive action '{action}'"
+            if flag:
+                semantic_flags.append({
+                    "index": i,
+                    "trace_id": t.get("trace_id"),
+                    "action": action,
+                    "status": status,
+                    "flag": flag,
+                })
+        semantic_anomaly_detected = bool(semantic_flags)
+
+        # 4. Policy Evaluation Integration
         policy_passed = False
         violations: List[str] = []
         if self.policy_engine:
@@ -122,6 +164,8 @@ class ForensicAuditEngine:
             "merkle_integrity_valid": merkle_valid,
             "total_traces_inspected": len(traces),
             "trace_inclusion_proofs_valid": all(t["inclusion_proof_valid"] for t in trace_audit),
+            "semantic_anomaly_detected": semantic_anomaly_detected,
+            "semantic_flags": semantic_flags,
             "policy_passed": policy_passed,
             "policy_violations": violations,
             "forensic_status": "AUTHENTIC_AND_VERIFIED" if (sig_valid and merkle_valid and policy_passed) else "COMPROMISED_OR_TAMPERED",
