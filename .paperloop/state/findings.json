@@ -2,36 +2,21 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-16T23:10:58"
+    "generated": "2026-08-16T23:16:01"
   },
   "summary": {
-    "total": 7,
+    "total": 5,
     "by_severity": {
       "BLOCKER": 0,
       "MAJOR": 0,
-      "MINOR": 1,
-      "INFO": 6
+      "MINOR": 0,
+      "INFO": 5
     },
-    "actionable": 1,
+    "actionable": 0,
     "gated_actionable": 0,
     "clean": true
   },
   "findings": [
-    {
-      "check": "citations",
-      "category": "refs.unverified",
-      "severity": "MINOR",
-      "message": "no OPENALEX_API_KEY or S2_API_KEY set \u2014 APIs require keys for all requests since 2026-02-13, so only Crossref is being queried",
-      "file": null,
-      "line": null,
-      "page": null,
-      "evidence": null,
-      "expected": "OPENALEX_API_KEY or S2_API_KEY set",
-      "remedy": "Free key at https://openalex.org/settings/api, then ./set-key.sh OPENALEX_API_KEY or S2_API_KEY. Crossref alone misses preprints and some CS venues, so coverage is reduced.",
-      "fingerprint": "ebace01cc8334e81",
-      "gated": true,
-      "autofixable": false
-    },
     {
       "check": "figures",
       "category": "figure.clipping",
@@ -51,29 +36,14 @@
       "check": "citations",
       "category": "refs.unverified",
       "severity": "INFO",
-      "message": "Crossref, OpenAlex, and Semantic Scholar are unreachable \u2014 citations not verified",
-      "file": null,
-      "line": null,
-      "page": null,
-      "evidence": null,
-      "expected": "network access to citation APIs",
-      "remedy": "Add both to the network allowlist, then re-run. Offline, citation existence cannot be checked at all.",
-      "fingerprint": "ef13d2045d43d08a",
-      "gated": true,
-      "autofixable": false
-    },
-    {
-      "check": "citations",
-      "category": "refs.unverified",
-      "severity": "INFO",
-      "message": "21 citation(s) verified against Crossref/OpenAlex/SemanticScholar, 13 unresolved",
+      "message": "34 citation(s) verified against Crossref/OpenAlex/SemanticScholar",
       "file": null,
       "line": null,
       "page": null,
       "evidence": null,
       "expected": null,
       "remedy": null,
-      "fingerprint": "f99023751abf748d",
+      "fingerprint": "74c3c5c4673283f7",
       "gated": true,
       "autofixable": false
     },

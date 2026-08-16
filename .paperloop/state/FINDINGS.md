@@ -2,14 +2,14 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-16 23:10
+**Run:** 2026-08-16 23:16
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
 | MAJOR | 0 |
-| MINOR | 1 |
-| INFO | 6 |
+| MINOR | 0 |
+| INFO | 5 |
 
 Gated (human sign-off required): **0**
 
@@ -17,26 +17,19 @@ Gated (human sign-off required): **0**
 
 ```
 === USENIX Security Paper PDF Builder & Figure Generator ===
-[!] Warning: Figure generation error (No module named 'matplotlib')
+[+] High-resolution 600 DPI benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
 [*] Froze headline metrics -> frozen_metrics.tex (throughput=7,321, overhead=0.000%)
 [*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
 [SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
 
 [+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
 ```
 </details>
-
-## Gated — requires your decision
-
-**The writer agent must not touch these.** Changing a number to make a gate pass converts a data error into a published claim. Each one gets a proposed diff in `.paperloop/state/proposals/`, and the loop halts.
-
-### [MINOR] refs.unverified
-
-no OPENALEX_API_KEY or S2_API_KEY set — APIs require keys for all requests since 2026-02-13, so only Crossref is being queried
-
-- **expected:** OPENALEX_API_KEY or S2_API_KEY set
-- **remedy:** Free key at https://openalex.org/settings/api, then ./set-key.sh OPENALEX_API_KEY or S2_API_KEY. Crossref alone misses preprints and some CS venues, so coverage is reduced.
-- **id:** `ebace01cc8334e81`
 
 ## Measurements
 
@@ -51,17 +44,9 @@ rendered 20 page images for visual QA
 
 ### [INFO] refs.unverified
 
-Crossref, OpenAlex, and Semantic Scholar are unreachable — citations not verified
+34 citation(s) verified against Crossref/OpenAlex/SemanticScholar
 
-- **expected:** network access to citation APIs
-- **remedy:** Add both to the network allowlist, then re-run. Offline, citation existence cannot be checked at all.
-- **id:** `ef13d2045d43d08a`
-
-### [INFO] refs.unverified
-
-21 citation(s) verified against Crossref/OpenAlex/SemanticScholar, 13 unresolved
-
-- **id:** `f99023751abf748d`
+- **id:** `74c3c5c4673283f7`
 
 ### [INFO] science.artifact_missing
 

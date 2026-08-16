@@ -271,5 +271,13 @@
     "year": 2023,
     "container": "Advances in Neural Information Processing Systems 36",
     "type": "proceedings-article"
+  },
+  "opa2021openpolicy||policy based access control with open policy agent": {
+    "source": "web",
+    "doi": "",
+    "title": "Policy-based access control with Open Policy Agent",
+    "year": null,
+    "container": "https://www.openpolicyagent.org/",
+    "type": "misc"
   }
 }
