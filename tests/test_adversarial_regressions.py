@@ -15,9 +15,12 @@ attack:
 from pathlib import Path
 import json
 
-from assurance.evidence import create_evidence_pack, EvidenceBundle, DEFAULT_SECRET_KEY
+from assurance.evidence import create_evidence_pack, DEFAULT_SECRET_KEY
 from assurance.crypto import sign_payload_hmac
 from assurance.policy import ReleasePolicyEngine
+
+from assurance.crypto import hash_sha256 as _h
+_NO_WITNESS = _h("NO_WITNESS")
 
 _POLICY = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
 
@@ -48,13 +51,15 @@ def test_n1_forged_hmac_signature_blocked():
         "execution_traces_count": b_dict["execution_traces_count"],
         "merkle_root": b_dict["merkle_root"],
         "artifact_digests": b_dict["artifact_digests"],
+        "session_id": None,
+        "witness_digest": _NO_WITNESS,
         "sig_alg": "hmac-sha256",
         "key_id": "KEY-HMAC-OPERATOR-1",
         "kms_key_arn": b_dict.get("kms_key_arn"),
     }
     b_dict["signature"] = sign_payload_hmac(payload, DEFAULT_SECRET_KEY)
 
-    passed, violations, _ = engine.evaluate(b_dict)
+    passed, violations, _ = engine.evaluate(b_dict, seen_nonces=set())
 
     assert passed is False
     assert any("hmac" in v.lower() for v in violations), violations
@@ -81,12 +86,14 @@ def test_n1_hmac_allowed_only_with_policy_secret():
         "execution_traces_count": b_dict["execution_traces_count"],
         "merkle_root": b_dict["merkle_root"],
         "artifact_digests": b_dict["artifact_digests"],
+        "session_id": None,
+        "witness_digest": _NO_WITNESS,
         "sig_alg": "hmac-sha256",
         "key_id": "KEY-HMAC-OPERATOR-1",
         "kms_key_arn": b_dict.get("kms_key_arn"),
     }
     b_dict["signature"] = sign_payload_hmac(payload, "operator-hold-secret-2x")
-    passed, violations, _ = engine.evaluate(b_dict)
+    passed, violations, _ = engine.evaluate(b_dict, seen_nonces=set())
     assert passed is True, violations
 
 
@@ -122,7 +129,7 @@ def test_n5_duplicate_json_key_blocked_at_ingestion():
     assert parsed["test_pass_pct"] == 85.5  # last-wins parse differs from signed value
     parsed["raw_wire_json"] = wire_dup
 
-    passed, violations, _ = engine.evaluate(parsed)
+    passed, violations, _ = engine.evaluate(parsed, seen_nonces=set())
     assert passed is False
     assert any("SERIALIZATION_VIOLATION" in v for v in violations)
 
@@ -135,7 +142,7 @@ def test_n10_threshold_counts_distinct_signers():
     bundle.sign_ed25519_multi()
     bundle.sign_ed25519_multi()
 
-    passed, violations, _ = engine.evaluate(bundle)
+    passed, violations, _ = engine.evaluate(bundle, seen_nonces=set())
     assert passed is False
     assert any("Insufficient valid signatures" in v for v in violations)
 
@@ -147,7 +154,7 @@ def test_n10_threshold_counts_distinct_signers():
     bundle.sign_ed25519_multi(private_key=second_priv, pub_key_b64=second_pub_b64)
     bundle.sign_ed25519_multi(private_key=third_priv, pub_key_b64=third_pub_b64)
 
-    passed, violations, _ = engine.evaluate(bundle)
+    passed, violations, _ = engine.evaluate(bundle, seen_nonces=set())
     assert passed is True, violations
 
 

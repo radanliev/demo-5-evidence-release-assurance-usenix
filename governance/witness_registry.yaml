@@ -1,0 +1,11 @@
+# Witness registry for Witnessed Trace Completeness.
+#
+# A witness is the component that ACTUALLY SERVES an agent action -- a tool
+# endpoint, API gateway, or sandbox syscall broker. It is a separate trust
+# domain from the evidence collector: the collector holds a signing key, the
+# witnesses do not, and an adversary who owns the collector still cannot forge
+# or suppress a witness attestation.
+#
+# Populated by scripts/provision_witnesses.py for the reproduction run; in
+# production these are the long-lived public keys of your mediated endpoints.
+witnesses: {}

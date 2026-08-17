@@ -31,7 +31,7 @@ The repository provides a unified reproduction entrypoint:
 # Quick reproduction (~15 seconds: unit tests, fast benchmarks, and figure rendering)
 ./reproduce.sh --quick
 
-# Full reproduction (~60 seconds: 1M trace scaling, 1,050 corpus evaluation, 13-vector tamper suite)
+# Full reproduction (~60 seconds: 1M trace scaling, 1075 corpus evaluation, 17-vector tamper suite + negative controls)
 ./reproduce.sh
 ```
 
@@ -43,7 +43,7 @@ Every empirical claim, table, and figure in the manuscript maps directly to a de
 
 | Paper Item | Claim / Metric | Generation Script | Output Artifact | Expected Runtime |
 |---|---|---|---|:---:|
-| **Table 1** (Tamper Suite) | 100.0% block rate (13/13 vectors) | `scripts/run_comparative_eval.py` | `results/comparative_evaluation.json` | ~3s |
+| **Table 1** (Vector suite) | 16/17 blocked (94.1%, CI [73.0,99.0]); V16 not blocked | `scripts/run_security_eval.py` | `results/security_evaluation.json` | ~10s |
 | **Table 2** (Corpus Eval) | 1,050 profiles (100% L1 integrity, 100% L2 gate, 100% L3 recall) | `scripts/run_corpus_eval.py` | `results/corpus_evaluation.json` | ~6s |
 | **Table 3** (Capability Map) | Complete $\mathcal{A}_1$--$\mathcal{A}_5$ threat model coverage | `tests/test_tamper_resilience.py` | `tests/test_tamper_resilience.py` | ~1.5s |
 | **Table 4** (Comparative Matrix) | Feature comparison across 12 frameworks | Qualitative Analysis | `docs/usenix_paper_manuscript.tex` | N/A |

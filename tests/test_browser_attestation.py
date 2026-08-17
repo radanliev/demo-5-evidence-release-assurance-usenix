@@ -15,7 +15,7 @@ def test_browser_ui_clean_attestation_pass():
     _, bundle = run_web_agent_attestation_demo(tampered=False)
     bundle_dict = bundle.to_dict()
 
-    passed, violations, details = policy_engine.evaluate(bundle_dict)
+    passed, violations, details = policy_engine.evaluate(bundle_dict, seen_nonces=set())
     assert passed is True, f"Clean UI attestation failed policy evaluation: {violations}"
     assert len(violations) == 0
 
@@ -42,7 +42,7 @@ def test_browser_ui_tampered_dom_fail_closed_block():
     bundle_dict = bundle.to_dict()
     bundle_dict["traces"][1]["output_hash"] = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
 
-    passed, violations, details = policy_engine.evaluate(bundle_dict)
+    passed, violations, details = policy_engine.evaluate(bundle_dict, seen_nonces=set())
     assert passed is False, "Tampered DOM UI state unexpectedly passed release gate!"
     assert any("Merkle root mismatch" in v or "signature" in v.lower() for v in violations)
     assert details["fail_closed_enforced"] is True

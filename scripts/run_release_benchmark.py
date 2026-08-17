@@ -9,7 +9,6 @@ and 12-vector tamper resilience.
 import sys
 import time
 
-import yaml
 import json
 import uuid
 import statistics
@@ -21,9 +20,9 @@ from typing import Dict, Any, List, Tuple
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from assurance.evidence import (EvidenceBundle, create_evidence_pack, ExecutionTraceRecord,
-                                DEMO_PRIV_KEY, DEMO_PUB_KEY_B64, DEFAULT_SECRET_KEY,
-                                realistic_dom_fragment)
-from assurance.crypto import hash_sha256, build_merkle_tree, generate_merkle_proof, verify_merkle_proof
+                                DEMO_PRIV_KEY, DEMO_PUB_KEY_B64, realistic_dom_fragment)
+from assurance.crypto import (hash_sha256, build_merkle_tree, generate_merkle_proof,
+                              verify_merkle_proof, expected_tree_depth)
 from assurance.policy import ReleasePolicyEngine
 from benchmark.tamper_vectors import generate_tampered_evidence_suite
 
@@ -140,7 +139,8 @@ def measure_merkle_scaling(repeats: int = 5) -> List[Dict[str, Any]]:
             "packaging_excludes_merkle_build": True,
             "merkle_tree_build_ms": round(t_merkle, 3),
             "merkle_tree_build_ms_std": round(statistics.stdev(merkle_times), 3) if repeats > 1 else 0.0,
-            "merkle_tree_depth": len(levels),
+            "merkle_tree_levels": len(levels),
+            "merkle_tree_depth": expected_tree_depth(count),
             "bundle_size_kb": round(statistics.mean(sizes), 2),
             "packaging_overhead_pct": round((t_pkg / (count * 1.5)) * 100.0, 4)
         })
@@ -221,7 +221,7 @@ def measure_sparse_proof(n_traces: int = 1_000_000, repeats: int = 5) -> Dict[st
 
             t0 = time.perf_counter()
             ok = verify_merkle_proof(leaves[idx], proof, root,
-                                     expected_depth=max(len(levels) - 1, 0))
+                                     expected_tree_depth(n_traces))
             ver_ms.append((time.perf_counter() - t0) * 1000.0)
             assert ok, "inclusion proof failed verification"
 
@@ -229,7 +229,8 @@ def measure_sparse_proof(n_traces: int = 1_000_000, repeats: int = 5) -> Dict[st
 
     return {
         "trace_count": n_traces,
-        "tree_depth": len(levels),
+        "tree_levels": len(levels),
+        "tree_depth": expected_tree_depth(n_traces),
         "proof_nodes": len(proof),
         "proof_size_kb": round(statistics.mean(sizes_kb), 3),
         "gen_latency_ms": round(statistics.mean(gen_ms), 4),
@@ -253,7 +254,7 @@ def measure_blinding_overhead(n_traces: int = 10_000, repeats: int = 5) -> Dict[
     totals = []
     for _ in range(repeats):
         t0 = time.perf_counter()
-        blinded = [r.blind_payload(salt) for r in records]
+        [r.blind_payload(salt) for r in records]
         totals.append((time.perf_counter() - t0) * 1000.0)
 
     total_ms = statistics.mean(totals)

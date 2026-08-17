@@ -20,13 +20,13 @@ import json
 import tempfile
 import time
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from assurance.evidence import create_evidence_pack, DEFAULT_SECRET_KEY
+from assurance.evidence import DEFAULT_SECRET_KEY
 from assurance.policy import ReleasePolicyEngine
-from benchmark.tamper_vectors import generate_tampered_evidence_suite, TAMPER_VECTOR_TAXONOMY
+from benchmark.tamper_vectors import generate_tampered_evidence_suite
 
 _GOVERNANCE = Path(__file__).parent.parent / "governance"
 

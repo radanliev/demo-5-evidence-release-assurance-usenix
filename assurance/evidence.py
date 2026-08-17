@@ -14,12 +14,12 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from .crypto import (
     hash_sha256,
+    canonical_json,
+    merkle_leaf_digest,
     build_merkle_tree,
     generate_merkle_proof,
-    verify_merkle_proof,
     sign_payload_hmac,
     verify_signature_hmac,
-    generate_ed25519_keypair,
     sign_payload_ed25519,
     verify_signature_ed25519,
     format_intoto_statement,
@@ -68,7 +68,7 @@ class ExecutionTraceRecord:
         )
 
     def to_hash(self) -> str:
-        return hash_sha256(execution_trace_leaf_string(self))
+        return merkle_leaf_digest(execution_trace_leaf_string(self))
 
 
 
@@ -99,7 +99,7 @@ class BrowserActionTraceRecord:
 
     def to_hash(self) -> str:
         raw = f"{self.trace_id}:{self.agent_id}:{self.action}:{self.status}:{self.duration_ms}:{self.url}:{self.element_selector}:{self.dom_state_hash}:{self.screenshot_sha256 or ''}"
-        return hash_sha256(raw)
+        return merkle_leaf_digest(raw)
 
 
 def realistic_dom_fragment(i: int) -> str:
@@ -146,6 +146,13 @@ class EvidenceBundle:
     kms_key_arn: Optional[str] = None
     slsa_predicate: Optional[Dict[str, Any]] = None
     sparse_proofs: Optional[List[Dict[str, Any]]] = None
+    # Witnessed Trace Completeness (WTC). session_id scopes the witness
+    # attestations; receipts carry per-witness monotonic sequence numbers and
+    # closings commit to the served-action count. All three are covered by the
+    # bundle signature via witness_digest below.
+    session_id: Optional[str] = None
+    witness_receipts: List[Dict[str, Any]] = field(default_factory=list)
+    witness_closings: List[Dict[str, Any]] = field(default_factory=list)
     signed: bool = False
     signature: Optional[str] = None
     signatures: List[Dict[str, Any]] = field(default_factory=list)
@@ -162,10 +169,25 @@ class EvidenceBundle:
             "execution_traces_count": self.execution_traces_count,
             "merkle_root": self.merkle_root,
             "artifact_digests": self.artifact_digests,
+            "session_id": self.session_id,
+            "witness_digest": self.witness_digest(),
             "sig_alg": sig_alg_override if sig_alg_override is not _SENTINEL else self.sig_alg,
             "key_id": key_id_override if key_id_override is not _SENTINEL else self.key_id,
             "kms_key_arn": kms_arn_override if kms_arn_override is not _SENTINEL else self.kms_key_arn
         }
+
+    def witness_digest(self) -> str:
+        """Commitment to the witness attestation set.
+
+        Without this, a collector could strip receipts and closings from a
+        validly signed bundle and the signature would still verify -- which
+        would make witnessed completeness trivially defeatable by deletion.
+        The digest is order-independent (receipts are sorted) so transport
+        reordering is not an integrity failure.
+        """
+        items = sorted(canonical_json(r) for r in (self.witness_receipts or []))
+        items += sorted(canonical_json(c) for c in (self.witness_closings or []))
+        return hash_sha256("|".join(items)) if items else hash_sha256("NO_WITNESS")
 
     def sign_hmac(self, secret_key: str = DEFAULT_SECRET_KEY) -> None:
         self.sig_alg = "hmac-sha256"
@@ -255,7 +277,7 @@ class EvidenceBundle:
             return []
         leaf_hashes = []
         for t in self.traces:
-            leaf_hashes.append(hash_sha256(execution_trace_leaf_string(t)))
+            leaf_hashes.append(merkle_leaf_digest(execution_trace_leaf_string(t)))
 
         _, levels = build_merkle_tree(leaf_hashes)
 

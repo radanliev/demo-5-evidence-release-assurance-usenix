@@ -3,21 +3,33 @@ Release Policy Evaluation Engine for Fail-Closed Gate Enforcement.
 """
 
 from datetime import datetime, timezone
-from typing import Dict, Any, Tuple, List, Optional
+from typing import Dict, Any, MutableSet, Tuple, List, Optional
 import hmac
 import re
 import yaml
 from pathlib import Path
 
-from .evidence import EvidenceBundle, DEFAULT_SECRET_KEY, DEMO_PUB_KEY_B64, execution_trace_leaf_string
-from .crypto import (detect_duplicate_json_keys, build_merkle_tree, hash_sha256,
+from .evidence import EvidenceBundle, DEFAULT_SECRET_KEY, execution_trace_leaf_string
+from .witness import reconcile, witness_registry_from_yaml, mediated_actions_from_yaml
+from .crypto import (detect_duplicate_json_keys, build_merkle_tree, merkle_leaf_digest,
+                     canonical_json, hash_sha256,
                      verify_signature_hmac, verify_signature_ed25519)
 
 
-from collections.abc import MutableSet
 import json
 
 _NONCE_TIMESTAMPS: Dict[str, datetime] = {}
+
+
+def _recompute_witness_digest(bundle: Dict[str, Any]) -> str:
+    """Recompute the witness-set commitment the signer covered.
+
+    Mirrors EvidenceBundle.witness_digest. Recomputing here rather than reading
+    a bundle-supplied field is deliberate: a self-declared digest would let an
+    adversary strip the receipts and adjust the field to match."""
+    items = sorted(canonical_json(r) for r in (bundle.get("witness_receipts") or []))
+    items += sorted(canonical_json(c) for c in (bundle.get("witness_closings") or []))
+    return hash_sha256("|".join(items)) if items else hash_sha256("NO_WITNESS")
 
 
 class PersistentNonceStore(MutableSet):
@@ -75,7 +87,9 @@ class PersistentNonceStore(MutableSet):
 
 class ReleasePolicyEngine:
     def __init__(self, policy_data: Dict[str, Any],
-                 trusted_keys: Optional[Dict[str, Dict[str, str]]] = None):
+                 trusted_keys: Optional[Dict[str, Dict[str, str]]] = None,
+                 witness_registry: Optional[Dict[str, str]] = None,
+                 mediated_actions: Optional[Dict[str, Any]] = None):
         self.policy_data = policy_data
         self.policy_name = policy_data.get("policy_name", "Fail-Closed Security Gate Policy")
         self.version = policy_data.get("version", "1.0.0")
@@ -84,6 +98,12 @@ class ReleasePolicyEngine:
         # Trusted key registry: key_id -> pinned public key. Signatures from
         # unregistered keys are rejected, and verification always uses the
         # pinned key — never a public key supplied inside the evidence bundle.
+        # Witness registry: witness_id -> pinned public key. Witnesses are a
+        # SEPARATE trust domain from signing keys: the collector holds a signing
+        # key, the witnesses do not, and that separation is what makes omission
+        # detectable rather than merely recorded (Sec. Witnessed Completeness).
+        self.witness_registry: Dict[str, str] = dict(witness_registry or {})
+        self.mediated_actions: Dict[str, Any] = dict(mediated_actions or {})
         self.trusted_keys: Dict[str, str] = {}
         for kid, info in (trusted_keys or {}).items():
             if isinstance(info, dict) and info.get("public_key"):
@@ -101,13 +121,21 @@ class ReleasePolicyEngine:
         if keys_path.exists():
             with open(keys_path, 'r', encoding='utf-8') as f:
                 trusted = (yaml.safe_load(f) or {}).get("trusted_keys", {})
-        return cls(data, trusted_keys=trusted)
+        witnesses, mediated = {}, {}
+        w_path = yaml_path.parent / "witness_registry.yaml"
+        if w_path.exists():
+            with open(w_path, 'r', encoding='utf-8') as f:
+                w_data = yaml.safe_load(f) or {}
+            witnesses = witness_registry_from_yaml(w_data)
+            mediated = mediated_actions_from_yaml(w_data)
+        return cls(data, trusted_keys=trusted, witness_registry=witnesses,
+                   mediated_actions=mediated)
 
     def evaluate(
         self,
         evidence: EvidenceBundle | Dict[str, Any],
         secret_key: str = DEFAULT_SECRET_KEY,
-        seen_nonces: Optional[set[str]] = None
+        seen_nonces: Optional[MutableSet[str]] = None
     ) -> Tuple[bool, List[str], Dict[str, Any]]:
         """
         Evaluate evidence pack against policy rules.
@@ -129,10 +157,10 @@ class ReleasePolicyEngine:
         self,
         evidence: EvidenceBundle | Dict[str, Any],
         secret_key: str = DEFAULT_SECRET_KEY,
-        seen_nonces: Optional[set[str]] = None
+        seen_nonces: Optional[MutableSet[str]] = None
     ) -> Tuple[bool, List[str], Dict[str, Any]]:
-        violations = []
-        details = {}
+        violations: List[str] = []
+        details: Dict[str, Any] = {}
 
         if isinstance(evidence, dict):
             bundle_dict = evidence
@@ -175,7 +203,13 @@ class ReleasePolicyEngine:
         # present (e.g., in-process API callers), this check is vacuous.
         if isinstance(evidence, dict) and isinstance(evidence.get("raw_wire_json"), str):
             dup_keys = detect_duplicate_json_keys(evidence["raw_wire_json"])
-            if dup_keys:
+            if dup_keys == ["<unparseable-json>"]:
+                violations.append(
+                    "SERIALIZATION_VIOLATION: wire document is not parseable as canonical "
+                    "JSON (e.g. byte-order mark, trailing data, or invalid encoding); "
+                    "rejected before signature evaluation."
+                )
+            elif dup_keys:
                 violations.append(
                     "SERIALIZATION_VIOLATION: non-canonical wire document with duplicate "
                     f"JSON keys ({', '.join(dup_keys)}); parser-dependent values rejected."
@@ -235,25 +269,34 @@ class ReleasePolicyEngine:
                     # key IDs are rejected outright.
                     pinned_pub = None
                     if s_alg == "ed25519":
-                        enforce_registry = rc.get("require_trusted_key", True)
-                        if enforce_registry:
-                            if not self.trusted_keys:
-                                violations.append("POLICY_VIOLATION: No trusted key registry configured; Ed25519 signatures cannot be authenticated.")
-                                continue
-                            if s_key_id not in self.trusted_keys:
-                                violations.append(f"POLICY_VIOLATION: Key ID '{s_key_id}' not in trusted key registry.")
-                                continue
-                            pinned_pub = self.trusted_keys[s_key_id]
-                            if s_pub and not hmac.compare_digest(s_pub, pinned_pub):
-                                violations.append(f"POLICY_VIOLATION: Public key for '{s_key_id}' does not match the trusted key registry.")
-                                continue
-                        else:
-                            pinned_pub = None
+                        # C-2026-08-17/A2: there is NO configuration under which a
+                        # public key travelling inside the evidence bundle is used
+                        # for verification. The previous code fell through to
+                        # `pinned_pub or s_pub` when require_trusted_key was False,
+                        # so disabling the registry silently turned the gate into
+                        # "verify against whatever key the attacker attached" --
+                        # a complete authentication bypass that the 13-vector suite
+                        # did not detect. An absent or non-matching registry entry
+                        # is now always fail-closed.
+                        if not self.trusted_keys:
+                            violations.append("POLICY_VIOLATION: No trusted key registry configured; Ed25519 signatures cannot be authenticated.")
+                            continue
+                        if s_key_id not in self.trusted_keys:
+                            violations.append(f"POLICY_VIOLATION: Key ID '{s_key_id}' not in trusted key registry.")
+                            continue
+                        pinned_pub = self.trusted_keys[s_key_id]
+                        if s_pub and not hmac.compare_digest(s_pub, pinned_pub):
+                            violations.append(f"POLICY_VIOLATION: Public key for '{s_key_id}' does not match the trusted key registry.")
+                            continue
                         kms_pattern = rc.get("kms_key_arn_pattern")
                         if kms_pattern and (not s_arn or not re.match(kms_pattern, s_arn)):
                             violations.append("POLICY_VIOLATION: Signing key KMS ARN missing or outside the required boundary.")
                             continue
 
+                    # The signature covers the witness attestation set via
+                    # witness_digest, so stripping receipts from a signed bundle
+                    # invalidates the signature rather than silently disabling
+                    # completeness checking.
                     payload_to_verify = {
                         "evidence_id": bundle_dict.get("evidence_id", ""),
                         "timestamp": bundle_dict.get("timestamp", ""),
@@ -264,15 +307,17 @@ class ReleasePolicyEngine:
                         "execution_traces_count": bundle_dict.get("execution_traces_count", 0),
                         "merkle_root": bundle_dict.get("merkle_root", ""),
                         "artifact_digests": bundle_dict.get("artifact_digests", {}),
+                        "session_id": bundle_dict.get("session_id"),
+                        "witness_digest": _recompute_witness_digest(bundle_dict),
                         "sig_alg": s_alg,
                         "key_id": s_key_id,
                         "kms_key_arn": s_arn
                     }
                     
                     if s_alg == "ed25519":
-                        verify_pub = pinned_pub or s_pub
+                        verify_pub = pinned_pub          # registry key only, never s_pub
                         if not verify_pub:
-                            violations.append("POLICY_VIOLATION: Missing public key for Ed25519 verification.")
+                            violations.append("POLICY_VIOLATION: Missing pinned public key for Ed25519 verification.")
                         else:
                             if verify_signature_ed25519(payload_to_verify, s_sig, verify_pub):
                                 if s_key_id not in valid_sig_key_ids:
@@ -306,7 +351,7 @@ class ReleasePolicyEngine:
             leaf_hashes = []
             for t in traces:
                 if isinstance(t, dict):
-                    leaf_hashes.append(hash_sha256(execution_trace_leaf_string(t)))
+                    leaf_hashes.append(merkle_leaf_digest(execution_trace_leaf_string(t)))
             recalculated_root, _ = build_merkle_tree(leaf_hashes)
             if recalculated_root != merkle_root:
                 violations.append(
@@ -323,6 +368,29 @@ class ReleasePolicyEngine:
             violations.append(
                 f"POLICY_VIOLATION: Execution trace count mismatch ({claimed_count} claimed, {len(traces)} present)."
             )
+
+        # 2c. Witnessed Trace Completeness.
+        #
+        # The Merkle root proves the submitted traces were not altered; it says
+        # nothing about traces that were never submitted. Reconciling against
+        # witness-issued receipts with monotonic sequence numbers and a signed
+        # closing count is what converts "integrity of what was recorded" into
+        # "completeness relative to the witness set". This is the check no
+        # record-format scheme can perform, because it needs attestations from a
+        # trust domain the submitting party does not control.
+        if rc.get("require_witnessed_completeness", False):
+            w_ok, w_violations, w_detail = reconcile(
+                traces=[t for t in traces if isinstance(t, dict)],
+                receipts=bundle_dict.get("witness_receipts") or [],
+                closings=bundle_dict.get("witness_closings") or [],
+                witness_registry=self.witness_registry,
+                session_id=bundle_dict.get("session_id") or "",
+                require_witness=True,
+                mediated_actions=self.mediated_actions,
+            )
+            details["witness"] = w_detail
+            if not w_ok:
+                violations.extend(w_violations)
 
         # 3. Test Pass Percentage check
         min_pass_pct = rc.get("min_passing_tests_pct", 100.0)
@@ -356,6 +424,25 @@ class ReleasePolicyEngine:
                 violations.append("POLICY_VIOLATION: Invalid timestamp ISO format.")
 
         # 6. Replay Nonce Check
+        #
+        # A1 (2026-08-17 review): this check used to be a silent no-op whenever
+        # the caller did not pass replay state, and the shipped CLI
+        # (scripts/verify_release_gate.py) never passed any -- so the deployable
+        # gate approved the same signed bundle indefinitely while the paper
+        # claimed replay protection was integral to the verdict. Missing replay
+        # state is now itself a violation: fail-closed means the gate refuses to
+        # decide rather than deciding without the state it needs.
+        require_replay_state = rc.get("require_replay_state", True)
+        if not nonce:
+            violations.append("POLICY_VIOLATION: Evidence bundle carries no replay nonce.")
+        elif seen_nonces is None:
+            if require_replay_state:
+                violations.append(
+                    "POLICY_VIOLATION: No nonce store supplied; replay protection "
+                    "cannot be enforced, so the gate fails closed. Pass seen_nonces "
+                    "(e.g. PersistentNonceStore) or set require_replay_state: false "
+                    "in the policy to accept the residual replay risk explicitly."
+                )
         if seen_nonces is not None and nonce:
             # Record current nonce timestamp
             try:
@@ -397,7 +484,7 @@ class ReleasePolicyEngine:
 
         passed = (len(violations) == 0)
 
-        details = {
+        details.update({
             "evidence_id": evidence_id,
             "policy_name": self.policy_name,
             "passed": passed,
@@ -405,7 +492,7 @@ class ReleasePolicyEngine:
             "violations": violations,
             "sig_alg": sig_alg,
             "key_id": key_id,
-            "fail_closed_enforced": True
-        }
+            "fail_closed_enforced": True,
+        })
 
         return passed, violations, details

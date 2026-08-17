@@ -6,15 +6,16 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 
 from .crypto import (
-    hash_sha256,
+    merkle_leaf_digest,
     build_merkle_tree,
     generate_merkle_proof,
     verify_merkle_proof,
+    expected_tree_depth,
     verify_signature_ed25519,
     verify_signature_hmac,
 )
 from .evidence import EvidenceBundle, DEFAULT_SECRET_KEY, execution_trace_leaf_string
-from .policy import ReleasePolicyEngine
+from .policy import ReleasePolicyEngine, _recompute_witness_digest as _wdigest
 
 # Actions that a release-run trace should never record. This is the semantic
 # per-leaf signal the inspection layer surfaces: a cryptographically valid
@@ -78,6 +79,8 @@ class ForensicAuditEngine:
                 "execution_traces_count": b.get("execution_traces_count", 0),
                 "merkle_root": merkle_root,
                 "artifact_digests": b.get("artifact_digests", {}),
+                "session_id": b.get("session_id"),
+                "witness_digest": _wdigest(b),
                 "sig_alg": sig_alg,
                 "key_id": key_id,
                 "kms_key_arn": b.get("kms_key_arn")
@@ -104,7 +107,7 @@ class ForensicAuditEngine:
         # 2. Merkle Tree & Inclusion Proof Inspection
         leaf_hashes = []
         for t in traces:
-            leaf_hashes.append(hash_sha256(execution_trace_leaf_string(t)))
+            leaf_hashes.append(merkle_leaf_digest(execution_trace_leaf_string(t)))
 
         recalculated_root, levels = build_merkle_tree(leaf_hashes)
         merkle_valid = (recalculated_root == merkle_root)
@@ -113,7 +116,7 @@ class ForensicAuditEngine:
         for i, leaf_h in enumerate(leaf_hashes):
             proof = generate_merkle_proof(i, levels)
             proof_ok = verify_merkle_proof(leaf_h, proof, recalculated_root,
-                                           expected_depth=max(len(levels) - 1, 0))
+                                           expected_tree_depth(len(leaf_hashes)))
             trace_audit.append({
                 "index": i,
                 "trace_id": traces[i].get("trace_id"),

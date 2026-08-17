@@ -21,7 +21,6 @@ def generate_benchmark_figures(docs_dir: Path):
         if extra_path not in sys.path and Path(extra_path).exists():
             sys.path.insert(0, extra_path)
 
-    import matplotlib
     import matplotlib.pyplot as plt
     import json
 

@@ -9,7 +9,7 @@ from hypothesis import given, settings, strategies as st, HealthCheck
 
 from assurance.crypto import (
     build_merkle_tree, generate_merkle_proof, verify_merkle_proof,
-    hash_sha256, canonical_json,
+    expected_tree_depth, hash_sha256, canonical_json,
 )
 from assurance.evidence import ExecutionTraceRecord
 from assurance.policy import ReleasePolicyEngine
@@ -35,12 +35,17 @@ def test_merkle_proofs_sound_and_complete(recs):
     ]
     leaves = [t.to_hash() for t in traces]
     root, levels = build_merkle_tree(leaves)
+    depth = expected_tree_depth(len(leaves))
     for i, leaf in enumerate(leaves):
         proof = generate_merkle_proof(i, levels)
-        assert verify_merkle_proof(leaf, proof, root)
+        assert verify_merkle_proof(leaf, proof, root, depth)
         # soundness: a different leaf must NOT verify with this proof
         other = hash_sha256(leaf)
-        assert not verify_merkle_proof(other, proof, root)
+        assert not verify_merkle_proof(other, proof, root, depth)
+        # C1: an INTERNAL node digest must never verify as a leaf, at any depth
+        if len(levels) > 2:
+            internal = levels[1][0]
+            assert not verify_merkle_proof(internal, proof, root, depth)
 
 
 @given(st.lists(st.integers(min_value=-(10**9), max_value=10**9),

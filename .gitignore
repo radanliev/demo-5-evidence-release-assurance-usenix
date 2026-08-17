@@ -28,3 +28,8 @@ build/
 .paperloop-env
 *.token
 *.zip
+
+# Persistent nonce ledger written by the release gate at runtime
+.eviassure/
+_to_delete/
+COMMIT_MSG.txt

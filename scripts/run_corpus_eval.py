@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from assurance.evidence import create_evidence_pack, ExecutionTraceRecord
 from assurance.policy import ReleasePolicyEngine
 from assurance.forensics import ForensicAuditEngine
+from assurance.inspection import leave_one_class_out
 
 _ROOT = Path(__file__).parent.parent
 _CORPUS = _ROOT / "corpus" / "agent_trace_corpus.json"
@@ -37,9 +38,14 @@ _OUT = _ROOT / "results" / "corpus_evaluation.json"
 
 
 def _per_leaf_inspection_flag(audit) -> bool:
-    """True if the forensic audit's semantic per-leaf inspection surfaced any
-    anomaly (non-SUCCESS status or sensitive action). Uses the layer the
-    artifact actually implements rather than a script-local duplicate."""
+    """DEPRECATED oracle (2026-08-17 review, B3).
+
+    `forensics.SENSITIVE_ACTIONS` is the same list the corpus generator plants
+    from, so this flag measured the generator, not a detector. Layer-3 numbers
+    now come from `assurance.inspection.leave_one_class_out`, which fits on
+    clean profiles only. This function is retained solely so the artifact can
+    report BOTH numbers side by side and the difference is visible.
+    """
     return bool(audit.get("semantic_anomaly_detected"))
 
 
@@ -76,8 +82,8 @@ def main():
         bundle = create_evidence_pack(traces=traces, signed=True)
         bundle_dict = bundle.to_dict()
 
-        audit = audit_engine.audit_bundle(bundle_dict)
-        passed, violations, _ = policy_engine.evaluate(bundle_dict)
+        audit = audit_engine.audit_bundle(bundle_dict, seen_nonces=set())
+        passed, violations, _ = policy_engine.evaluate(bundle_dict, seen_nonces=set())
 
         if audit["merkle_integrity_valid"]:
             merkle_consistent += 1
@@ -112,6 +118,10 @@ def main():
             "clean_profiles": n_clean,
             "anomalous_profiles": n_anom,
             "distinct_anomaly_classes": len(distinct_types),
+            "overt_anomalies": sum(1 for p in profiles if p.get("anomaly_family") == "overt"),
+            "stealth_anomalies": sum(1 for p in profiles if p.get("anomaly_family") == "stealth"),
+            "total_trace_records": sum(len(p["traces"]) for p in profiles),
+            "provenance": corpus.get("provenance", ""),
         },
         "evaluation_elapsed_seconds": round(elapsed_s, 2),
         "layer_1_cryptographic_integrity": {
@@ -128,16 +138,17 @@ def main():
                      "well-formed signed bundles, so the cryptographic gate approves them; "
                      "they are surfaced by per-leaf inspection instead"),
         },
-        "layer_3_per_leaf_semantic_inspection": {
+        "layer_3_held_out_inspection": leave_one_class_out(profiles),
+        "layer_3_legacy_keyword_oracle": {
             "anomalous_flagged": anom_flagged,
             "anomalous_recall_pct": round(anom_flagged / n_anom * 100.0, 1) if n_anom else 0.0,
             "clean_inspected": clean_inspected,
             "clean_flagged_false_positive": clean_flagged,
             "false_positive_rate_pct": round(clean_flagged / n_clean * 100.0, 1) if n_clean else 0.0,
-            "note": ("per-leaf semantic inspection flags any trace whose status is not "
-                     "SUCCESS or whose action is on the forensic sensitive-action list; "
-                     "on this synthetic corpus every anomalous profile carries at least "
-                     "one such leaf and no clean profile carries any"),
+            "note": ("SUPERSEDED. This oracle keys off forensics.SENSITIVE_ACTIONS, which is "
+                     "the same list scripts/generate_trace_corpus.py plants from, so its "
+                     "recall is a property of the generator. Reported only for comparison "
+                     "against layer_3_held_out_inspection (2026-08-17 review, B3)."),
         },
     }
 

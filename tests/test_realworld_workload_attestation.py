@@ -6,8 +6,8 @@ source code modifications, unit test validation, git commits, and deployment cal
 """
 
 from pathlib import Path
-from assurance.crypto import generate_ed25519_keypair, hash_sha256
-from assurance.evidence import ExecutionTraceRecord, EvidenceBundle, create_evidence_pack
+from assurance.crypto import generate_ed25519_keypair
+from assurance.evidence import ExecutionTraceRecord, create_evidence_pack
 from assurance.policy import ReleasePolicyEngine
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -54,7 +54,7 @@ def test_realworld_swe_agent_workload_attestation():
     assert bundle.merkle_root is not None
     
     engine = ReleasePolicyEngine.from_yaml(REPO_ROOT / "governance" / "release_policy.yaml")
-    passed, violations, details = engine.evaluate(bundle)
+    passed, violations, details = engine.evaluate(bundle, seen_nonces=set())
     
     assert passed is True
     assert len(violations) == 0

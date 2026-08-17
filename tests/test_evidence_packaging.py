@@ -6,14 +6,12 @@ from assurance.crypto import (
     hash_sha256,
     build_merkle_tree,
     generate_merkle_proof,
-    verify_merkle_proof,
-    sign_payload_hmac,
-    verify_signature_hmac,
+    verify_merkle_proof, expected_tree_depth,
     generate_ed25519_keypair,
     sign_payload_ed25519,
     verify_signature_ed25519,
 )
-from assurance.evidence import create_evidence_pack, DEFAULT_SECRET_KEY, DEMO_PRIV_KEY, DEMO_PUB_KEY_B64
+from assurance.evidence import create_evidence_pack
 
 
 def test_hash_sha256():
@@ -33,7 +31,8 @@ def test_merkle_tree_construction_and_proof():
     idx = 2
     proof = generate_merkle_proof(idx, levels)
     assert len(proof) > 0
-    assert verify_merkle_proof(leaves[idx], proof, root) is True
+    assert verify_merkle_proof(leaves[idx], proof, root,
+                               expected_tree_depth(len(leaves))) is True
 
 
 def test_ed25519_keypair_generation_and_verification():

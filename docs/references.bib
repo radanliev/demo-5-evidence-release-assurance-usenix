@@ -32,9 +32,9 @@
   doi={10.1145/3605764.3623985}
 }
 
-@inproceedings{yang2024swebench,
+@inproceedings{jimenez2024swebench,
   title={SWE-bench: Can Language Models Resolve Real-World GitHub Issues?},
-  author={Yang, John and Jimenez, Carlos E and Wettig, Alexander and Likhomanenko, Tatiana and Yao, Shunyu and Narasimhan, Karthik and Press, Ofir},
+  author={Jimenez, Carlos E and Yang, John and Wettig, Alexander and Yao, Shunyu and Pei, Kexin and Press, Ofir and Narasimhan, Karthik},
   booktitle={International Conference on Learning Representations (ICLR)},
   year={2024},
   url={https://dblp.org/rec/conf/iclr/JimenezYWYPPN24}
@@ -67,7 +67,7 @@
   title={Certificate Transparency},
   author={Laurie, Ben and Langley, Adam and Kasper, Emilia},
   booktitle={RFC 6962, IETF},
-  year={2014},
+  year={2013},
   doi={10.17487/RFC6962}
 }
 
@@ -106,21 +106,12 @@
 
 @inproceedings{carlini2024poisoning,
   title={Poisoning Web-Scale Training Datasets is Practical},
-  author={Carlini, Nicholas and Tram{\`e}r, Florian and Wallace, Eric and Jagielski, Matthew and Choquette-Choo, Christopher A and Lee, Katherine and Song, Dawn and Thakur, Sanjam and Mironov, Ilya and Nicholas, Zakir},
+  author={Carlini, Nicholas and Jagielski, Matthew and Choquette-Choo, Christopher A and Paleka, Daniel and Pearce, Will and Anderson, Hyrum and Terzis, Andreas and Thomas, Kurt and Tram{\`e}r, Florian},
   booktitle={IEEE Symposium on Security and Privacy (IEEE S\&P)},
   year={2024},
   doi={10.1109/SP54263.2024.00179}
 }
 
-
-@inproceedings{papernot2016cleverhans,
-  title={Technical Report on the CleverHans v1.0.0 Adversarial Examples Library},
-  author={Papernot, Nicolas and Faghri, Fartash and Carlini, Nicholas and Goodfellow, Ian and Feinman, Reuben and Kurakin, Alexey and Xie, Cihang and Sharma, Yash and Brown, Tom and Roy, Aurko and others},
-  booktitle={Technical Report},
-  year={2016},
-  doi={10.48550/arXiv.1610.00768},
-  url={https://arxiv.org/abs/1610.00768}
-}
 
 @article{bernstein2012high,
   title={High-Speed High-Security Signatures},
@@ -159,16 +150,6 @@
   doi={10.1145/1455770.1455841}
 }
 
-@inproceedings{taly2011definitive,
-  title={Automated Analysis of Security-Critical JavaScript APIs},
-  author={Taly, Ankur and Erlingsson, {\'U}lfar and Mitchell, John C and Miller, Mark S and Nagra, Jasvir},
-  booktitle={IEEE Symposium on Security and Privacy (IEEE S\&P)},
-  year={2011},
-  doi={10.1109/SP.2011.39}
-}
-
-
-
 @book{shostack2014threat,
   title={Threat Modeling: Designing for Security},
   author={Shostack, Adam},
@@ -177,25 +158,6 @@
   address={Indianapolis, IN},
   isbn={978-1-118-80999-0}
 }
-
-@inproceedings{bellare1993random,
-  title={Random Oracles are Practical: A Paradigm for Designing Efficient Protocols},
-  author={Bellare, Mihir and Rogaway, Phillip},
-  booktitle={ACM Conference on Computer and Communications Security (ACM CCS)},
-  pages={62--73},
-  year={1993},
-  doi={10.1145/168588.168596}
-}
-
-@inproceedings{boneh2001short,
-  title={Short Signatures from the Weil Pairing},
-  author={Boneh, Dan and Lynn, Ben and Shacham, Hovav},
-  booktitle={ASIACRYPT},
-  pages={514--532},
-  year={2001},
-  doi={10.1007/3-540-45682-1_30}
-}
-
 
 @inproceedings{yao2023react,
   title={ReAct: Synergizing Reasoning and Acting in Language Models},
@@ -206,13 +168,6 @@
 }
 
 
-
-@inproceedings{zheng2023judging,
-  title={Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena},
-  author={Zheng, Lianmin and Chiang, Wei-Lin and Sheng, Ying and Zhuang, Siyuan and Wu, Zhanghao and Zhuang, Yonghao and Lin, Zi and Li, Zhuohan and Li, Dacheng and Xing, Eric and Zhang, Hao and Gonzalez, Joseph E and Stoica, Ion},
-  booktitle={Advances in Neural Information Processing Systems 36 (NeurIPS 2023), Datasets and Benchmarks Track},
-  year={2023}
-}
 
 @inproceedings{schuster2021get,
   title={You Autocomplete Me: Poisoning Vulnerabilities in Neural Code Completion Systems},
@@ -290,4 +245,42 @@
   howpublished={Predicate specification, \url{https://github.com/in-toto/attestation/blob/main/spec/predicates/runtime-trace.md}},
   year={2024},
   url={https://github.com/in-toto/attestation/blob/main/spec/predicates/runtime-trace.md}
+}
+
+@inproceedings{brendel2021ed25519,
+  title={The Provable Security of Ed25519: Theory and Practice},
+  author={Brendel, Jacqueline and Cremers, Cas and Jackson, Dennis and Zhao, Mang},
+  booktitle={IEEE Symposium on Security and Privacy (IEEE S\&P)},
+  pages={1659--1676},
+  year={2021},
+  doi={10.1109/SP40001.2021.00042}
+}
+
+@inproceedings{goldwasser1988digital,
+  title={A Digital Signature Scheme Secure Against Adaptive Chosen-Message Attacks},
+  author={Goldwasser, Shafi and Micali, Silvio and Rivest, Ronald L},
+  booktitle={SIAM Journal on Computing},
+  volume={17},
+  number={2},
+  pages={281--308},
+  year={1988},
+  doi={10.1137/0217017}
+}
+
+@misc{notarized2026agents,
+  title={Notarized Agents: Receiver-Attested Confidential Receipts for AI Agent Actions},
+  author={{Anonymous (preprint)}},
+  howpublished={arXiv preprint arXiv:2606.04193},
+  year={2026},
+  note={VERIFY BEFORE SUBMISSION: title and identifier confirmed against the arXiv listing; the full text was not read when this entry was added, so the characterisation in Section~\ref{sec:related-2026} must be checked against the paper},
+  url={https://arxiv.org/abs/2606.04193}
+}
+
+@misc{pipelab2026receipts,
+  title={Agent Action Receipts: Signed Evidence for What an AI Agent Did},
+  author={{PipeLab}},
+  howpublished={PipeLab technical note},
+  year={2026},
+  note={VERIFY BEFORE SUBMISSION: located via search; content not read in full},
+  url={https://pipelab.org/learn/agent-action-receipts/}
 }

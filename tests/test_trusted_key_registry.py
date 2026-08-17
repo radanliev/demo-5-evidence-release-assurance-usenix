@@ -6,10 +6,9 @@ bundle: signatures from unregistered keys, or under a spoofed trusted key_id,
 are blocked. Malformed evidence crashes are converted to BLOCKED verdicts.
 """
 
-import json
 from pathlib import Path
 
-from assurance.evidence import create_evidence_pack, EvidenceBundle, DEMO_PRIV_KEY, DEMO_PUB_KEY_B64
+from assurance.evidence import create_evidence_pack, DEMO_PUB_KEY_B64
 from assurance.crypto import generate_ed25519_keypair, sign_payload_ed25519, compute_key_id
 from assurance.policy import ReleasePolicyEngine
 
@@ -42,7 +41,7 @@ def test_registry_loads_demo_key():
 
 def test_attacker_ed25519_key_rejected():
     engine = ReleasePolicyEngine.from_yaml(POLICY)
-    passed, violations, _ = engine.evaluate(_attacker_signed_bundle())
+    passed, violations, _ = engine.evaluate(_attacker_signed_bundle(), seen_nonces=set())
     assert not passed, "Bundle signed by an unregistered attacker key was APPROVED"
     assert any("not in trusted key registry" in v for v in violations)
 
@@ -50,7 +49,7 @@ def test_attacker_ed25519_key_rejected():
 def test_spoofed_trusted_key_id_rejected():
     engine = ReleasePolicyEngine.from_yaml(POLICY)
     d = _attacker_signed_bundle(key_id=compute_key_id(DEMO_PUB_KEY_B64))
-    passed, violations, _ = engine.evaluate(d)
+    passed, violations, _ = engine.evaluate(d, seen_nonces=set())
     assert not passed, "Attacker key spoofing a trusted key_id was APPROVED"
     assert any("does not match the trusted key registry" in v for v in violations)
 
@@ -58,14 +57,14 @@ def test_spoofed_trusted_key_id_rejected():
 def test_demo_signed_bundle_still_passes():
     engine = ReleasePolicyEngine.from_yaml(POLICY)
     bundle = create_evidence_pack(use_ed25519=True, signed=True)
-    passed, violations, _ = engine.evaluate(bundle.to_dict())
+    passed, violations, _ = engine.evaluate(bundle.to_dict(), seen_nonces=set())
     assert passed, f"Registry broke legitimate demo-signed bundles: {violations}"
 
 
 def test_engine_without_registry_rejects_ed25519():
     engine = ReleasePolicyEngine({"release_conditions": {"require_signed_evidence": True}})
     bundle = create_evidence_pack(use_ed25519=True, signed=True)
-    passed, violations, _ = engine.evaluate(bundle.to_dict())
+    passed, violations, _ = engine.evaluate(bundle.to_dict(), seen_nonces=set())
     assert not passed, "Ed25519 signatures verified with no trusted registry configured"
 
 
@@ -73,7 +72,7 @@ def test_malformed_evidence_fails_closed():
     engine = ReleasePolicyEngine.from_yaml(POLICY)
     d = create_evidence_pack(use_ed25519=True, signed=True).to_dict()
     d["test_pass_pct"] = "not-a-number"   # raises TypeError mid-evaluation
-    passed, violations, _ = engine.evaluate(d)
+    passed, violations, _ = engine.evaluate(d, seen_nonces=set())
     assert not passed, "Crashing evidence must fail closed, not approve"
     assert any("fail-closed" in v or "Malformed" in v for v in violations)
 
@@ -83,7 +82,7 @@ def test_forensic_audit_uses_registry_not_bundle_keys():
     from benchmark.tamper_vectors import generate_tampered_evidence_suite
     engine = ForensicAuditEngine(policy_engine=ReleasePolicyEngine.from_yaml(POLICY))
     suite = {vid: ev for vid, _, ev in generate_tampered_evidence_suite()}
-    res = engine.audit_bundle(suite["V3_FORGED_SIGNATURE"])
+    res = engine.audit_bundle(suite["V3_FORGED_SIGNATURE"], seen_nonces=set())
     assert res["signature_key_status"] == "unregistered"
     assert not res["signature_valid"]
     assert res["forensic_status"] == "COMPROMISED_OR_TAMPERED"
