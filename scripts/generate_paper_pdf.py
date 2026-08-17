@@ -219,6 +219,7 @@ def write_frozen_metrics(res_dir, docs_dir):
     single = tp["workers_1"]
     n1m = next(r for r in b["merkle_scaling"] if r["trace_count"] == 1000000)
     n100 = next(r for r in b["merkle_scaling"] if r["trace_count"] == 100000)
+    n1k = next(r for r in b["merkle_scaling"] if r["trace_count"] == 1000)
     sp = b["sparse_proof"]
     bl = b["blinding_overhead"]
     ui = b["ui_attestation_hashing"]
@@ -230,6 +231,12 @@ def write_frozen_metrics(res_dir, docs_dir):
         "% Every benchmark-derived numeral cited in the prose is a macro here,\n"
         "% so a benchmark re-run can never leave a stale number in the text.\n"
         f"\\newcommand{{\\benchRepeats}}{{{b['benchmark_params'].get('repeats', 5)}}}\n"
+        # Raw-log sizes were typed into the prose as 222.6 and 220,705.03 while
+        # the artifact recorded 221.68 and 220704.11. Small, but it is exactly
+        # the drift this file exists to make impossible, and the paper gate
+        # caught it. Bind them.
+        f"\\newcommand{{\\rawSizeOneKKb}}{{{n1k['bundle_size_kb']:,.2f}}}\n"
+        f"\\newcommand{{\\rawSizeOneMKb}}{{{n1m['bundle_size_kb']:,.0f}}}\n"
         f"\\newcommand{{\\peakThroughput}}{{{best['throughput_ops_sec']:,.0f}}}\n"
         f"\\newcommand{{\\peakThroughputStd}}{{{best.get('throughput_ops_sec_std', 0):,.0f}}}\n"
         f"\\newcommand{{\\peakWorkers}}{{{best['num_workers']}}}\n"

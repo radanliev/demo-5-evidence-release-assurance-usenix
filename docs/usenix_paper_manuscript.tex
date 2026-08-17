@@ -320,7 +320,7 @@ The gate reconciles: authenticate every attestation under a registry-pinned witn
 \subsection{Merkle Trace Aggregation and Sparse Proof Compression}
 To attest $N$ execution traces without transmitting full raw logs to every gate request, EviAssure aggregates normalized trace digests into a SHA-256 Merkle tree~\cite{merkle1989digital, laurie2014certificate}. Each trace record $T_i$ maps to leaf digest $H_i$.
 
-For $N=1,000$ traces, transmitting raw trace logs requires 222.6 KB of storage, scaling to 220,705.03 KB for $N=1,000,000$ traces. EviAssure provides sparse Merkle proof compression, transmitting the 32-byte root $R_M$ and $O(\log N)$ inclusion proof paths $\pi_i$ for audited steps. 
+For $N=1,000$ traces, transmitting raw trace logs requires \rawSizeOneKKb{}\,KB, scaling to \rawSizeOneMKb{}\,KB for $N=1,000,000$. EviAssure provides sparse Merkle proof compression, transmitting the 32-byte root $R_M$ and $O(\log N)$ inclusion proof paths $\pi_i$ for audited steps. 
 
 Given proof path $\pi_i = \{(P_1, \text{pos}_1), \dots, (P_K, \text{pos}_K)\}$, inclusion is verified recursively by setting $C_0 = H_i$ (the committed leaf digest; leaf digests are already SHA-256 strings and are \emph{not} re-hashed at the proof boundary, matching \texttt{verify\_merkle\_proof}) and evaluating:
 \begin{equation}
@@ -474,7 +474,7 @@ Verifier throughput was evaluated using a Python \texttt{ProcessPoolExecutor} ac
 
 
 \subsection{Sparse Inclusion Proofs}
-Auditors verifying individual high-risk steps should not re-process full logs (220,705\,KB at $N=10^6$). At $N=10^6$ the committed depth is $d=\lceil\log_2 N\rceil=20$; proof generation takes $\sparseProofGenMs\text{ ms}$, yielding a \sparseProofSizeKb{}\,KB payload of \sparseProofNodes{} node digests that verifies in $\sparseProofVerifyMs\text{ ms}$ --- a bandwidth reduction of roughly $99.999\%$.
+Auditors verifying individual high-risk steps should not re-process full logs (\rawSizeOneMKb{}\,KB at $N=10^6$). At $N=10^6$ the committed depth is $d=\lceil\log_2 N\rceil=20$; proof generation takes $\sparseProofGenMs\text{ ms}$, yielding a \sparseProofSizeKb{}\,KB payload of \sparseProofNodes{} node digests that verifies in $\sparseProofVerifyMs\text{ ms}$ --- a bandwidth reduction of roughly $99.999\%$.
 
 \subsection{Adversarial Vector Suite}\label{sec:tamper}
 \begin{table}[t]
@@ -607,7 +607,7 @@ L3 Inspect & Clean falsely flagged & \insFPK/\insFPN & 0\% \\
 
 L1 and L2 are as before: all bundles are Merkle-consistent with valid depth-bound proofs, all clean profiles are APPROVED, and \emph{all} anomalous profiles are also APPROVED. We report the latter rather than hiding it --- semantic misbehaviour that is cryptographically well-formed is outside the gate's scope by design.
 
-L3 is the layer whose evaluation we rebuilt. The detector no longer consults any list of anomalous actions. It is fitted on clean profiles alone, learning an action vocabulary, a status vocabulary and a per-action duration envelope, and every anomaly class is held out from that fit. Under this protocol it recalls \insOvertK/\insOvertN{} overt anomalies and \insStealthK/\insStealthN{} stealth anomalies --- overall \insRecallK/\insRecallN{} (\insRecallPct\%, CI [55.4, 76.3]) at \insFPK/\insFPN{} false positives.
+L3 is the layer whose evaluation we rebuilt. The detector no longer consults any list of anomalous actions. It is fitted on clean profiles alone, learning an action vocabulary, a status vocabulary and a per-action duration envelope, and every anomaly class is held out from that fit. Under this protocol it recalls \insOvertK/\insOvertN{} overt anomalies and \insStealthK/\insStealthN{} stealth anomalies --- overall \insRecallK/\insRecallN{} (\insRecallPct\%, CI [\insRecallCIlo, \insRecallCIhi]) at \insFPK/\insFPN{} false positives.
 
 The zero is the result. Per-leaf inspection detects agents that do things they have never done before; it is blind to an agent doing a permitted thing for an impermissible reason, which is precisely what a prompt-injected agent looks like in a trace. Combined with L2, the layered picture is: the gate proves what was recorded is genuine, inspection catches structural novelty, and \emph{neither} catches semantically disguised misbehaviour. The earlier 50/50 recall reported here was a property of that shared list (Section~\ref{sec:corpus}), not a measurement.
 
@@ -702,7 +702,7 @@ Autonomous software agents frequently process confidential prompt texts, custome
 EviAssure raises the cost of forging or replaying release evidence produced by a compromised runner. It does \emph{not} prevent prompt injection: an injected agent produces genuine actions that the collector honestly records and the gate correctly approves, and Section~\ref{sec:twolayer} measures this directly --- all \insRecallN{} anomalous corpus profiles, including the injection class, are APPROVED. The contribution is that such a release becomes \emph{undeniable and attributable} after the fact, not that it is prevented. An earlier version of this appendix claimed prevention; that claim contradicted our own Section~\ref{sec:twolayer} results and has been withdrawn.
 
 \section{Deployment Trade-offs}\label{sec:tradeoffs}
-Two engineering consequences follow. \emph{Audit granularity}: since a depth-bound proof costs \sparseProofSizeKb{}\,KB against 220{,}705\,KB of raw trace, organisations can archive payloads to cold storage and keep only proofs online. \emph{Replay state}: the gate must hold state across submissions, which V16 shows it cannot do across replicas without shared storage; a key-value store with atomic set-if-absent and TTL $\Delta T_{\text{max}}$ is the natural implementation, and it must fail closed when that store is unreachable rather than admit a split-brain replay. Neither deployment is measured here.
+Two engineering consequences follow. \emph{Audit granularity}: since a depth-bound proof costs \sparseProofSizeKb{}\,KB against \rawSizeOneMKb{}\,KB of raw trace, organisations can archive payloads to cold storage and keep only proofs online. \emph{Replay state}: the gate must hold state across submissions, which V16 shows it cannot do across replicas without shared storage; a key-value store with atomic set-if-absent and TTL $\Delta T_{\text{max}}$ is the natural implementation, and it must fail closed when that store is unreachable rather than admit a split-brain replay. Neither deployment is measured here.
 
 \section{Open Science Appendix}\label{sec:appendix_open_science}
 The reproducibility materials consist of the complete EviAssure implementation (cryptographic attestation, blinding, held-out inspection, and policy verification modules), the \corpusProfiles{}-profile agent execution trace corpus, the \scoredVectors{}-vector tamper harness with negative controls, the executed DSSE/TUF/OPA baselines, production GitHub Action workflows, benchmark scripts, and the paper figure generator. Furthermore, all datasets used to establish comparative baselines (e.g., the specific OPA Rego policies and JSON payloads used to evaluate the baseline) are included to guarantee full baseline reproducibility.

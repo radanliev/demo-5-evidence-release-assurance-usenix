@@ -6,6 +6,7 @@ generated macro bound to results/, so a re-run can never leave a stale number in
 the manuscript (the numeric-drift class E1/E7 from the 2026-08-15 plan).
 """
 import json
+import math
 import re
 from pathlib import Path
 
@@ -82,6 +83,23 @@ rows += [
     ("omTuf", om("TUF")["k"]),
     ("omControlOk", "yes" if all(OM["control_approved_by"].values()) else "NO"),
 ]
+
+# --- inspection recall CI ------------------------------------------------------
+# The manuscript typed "CI [55.4, 76.3]" as a literal. The bounds happened to be
+# right, but a typed interval is precisely what frozen_metrics.tex exists to
+# prevent -- it survives a re-run that changes the underlying counts. Compute
+# the Wilson interval from the recorded counts instead.
+def _wilson(k, n, z=1.959963984540054):
+    if n == 0:
+        return 0.0, 0.0
+    p = k / n
+    d = 1 + z * z / n
+    c = (p + z * z / (2 * n)) / d
+    m = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+    return (c - m) * 100.0, (c + m) * 100.0
+
+_lo, _hi = _wilson(INS["recall_overall"], INS["n_anomalous"])
+rows += [("insRecallCIlo", f"{_lo:.1f}"), ("insRecallCIhi", f"{_hi:.1f}")]
 
 # --- live agent macros ------------------------------------------------------
 # Optional: present only after scripts/run_live_agent_eval.py has run against a
