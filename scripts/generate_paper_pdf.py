@@ -15,9 +15,14 @@ from scripts.run_comparative_eval import main as run_comparative_eval
 
 
 def generate_benchmark_figures(docs_dir: Path):
-    # Ensure user site-packages are available for matplotlib
+    # matplotlib is an optional extra and is frequently installed into the
+    # per-user site-packages directory rather than the interpreter's own.
+    # Resolve that directory portably instead of hard-coding a path: a literal
+    # /Users/<name>/... path both breaks on every other machine and is an
+    # author fingerprint in a double-blind artifact.
+    import site
     import sys
-    for extra_path in ["/Users/skywalker/Library/Python/3.14/lib/python/site-packages", "/opt/homebrew/lib/python3.14/site-packages"]:
+    for extra_path in filter(None, [getattr(site, "getusersitepackages", lambda: None)()]):
         if extra_path not in sys.path and Path(extra_path).exists():
             sys.path.insert(0, extra_path)
 

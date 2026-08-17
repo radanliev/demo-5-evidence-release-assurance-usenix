@@ -1,0 +1,49 @@
+# Terms that must never appear in the anonymous review artifact.
+#
+# This file is READ by scripts/prepare_anonymous_artifact.py and is
+# DELIBERATELY NOT PACKAGED -- it is not in INCLUDED_PATHS. Keeping the terms
+# here rather than inside the packaging script matters: scripts/ *is* shipped,
+# so a hard-coded list of author surnames inside the packager would itself be
+# the leak it exists to prevent.
+#
+# One entry per line. Blank lines and #-comments are ignored. Matching is
+# case-insensitive and substring-based, so stems ("radanliev") cover
+# inflections without needing regexes.
+#
+# Add to this file whenever an author, affiliation, funder, grant number,
+# machine name or account handle changes. Removing an entry is a deliberate
+# act -- do not prune it to make a failing scan pass.
+
+# --- author surnames and given names ---
+radanliev
+petar
+osantos
+carsten
+maple
+
+# --- institutions and employers ---
+warwick
+cisco
+open university
+ac.uk
+oxford
+newcastle
+turing
+cosai
+oasis-open
+psirt
+
+# --- accounts, machines and handles ---
+skywalker
+luke-skywalker
+
+# --- contact details ---
+gmail.com
++44
+919 927
+919 412
+cs.co/gpg
+
+# --- funders and grants (add real ones before submission) ---
+# epsrc
+# ukri

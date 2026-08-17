@@ -52,7 +52,7 @@ Every empirical claim, table, and figure in the manuscript maps directly to a de
 | **Figure 3** (Throughput) | Peak parallel throughput at \peakWorkers{} workers | `scripts/run_release_benchmark.py` | `docs/figures/parallel_throughput.png` | ~15s |
 | **Figure 4** (Block Rate) | EviAssure (100%) vs Baselines (0%--30.8%) | `scripts/run_comparative_eval.py` | `docs/figures/comparative_block_rate.png` | ~2s |
 | **Section 7.1** (Compression) | 99.999% bandwidth reduction (<5 KB proof) | `assurance/merkle_tree.py` | `results/benchmark_summary.json` | ~0.5s |
-| **Test Suite** (44 Tests) | Cryptographic soundness, registry, tamper resilience | `pytest tests/ -v` | Console test log | ~1.5s |
+| **Test Suite** (100 tests) | Cryptographic soundness, registry, tamper resilience | `pytest tests/ -v` | Console test log | ~1.5s |
 
 ---
 
@@ -61,7 +61,12 @@ Every empirical claim, table, and figure in the manuscript maps directly to a de
 For fine-grained artifact evaluation, individual components can be executed independently:
 
 ```bash
-# 1. Run full unit and regression test suite (44 tests)
+# 0. OPTIONAL: live agent sessions against a real LLM (needs GROQ_API_KEY
+#    or OPENROUTER_API_KEY). Skipped cleanly, never simulated, if absent.
+#    Free-tier accounts are metered per minute; use --append to batch.
+python3 scripts/run_live_agent_eval.py --sessions 5 --provider groq --append
+
+# 1. Run full unit and regression test suite (100 tests)
 pytest tests/ -v
 
 # 2. Re-run scaling & multi-core throughput benchmarks (generates benchmark_summary.json)

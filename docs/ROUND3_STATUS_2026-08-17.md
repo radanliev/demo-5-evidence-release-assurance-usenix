@@ -85,10 +85,13 @@ references and 0 overfull boxes.
    python3 scripts/write_security_macros.py
    ```
    `--require-executed` fails loudly rather than shipping a modeled number.
-4. **Regenerate the artifact zip and digest.** `scripts/prepare_anonymous_artifact.py`
-   is referenced by Appendix B but is not in the repo I was given —
-   `docs/artifact_digest.tex` is therefore stale. Either restore the script or
-   remove the digest claim.
+4. **Artifact zip and digest — DONE (2026-08-17, round 4).** An earlier version
+   of this note claimed `scripts/prepare_anonymous_artifact.py` was missing. It
+   was not: it exists in the repository and was simply absent from the working
+   copy this session was given. It has now been run, and
+   `docs/artifact_digest.tex` carries a current digest. Re-run it once more
+   after regenerating the timing benchmarks, since the zip contains
+   `results/`.
 5. **Run the CFP's hallucinator over the .bib.** The CFP explicitly recommends
    `github.com/gianlucasb/hallucinator`. I verified every entry against
    Crossref/arXiv/live pages and found two bad author lists; run their tool too
