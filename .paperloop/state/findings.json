@@ -2,36 +2,21 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-18T13:40:35"
+    "generated": "2026-08-18T14:03:05"
   },
   "summary": {
-    "total": 10,
+    "total": 9,
     "by_severity": {
       "BLOCKER": 0,
-      "MAJOR": 1,
+      "MAJOR": 0,
       "MINOR": 5,
       "INFO": 4
     },
-    "actionable": 6,
-    "gated_actionable": 1,
-    "clean": false
+    "actionable": 5,
+    "gated_actionable": 0,
+    "clean": true
   },
   "findings": [
-    {
-      "check": "science",
-      "category": "science.stale_artifact",
-      "severity": "MAJOR",
-      "message": "3 result artifact(s) changed after the manuscript was last edited",
-      "file": null,
-      "line": null,
-      "page": null,
-      "evidence": "results/benchmark_summary.json; results/live_agent_evaluation.json; results/security_evaluation.json",
-      "expected": "manuscript newer than the data it reports",
-      "remedy": "Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.",
-      "fingerprint": "6aacb9fa79a25772",
-      "gated": true,
-      "autofixable": false
-    },
     {
       "check": "refs",
       "category": "refs.bibfield",
@@ -126,14 +111,14 @@
       "check": "science",
       "category": "science.artifact_missing",
       "severity": "INFO",
-      "message": "indexed 200 distinct values from 7 artifacts",
+      "message": "indexed 202 distinct values from 7 artifacts",
       "file": null,
       "line": null,
       "page": null,
       "evidence": null,
       "expected": null,
       "remedy": null,
-      "fingerprint": "5e7173a9ccc4ac02",
+      "fingerprint": "c6553375288c13ff",
       "gated": true,
       "autofixable": false
     },

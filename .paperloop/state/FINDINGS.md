@@ -2,16 +2,16 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 13:40
+**Run:** 2026-08-18 14:03
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 1 |
+| MAJOR | 0 |
 | MINOR | 5 |
 | INFO | 4 |
 
-Gated (human sign-off required): **1**
+Gated (human sign-off required): **0**
 
 <details><summary>Build output (tail)</summary>
 
@@ -44,15 +44,6 @@ notarized2026agents is cited as arXiv — check for a peer-reviewed version
 ## Gated — requires your decision
 
 **The writer agent must not touch these.** Changing a number to make a gate pass converts a data error into a published claim. Each one gets a proposed diff in `.paperloop/state/proposals/`, and the loop halts.
-
-### [MAJOR] science.stale_artifact
-
-3 result artifact(s) changed after the manuscript was last edited
-
-- **found:** `results/benchmark_summary.json; results/live_agent_evaluation.json; results/security_evaluation.json`
-- **expected:** manuscript newer than the data it reports
-- **remedy:** Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.
-- **id:** `6aacb9fa79a25772`
 
 ### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:113
 
@@ -102,9 +93,9 @@ Recorded for the round log; no action implied.
 
 ### [INFO] science.artifact_missing
 
-indexed 200 distinct values from 7 artifacts
+indexed 202 distinct values from 7 artifacts
 
-- **id:** `5e7173a9ccc4ac02`
+- **id:** `c6553375288c13ff`
 
 ### [INFO] venue.font
 

@@ -83,6 +83,15 @@ PROVIDERS = {
         "env": "OPENROUTER_API_KEY",
         "default_model": "meta-llama/llama-3.3-70b-instruct",
     },
+    # A second *provider*, not just a second model: different company, network
+    # path, and serving stack, so a coverage or reconciliation result that held
+    # only because of one vendor's tool-calling quirks would show up as a
+    # disagreement between providers rather than hide inside one of them.
+    "huggingface": {
+        "url": "https://router.huggingface.co/v1/chat/completions",
+        "env": "HF_TOKEN",
+        "default_model": "moonshotai/Kimi-K2-Instruct-0905",
+    },
 }
 
 
@@ -227,6 +236,9 @@ class LiveSession:
     # belong in the record: a coverage or reconciliation number means nothing
     # without knowing which of the two harnesses produced it.
     witness_mode: str = "out-of-process"
+    # How far the witness is separated from the collector: "process",
+    # "container", or "none" when the witness ran inside the collector.
+    witness_isolation: str = "process"
     adversary: str = "none"
     attacked_trace_id: str = ""
 
@@ -313,6 +325,7 @@ def _retry_after(err, payload: str, attempt: int) -> float:
 def run_live_session(provider: str = "groq", model: Optional[str] = None,
                      max_turns: int = 8, task: Optional[str] = None,
                      witness_mode: str = "out-of-process",
+                     witness_isolation: str = "process",
                      adversary: str = "none") -> LiveSession:
     """Run one real agent session with witness-mediated tools.
 
@@ -339,6 +352,8 @@ def run_live_session(provider: str = "groq", model: Optional[str] = None,
     """
     if witness_mode not in ("out-of-process", "in-process"):
         raise ValueError(f"unknown witness_mode {witness_mode!r}")
+    if witness_isolation not in ("process", "container"):
+        raise ValueError(f"unknown witness_isolation {witness_isolation!r}")
     if adversary not in ("none", "alter", "omit"):
         raise ValueError(f"unknown adversary {adversary!r}")
     if provider not in PROVIDERS:
@@ -361,7 +376,7 @@ def run_live_session(provider: str = "groq", model: Optional[str] = None,
         # its own connection to the resource. The collector below can ask it to
         # serve an action; it cannot sign one.
         from specimens.witness_process import ProcessWitnessPool
-        pool = ProcessWitnessPool(TOOL_WITNESSES)
+        pool = ProcessWitnessPool(TOOL_WITNESSES, isolation=witness_isolation)
         registry, mediated = pool.registry, pool.mediated
     else:
         witnesses = {wid: Witness(wid, mediates=set(acts))
@@ -372,7 +387,9 @@ def run_live_session(provider: str = "groq", model: Optional[str] = None,
     sess = LiveSession(session_id=session_id, model=model, provider=provider,
                        credential=cred.to_dict(),
                        registry=registry, mediated=mediated,
-                       witness_mode=witness_mode, adversary=adversary)
+                       witness_mode=witness_mode, adversary=adversary,
+                       witness_isolation=(witness_isolation
+                                          if witness_mode == "out-of-process" else "none"))
     attacked = False
 
     conn = _audit_db()

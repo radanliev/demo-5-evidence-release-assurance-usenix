@@ -166,22 +166,65 @@ class WitnessProcessError(RuntimeError):
     """The witness process refused a request or died."""
 
 
+# The image built by specimens/witness.Dockerfile. Overridable so a deployment
+# can pin its own digest rather than a floating tag.
+WITNESS_IMAGE = os.environ.get("EVIASSURE_WITNESS_IMAGE", "eviassure-witness:latest")
+
+
+def docker_available() -> bool:
+    """True if a Docker daemon is reachable. Used to skip, never to substitute."""
+    try:
+        return subprocess.run(["docker", "info"], capture_output=True,
+                              timeout=20).returncode == 0
+    except Exception:
+        return False
+
+
 class ProcessWitness:
     """A handle on one out-of-process witness.
 
     The collector holds this object. It can ask the witness to serve an action
     and to close a session. It cannot sign anything: the key is in the child.
+
+    `isolation` selects how far the witness is separated from the collector:
+
+      "process"    a child process on this host. Separate memory and key,
+                   shared filesystem, user, and kernel.
+      "container"  a container with its own filesystem, PID and network
+                   namespaces, running as a non-root user, with the repository
+                   mounted read-only and `--network none`. Still one host and
+                   one kernel: it does not stop an adversary who is root on the
+                   host or who can reach the Docker socket.
+
+    Neither setting defends against an attacker who can already debug the
+    collector's own process; that is a deployment assumption, and the paper
+    says so rather than implying the container closes it.
     """
 
     def __init__(self, witness_id: str, mediates: Set[str],
                  orchestrator_public_key: str = DEMO_ORCHESTRATOR_PUB_B64,
-                 python: Optional[str] = None):
+                 python: Optional[str] = None, isolation: str = "process"):
+        if isolation not in ("process", "container"):
+            raise ValueError(f"unknown isolation {isolation!r}")
         self.witness_id = witness_id
         self.mediates = set(mediates)
-        cmd = [python or sys.executable, os.path.abspath(__file__),
-               "--witness-id", witness_id,
-               "--mediates", ",".join(sorted(self.mediates)),
-               "--orchestrator-pub", orchestrator_public_key]
+        self.isolation = isolation
+        args = ["--witness-id", witness_id,
+                "--mediates", ",".join(sorted(self.mediates)),
+                "--orchestrator-pub", orchestrator_public_key]
+        if isolation == "container":
+            repo = str(Path(__file__).parent.parent)
+            cmd = ["docker", "run", "--rm", "-i",
+                   "--network", "none",          # a witness here needs no network
+                   "--read-only",                # nothing on disk is writable
+                   "--tmpfs", "/tmp",
+                   "--cap-drop", "ALL",
+                   "--security-opt", "no-new-privileges",
+                   "--memory", "512m", "--pids-limit", "128",
+                   "-v", f"{repo}:/app:ro",
+                   WITNESS_IMAGE] + args
+        else:
+            cmd = [python or sys.executable, os.path.abspath(__file__)] + args
         self.proc = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE, text=True, bufsize=1,
@@ -239,12 +282,14 @@ class ProcessWitnessPool:
     """The set of out-of-process witnesses serving one session."""
 
     def __init__(self, tool_witnesses: Dict[str, Set[str]],
-                 orchestrator_public_key: str = DEMO_ORCHESTRATOR_PUB_B64):
+                 orchestrator_public_key: str = DEMO_ORCHESTRATOR_PUB_B64,
+                 isolation: str = "process"):
+        self.isolation = isolation
         self.witnesses: Dict[str, ProcessWitness] = {}
         try:
             for wid, acts in tool_witnesses.items():
                 self.witnesses[wid] = ProcessWitness(
-                    wid, set(acts), orchestrator_public_key)
+                    wid, set(acts), orchestrator_public_key, isolation=isolation)
         except Exception:
             self.shutdown()
             raise

@@ -122,3 +122,38 @@ Two things a human must decide:
    were replaced by the 12 out-of-process sessions and remain in git history
    at commit `2888ee4`. They measure the old harness, so pooling them with the
    new data would be unsound; discarding them silently would also be wrong.
+
+---
+
+## APPLIED 18 Aug 2026 — on the author's explicit instruction
+
+The §7.9 and Limitations corrections in this proposal were applied, together
+with container isolation, which did not exist when the proposal was written.
+What is now in the manuscript:
+
+* §7.9 states that each witness runs outside the collector, executes the tool,
+  digests the output it produced, and signs with a key never exported from its
+  own address space; that separation is by process, key, credential, and by
+  container (no network, read-only repository) in `\liveIsoContainer{}`
+  sessions; and that it holds on one host only — not by host or trust domain,
+  and not against root or a debugger.
+* Limitations no longer says "single-provider" or "by key and credential
+  rather than by process".
+* Table 4's caption named a single model for what is now a three-model
+  dataset; it reports `\liveModelCount{}` model families instead.
+
+**The page limit forced one cut.** The body was already at exactly 13 of 13
+pages, so the correction had to be word-for-word neutral — a net of +19 words
+still produced a 14-page body and a BLOCKER. The sentence that did not fit:
+
+> so a collector that alters or drops a record afterwards no longer matches
+> its receipt and reconciliation fails
+
+That is the falsifiability payoff of the whole change, and it is currently
+implied by §4 and demonstrated only in `tests/test_out_of_process_witness.py`.
+Buying roughly 18 words back means cutting author prose elsewhere in §7.9 —
+the two candidates are the "declared and measurable rather than assumed away"
+aside in the coverage paragraph and the "Detection is cryptographic, so this
+confirms rather than surprises" sentence. Both are argumentation rather than
+result, so removing either is an editorial decision for the author, not one an
+agent should take.

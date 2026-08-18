@@ -185,3 +185,88 @@ def test_witness_refuses_to_serve_a_closed_session(pool, cred):
     w = pool.for_action(ACTION)
     with pytest.raises(WitnessProcessError):
         w.serve(cred.to_dict(), ACTION, ARGS, "TR-003", AGENT)
+
+
+# ---------------------------------------------------------------------------
+# Container isolation
+#
+# These assert the properties the paper claims, not that the right flags were
+# passed. They skip -- never substitute -- when no Docker daemon is present.
+# ---------------------------------------------------------------------------
+
+from specimens.witness_process import WITNESS_IMAGE, docker_available  # noqa: E402
+
+# Checked at call time, not import time: Docker Desktop can stop between
+# collection and execution, and a daemon that went away is a skip, not a
+# failed security property.
+@pytest.fixture
+def needs_docker_fx():
+    if not docker_available():
+        pytest.skip("no Docker daemon reachable")
+
+
+needs_docker = pytest.mark.usefixtures("needs_docker_fx")
+
+
+@pytest.fixture
+def container_pool(needs_docker_fx):
+    p = ProcessWitnessPool(TOOL_WITNESSES, isolation="container")
+    try:
+        yield p
+    finally:
+        p.shutdown()
+
+
+@needs_docker
+def test_container_witness_reconciles_an_honest_session(container_pool, cred):
+    receipt, trace = _serve(container_pool, cred)
+    ok, violations = _reconcile([trace], [receipt], _closings(container_pool, cred),
+                                container_pool.registry, container_pool.mediated,
+                                cred.session_id)
+    assert ok, violations
+
+
+@needs_docker
+def test_container_witness_catches_an_altered_record(container_pool, cred):
+    receipt, trace = _serve(container_pool, cred)
+    trace.output_hash = DOCTORED
+    ok, _violations = _reconcile([trace], [receipt], _closings(container_pool, cred),
+                                 container_pool.registry, container_pool.mediated,
+                                 cred.session_id)
+    assert not ok
+
+
+@needs_docker
+def test_container_witness_hashes_its_own_output(container_pool, cred):
+    w = container_pool.for_action(ACTION)
+    served = w.serve(cred.to_dict(), ACTION, ARGS, "TR-000", AGENT)
+    assert served["attested"]["output_hash"] == hash_sha256(served["result"])
+
+
+@needs_docker
+def test_witness_container_has_no_network():
+    """--network none is real: the witness cannot open a socket outbound."""
+    import subprocess
+    r = subprocess.run(
+        ["docker", "run", "--rm", "--network", "none", "--entrypoint", "python3",
+         WITNESS_IMAGE, "-c",
+         "import socket;socket.create_connection(('1.1.1.1',53),timeout=4)"],
+        capture_output=True, text=True, timeout=120)
+    assert r.returncode != 0
+    assert "rror" in r.stderr or "nreachable" in r.stderr.lower(), r.stderr[-300:]
+
+
+@needs_docker
+def test_witness_container_cannot_write_to_the_repository():
+    """The repo is mounted read-only, so a compromised witness cannot edit code."""
+    import subprocess
+    from pathlib import Path as _P
+    repo = str(_P(__file__).parent.parent)
+    r = subprocess.run(
+        ["docker", "run", "--rm", "--read-only", "--tmpfs", "/tmp",
+         "-v", f"{repo}:/app:ro", "--entrypoint", "python3", WITNESS_IMAGE, "-c",
+         "open('/app/PWNED','w').write('x')"],
+        capture_output=True, text=True, timeout=120)
+    assert r.returncode != 0
+    assert "Read-only file system" in r.stderr or "Permission denied" in r.stderr, r.stderr[-300:]
+    assert not (_P(repo) / "PWNED").exists()

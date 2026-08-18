@@ -144,6 +144,11 @@ if live_path.exists():
     # describing a multi-model sample as if one model produced it.
     _models = sorted({x["model"] for x in _S})
     _modes = sorted({x.get("witness_mode", "in-process") for x in _S})
+    _provs = sorted({x["provider"] for x in _S})
+    # Sessions recorded before witness_isolation existed ran with the only
+    # option there was then: a child process on the host. Defaulting them to
+    # "process" states what happened; it does not backfill the data file.
+    _iso = [x.get("witness_isolation", "process") for x in _S]
     rows += [
         ("liveCompleted", len(_done)),
         ("liveTruncated", len(_trunc)),
@@ -155,6 +160,10 @@ if live_path.exists():
         # in-process harness measures the harness, not a deployment, so the
         # mode belongs in the paper next to the number.
         ("liveWitnessMode", ", ".join(_modes)),
+        ("liveProviderCount", len(_provs)),
+        ("liveProviders", ", ".join(_provs)),
+        ("liveIsoContainer", _iso.count("container")),
+        ("liveIsoProcess", _iso.count("process")),
     ]
     # How many of the six omission vectors the live harness can actually build.
     # O5 (cross-session splice) needs a second concurrent session, which the

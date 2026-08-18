@@ -197,6 +197,14 @@ def main() -> int:
     ap.add_argument("--sessions", type=int, default=10)
     ap.add_argument("--provider", default="groq", choices=sorted(PROVIDERS))
     ap.add_argument("--model", default=None)
+    ap.add_argument("--witness-isolation", default="process",
+                    choices=("process", "container"),
+                    help="'container' runs each witness in its own container "
+                         "(own filesystem/PID/network namespaces, non-root, "
+                         "repo mounted read-only, --network none). Requires a "
+                         "Docker daemon and the image from "
+                         "specimens/witness.Dockerfile; the run fails rather "
+                         "than silently falling back to process isolation.")
     ap.add_argument("--witness-mode", default="out-of-process",
                     choices=("out-of-process", "in-process"),
                     help="'out-of-process' runs each witness in its own process, "
@@ -234,7 +242,8 @@ def main() -> int:
         task = TASKS[i % len(TASKS)]
         try:
             s = run_live_session(provider=args.provider, model=args.model, task=task,
-                                 witness_mode=args.witness_mode)
+                                 witness_mode=args.witness_mode,
+                                 witness_isolation=args.witness_isolation)
         except ProviderError as e:
             msg = scrub(str(e))
             failures.append(f"session {i}: {msg}")
@@ -274,6 +283,7 @@ def main() -> int:
             # comparable across the two, so it is recorded per session rather
             # than assumed globally.
             "witness_mode": s.witness_mode,
+            "witness_isolation": s.witness_isolation,
             "turns": s.turns, "actions": len(s.traces),
             "witnessed": s.mediated_count, "coverage": round(s.coverage, 4),
             "unmediated_actions": sorted(set(s.unmediated_actions)),

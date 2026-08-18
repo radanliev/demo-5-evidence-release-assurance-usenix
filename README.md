@@ -37,7 +37,7 @@ Autonomous agentic deployments require reproducible, cryptographically verifiabl
 | **Held-out inspection recall** | **50/50 overt, 0/25 stealth (66.7% overall), 0/1000 false positives** | `results/corpus_evaluation.json` |
 | **Merkle build, $N=10^6$** | **378.00 ms** (mean of 5, Apple M4 Max) | `results/benchmark_summary.json` |
 | **Peak verifier throughput** | **7,152 ± 179 ops/s at 4 workers** (three-trace bundles) | `results/benchmark_summary.json` |
-| **Test suite** | **115 tests** (`pytest tests/`; needs `pip install -e ".[dev]"`) | `tests/` |
+| **Test suite** | **120 tests** (`pytest tests/`; needs `pip install -e ".[dev]"`) | `tests/` |
 
 
 ## 🚀 Quickstart & Reproduction

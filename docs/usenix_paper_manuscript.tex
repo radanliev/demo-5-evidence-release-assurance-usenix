@@ -611,15 +611,16 @@ The zero is the result. Per-leaf inspection detects agents that do things they h
 Everything above is computed over a templated corpus, which leaves the paper's
 own premise untested: does witnessed completeness survive an agent that actually
 decides what to do? We therefore ran \liveSessions{} sessions of a real
-tool-calling LLM (\texttt{\liveModel}) against a small tool set fronted by
+tool-calling LLMs (\liveModelCount{} model families,
+\liveProviderCount{} providers) against a small tool set fronted by
 witnesses of Section~\ref{sec:witness}. The model chooses the actions; nothing
 is scripted (Table~\ref{tab:live}). What the harness does and does not separate must be stated before
-its numbers are read: the tools execute in the harness process, the trace
-record is built there, and the witness object is handed that record to sign
-after verifying the session credential. The separation exercised is by
-\emph{key} and by \emph{credential}, not by process; an out-of-process witness
-that computes the action digest from the request it served is the deployment
-design of Section~\ref{sec:witness}, and it is not what produced these numbers.
+its numbers are read. Each witness runs outside the collector: it executes the
+tool, digests the output \emph{it} produced, and signs with a key never
+exported from its own address space. Separation is by process, key and
+credential --- and by container, with no network and a read-only repository,
+in \liveIsoContainer{} sessions --- on one host: not by host or trust domain,
+nor against root or a debugger.
 
 \begin{table}[t]
 \centering
@@ -679,7 +680,7 @@ than assumed away, not that it is a discovery about agents. \liveFailures{} of
 which we report rather than retry into silence.
 
 \subsection{Limitations and Threats to Validity}\label{sec:limitations}
-\textbf{The corpus is synthetic and the live harness is small.} Section~\ref{sec:live} runs a real tool-calling LLM against the witness protocol, so the completeness claim is not evaluated only on templates. The \corpusProfiles-profile corpus behind Section~\ref{sec:twolayer} and the semantic-inspection results is synthetic and templated, as the artifact's own \texttt{provenance} field declares. The live sessions are modest in scale (\liveSessions{}, of which \liveCompleted{} ran to completion), single-provider, use benign tools, and separate witness from collector by key and credential rather than by process; they establish that the protocol composes with a real agent, not how it behaves under an adversarial one, and their coverage figure describes the tool set rather than agents in general.
+\textbf{The corpus is synthetic and the live harness is small.} Section~\ref{sec:live} runs a real tool-calling LLM against the witness protocol, so the completeness claim is not evaluated only on templates. The \corpusProfiles-profile corpus behind Section~\ref{sec:twolayer} and the semantic-inspection results is synthetic and templated, as the artifact's own \texttt{provenance} field declares. The live sessions are modest in scale (\liveSessions{}, of which \liveCompleted{} ran to completion), \liveProviderCount{}-provider, use benign tools, and separate witness from collector only as far as Section~\ref{sec:live} states; they establish that the protocol composes with a real agent, not how it behaves under an adversarial one, and their coverage figure describes the tool set rather than agents in general.
 
 \textbf{The collector is unimplemented.} Every security guarantee is conditioned on complete mediation at the collection boundary (Definition~\ref{def:completeness}). The production design grounds this at the OS boundary via eBPF; the evaluation uses Python instrumentation wrappers. The load-bearing component is therefore an architectural proposal, not a measured one.
 
