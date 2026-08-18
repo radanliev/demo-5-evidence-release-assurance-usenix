@@ -2,16 +2,16 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 22:16
+**Run:** 2026-08-18 23:46
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 1 |
+| MAJOR | 0 |
 | MINOR | 6 |
 | INFO | 4 |
 
-Gated (human sign-off required): **1**
+Gated (human sign-off required): **0**
 
 ## Auto-fix mandate
 
@@ -35,50 +35,41 @@ shi2025progent is cited as arXiv — check for a peer-reviewed version
 
 **The writer agent must not touch these.** Changing a number to make a gate pass converts a data error into a published claim. Each one gets a proposed diff in `.paperloop/state/proposals/`, and the loop halts.
 
-### [MAJOR] science.stale_artifact
-
-2 result artifact(s) changed after the manuscript was last edited
-
-- **found:** `results/benchmark_summary.json; results/witness_overhead.json`
-- **expected:** manuscript newer than the data it reports
-- **remedy:** Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.
-- **id:** `1399079e29b05206`
-
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:113
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:117
 
 percentage without an explicit denominator
 
 - **found:** `We implement the protocol in \textsc{EviAssure}, an evidence-bundle format that rides inside in-toto/SLSA envelopes with a domain-separated, depth-bound Merkle trace commitment, an`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `fbe242416462876d`
+- **id:** `cde3e2e5331f5edc`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:438
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:449
 
 percentage without an explicit denominator
 
 - **found:** `EviAssure blocks \eviBlocked{} of \eviTotal{} scored vectors (\eviPct\%, 95\% CI [\eviCIlo, \eviCIhi]), and falsely blocks \falseBlockK{} of \falseBlockN{} clean negative controls.`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `b457f5860f2f5547`
+- **id:** `e722642eb3acadbd`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:446
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:457
 
 percentage without an explicit denominator
 
 - **found:** `\textbf{Differential wire fuzzing.} A campaign whose every mutation perturbs a field inside the signed payload cannot fail (a verifying bundle is unreachable), so it carries no inf`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `c1c0dc1ef33dba89`
+- **id:** `70939405e171015b`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:487
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:498
 
 percentage without an explicit denominator
 
 - **found:** `\caption{Executed baselines against the \scoredVectors{}-vector suite, with Wilson 95\%`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `b8945bf90b5b5c44`
+- **id:** `c5c48d1900d34e59`
 
 ## Measurements
 

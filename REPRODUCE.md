@@ -48,12 +48,12 @@ Every empirical claim, table, and figure in the manuscript maps directly to a de
 | **Table 3** (Corpus, layered) | 1,075 profiles / 5,450 records; L1 1075/1075; L2 clean 1000/1000 and anomalous 75/75 APPROVED; L3 held-out recall 50/50 overt, 0/25 stealth, 0/1000 false positives | `scripts/generate_trace_corpus.py`, `scripts/run_corpus_eval.py` | `corpus/agent_trace_corpus.json`, `results/corpus_evaluation.json` | ~6s |
 | **Table 4** (Live agent sessions) | 31 of 42 requested sessions (5 model families, 4 providers; 11 lost to provider quota/credit/rate limits); 15 ran to completion; witness coverage 82.7% over completed sessions (91.6% pooled) — a property of the 4-of-5 witnessed tool set; honest control reconciles 31/31; 177/177 re-derived omission attacks detected over 6 of the 7 vectors (O7 derived pairwise across sessions; O5 needs a concurrent second session and was not constructed) | `scripts/run_live_agent_eval.py` (needs a provider API key; never simulated) | `results/live_agent_evaluation.json` | minutes, provider-bound |
 | **Figure 1** (Architecture) | System model and trust boundaries | TikZ in the manuscript source | `docs/usenix_paper_manuscript.pdf` | — |
-| **Figure 2** (Scaling) | Merkle build to $N=10^6$ traces (1,858.07 ms mean of 5 on Apple M4 Max) | `scripts/run_release_benchmark.py` | `results/benchmark_summary.json`, `docs/figures/merkle_scaling.png` | ~25s |
-| **Figure 3** (Throughput) | Peak 6,810 ± 487 ops/s at 4 workers (three-trace bundles) | `scripts/run_release_benchmark.py` | `results/benchmark_summary.json`, `docs/figures/parallel_throughput.png` | ~15s |
+| **Figure 2** (Scaling) | Merkle build to $N=10^6$ traces (1,815.13 ms mean of 5 on Apple M4 Max) | `scripts/run_release_benchmark.py` | `results/benchmark_summary.json`, `docs/figures/merkle_scaling.png` | ~25s |
+| **Figure 3** (Throughput) | Peak 6,963 ± 89 ops/s at 4 workers (three-trace bundles) | `scripts/run_release_benchmark.py` | `results/benchmark_summary.json`, `docs/figures/parallel_throughput.png` | ~15s |
 | **Figure 4** (Block rate) | EviAssure 16/17 vs composed DSSE + TUF + OPA 10/17, Wilson 95% intervals (overlapping) | `scripts/run_security_eval.py`, drawn by `scripts/generate_paper_pdf.py` | `results/security_evaluation.json`, `docs/figures/comparative_block_rate.png` | ~2s |
 | **Section 4.2** (Witness cost) | receipt issuance, closing and gate reconciliation cost for 30/300/3,000 witnessed actions over three in-process witnesses (platform recorded in the file and quoted by the manuscript macro) | `scripts/run_witness_overhead.py` (also run by `run_release_benchmark.py`) | `results/witness_overhead.json` | ~5s |
-| **Sparse proofs** | 20-node, 1.93 KB proof at $N=10^6$; generated in 0.004 ms, verifies in 0.011 ms | `scripts/run_release_benchmark.py` (`assurance/crypto.py`) | `results/benchmark_summary.json` (`sparse_proof`) | ~0.5s |
-| **Test Suite** (120 tests) | crypto soundness (property-based), registry, tamper/omission regressions, credential refusal, session substitution, CLI end-to-end reconciliation, out-of-process and container witnesses (the 5 container tests need a Docker daemon **and** the image: `docker build -f specimens/witness.Dockerfile -t eviassure-witness:latest .`; they skip, with that command, when either is absent) | `pytest tests/ -v` | Console test log | ~3s (+ ~10s with containers) |
+| **Sparse proofs** | 20-node, 1.93 KB proof at $N=10^6$; generated in 0.003 ms, verifies in 0.011 ms | `scripts/run_release_benchmark.py` (`assurance/crypto.py`) | `results/benchmark_summary.json` (`sparse_proof`) | ~0.5s |
+| **Test Suite** (121 tests) | crypto soundness (property-based), registry, tamper/omission regressions, credential refusal, session substitution, CLI end-to-end reconciliation, out-of-process and container witnesses (the 5 container tests need a Docker daemon **and** the image: `docker build -f specimens/witness.Dockerfile -t eviassure-witness:latest .`; they skip, with that command, when either is absent) | `pytest tests/ -v` | Console test log | ~3s (+ ~10s with containers) |
 
 Timings in `results/benchmark_summary.json` are platform-dependent and were recorded on Apple M4 Max / Python 3.14; block counts and verdicts are platform-independent. The timing figures quoted in this table and in `README.md` are copied from that file by hand and must be re-checked after any benchmark re-run (the manuscript's numbers are macros and cannot drift).
 
@@ -78,7 +78,7 @@ docker build -f specimens/witness.Dockerfile -t eviassure-witness:latest .
 python3 scripts/run_live_agent_eval.py --sessions 5 --provider groq \
         --witness-isolation container --append
 
-# 1. Run full unit and regression test suite (120 tests)
+# 1. Run full unit and regression test suite (121 tests)
 pytest tests/ -v
 
 # 2. Re-run scaling & multi-core throughput benchmarks (generates benchmark_summary.json)

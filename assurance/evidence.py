@@ -294,7 +294,7 @@ class EvidenceBundle:
         return proofs
 
     def generate_slsa_envelope(self) -> Dict[str, Any]:
-        """Wrap evidence into in-toto v0.2 / SLSA v1.0 Statement format."""
+        """Wrap evidence into an in-toto Statement (v0.1) / SLSA Provenance v1.0 envelope."""
         slsa_prov = format_slsa_provenance(
             builder_id=f"https://usenix.org/agent-builder/{self.agent_system_version}",
             build_type="https://usenix.org/AgenticReleasePolicy/v1",

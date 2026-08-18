@@ -278,7 +278,7 @@ def format_intoto_statement(
     predicate_type: str,
     predicate_payload: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Format in-toto v0.2 / SLSA v1.0 Statement envelope."""
+    """Format an in-toto Statement (v0.1) / SLSA Provenance v1.0 envelope."""
     return {
         "_type": "https://in-toto.io/Statement/v0.1",
         "subject": [

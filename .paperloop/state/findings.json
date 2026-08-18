@@ -2,36 +2,21 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-18T22:16:42"
+    "generated": "2026-08-18T23:46:00"
   },
   "summary": {
-    "total": 11,
+    "total": 10,
     "by_severity": {
       "BLOCKER": 0,
-      "MAJOR": 1,
+      "MAJOR": 0,
       "MINOR": 6,
       "INFO": 4
     },
-    "actionable": 7,
-    "gated_actionable": 1,
-    "clean": false
+    "actionable": 6,
+    "gated_actionable": 0,
+    "clean": true
   },
   "findings": [
-    {
-      "check": "science",
-      "category": "science.stale_artifact",
-      "severity": "MAJOR",
-      "message": "2 result artifact(s) changed after the manuscript was last edited",
-      "file": null,
-      "line": null,
-      "page": null,
-      "evidence": "results/benchmark_summary.json; results/witness_overhead.json",
-      "expected": "manuscript newer than the data it reports",
-      "remedy": "Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.",
-      "fingerprint": "1399079e29b05206",
-      "gated": true,
-      "autofixable": false
-    },
     {
       "check": "refs",
       "category": "refs.bibfield",
@@ -68,12 +53,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 113,
+      "line": 117,
       "page": null,
       "evidence": "We implement the protocol in \\textsc{EviAssure}, an evidence-bundle format that rides inside in-toto/SLSA envelopes with a domain-separated, depth-bound Merkle trace commitment, an",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "fbe242416462876d",
+      "fingerprint": "cde3e2e5331f5edc",
       "gated": true,
       "autofixable": false
     },
@@ -83,12 +68,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 438,
+      "line": 449,
       "page": null,
       "evidence": "EviAssure blocks \\eviBlocked{} of \\eviTotal{} scored vectors (\\eviPct\\%, 95\\% CI [\\eviCIlo, \\eviCIhi]), and falsely blocks \\falseBlockK{} of \\falseBlockN{} clean negative controls.",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "b457f5860f2f5547",
+      "fingerprint": "e722642eb3acadbd",
       "gated": true,
       "autofixable": false
     },
@@ -98,12 +83,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 446,
+      "line": 457,
       "page": null,
       "evidence": "\\textbf{Differential wire fuzzing.} A campaign whose every mutation perturbs a field inside the signed payload cannot fail (a verifying bundle is unreachable), so it carries no inf",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "c1c0dc1ef33dba89",
+      "fingerprint": "70939405e171015b",
       "gated": true,
       "autofixable": false
     },
@@ -113,12 +98,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 487,
+      "line": 498,
       "page": null,
       "evidence": "\\caption{Executed baselines against the \\scoredVectors{}-vector suite, with Wilson 95\\%",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "b8945bf90b5b5c44",
+      "fingerprint": "c5c48d1900d34e59",
       "gated": true,
       "autofixable": false
     },

@@ -105,10 +105,24 @@ def generate_benchmark_figures(docs_dir: Path):
     # frozen-metrics discipline has to cover them too.
     _n1m = next(r for r in scaling if r['trace_count'] == 1000000)
     _n1m_ms = _n1m['merkle_tree_build_ms']
-    ax.annotate(f'{_n1m_ms:.1f} ms\n(1M traces)', xy=(1000000, _n1m_ms), xytext=(120000, 900.0),
-                arrowprops=dict(arrowstyle='->', color='#B91C1C', lw=1.0),
+    # Place the callout in the open band BETWEEN the two curves at the right
+    # of the axes (below the Merkle curve, above the packaging curve) and point
+    # the arrow up at the 1M marker. The previous fixed position (120k, 900 ms)
+    # was chosen when the 1M build took ~380 ms; once the domain-separated
+    # tree pushed it past 1.8 s the box sat on top of the line and the marker.
+    # Anchoring the box's right edge at 8e5 and its bottom at the geometric
+    # midpoint of the two curves' right-hand values keeps it clear of both
+    # whatever the measured numbers are.
+    _y_top = min(m for t, m in zip(traces, merkle_build) if t >= 1e5)   # Merkle curve near the right
+    _y_bot = max(pkg_lat)                                                # packaging curve ceiling
+    _y_box = (_y_top * _y_bot) ** 0.5 / 3.0                              # below the log-midpoint
+    ax.annotate(f'{_n1m_ms:.1f} ms\n(1M traces)', xy=(1000000, _n1m_ms), xytext=(8e5, _y_box),
+                ha='right', va='bottom',
+                arrowprops=dict(arrowstyle='->', color='#B91C1C', lw=1.0,
+                                shrinkA=2, shrinkB=4),
                 fontsize=7.0, fontweight='bold', color='#7F1D1D',
-                bbox=dict(boxstyle='round,pad=0.25', facecolor='#FEF2F2', edgecolor='#F87171', lw=0.6))
+                bbox=dict(boxstyle='round,pad=0.25', facecolor='#FEF2F2', edgecolor='#F87171', lw=0.6),
+                zorder=6)
 
     ax.legend(fontsize=7.2, frameon=True, facecolor='white', edgecolor='#CBD5E1', loc='upper left')
     fig.tight_layout()

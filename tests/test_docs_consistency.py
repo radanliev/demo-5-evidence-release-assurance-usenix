@@ -94,3 +94,44 @@ def test_markdown_docs_do_not_state_a_stale_test_count():
                                 f"{expected}: {line.strip()}"
                             )
     assert not problems, "stale test counts in documentation:\n" + "\n".join(problems)
+
+
+def test_markdown_docs_quote_the_recorded_benchmark_figures():
+    """README.md and REPRODUCE.md quote two timing figures by hand -- the
+    Merkle build at N = 10^6 and the peak verifier throughput -- and every
+    benchmark re-run moves them (the paper's numbers are macros and cannot
+    drift; these can, and did, twice on 18 Aug 2026). This binds the two
+    Markdown files to results/benchmark_summary.json the same way the test
+    count is bound above. If this fails, copy the values from
+    docs/frozen_metrics.tex into the two tables; do not relax the pattern.
+    """
+    import json
+    summary_path = ROOT / "results" / "benchmark_summary.json"
+    if not summary_path.exists():
+        pytest.skip("results/benchmark_summary.json is not present")
+    b = json.loads(summary_path.read_text())
+    n1m = next(r for r in b["merkle_scaling"] if r["trace_count"] == 1_000_000)
+    merkle_1m = f"{n1m['merkle_tree_build_ms']:,.2f}"          # e.g. 1,815.13
+    tp = b["parallel_throughput"]
+    best = max(tp.values(), key=lambda v: v["throughput_ops_sec"])
+    peak = f"{best['throughput_ops_sec']:,.0f}"                 # e.g. 6,963
+    peak_std = f"{best.get('throughput_ops_sec_std', 0):,.0f}"  # e.g. 89
+    workers = str(best["num_workers"])
+    problems = []
+    for name in ("README.md", "REPRODUCE.md"):
+        path = ROOT / name
+        if not path.exists():
+            continue
+        text = path.read_text()
+        merkle_lines = [l for l in text.splitlines() if "Merkle build" in l and "10^6" in l]
+        assert merkle_lines, f"{name}: no Merkle N=10^6 timing row found"
+        for l in merkle_lines:
+            if merkle_1m not in l:
+                problems.append(f"{name}: Merkle 10^6 row does not say {merkle_1m} ms: {l.strip()}")
+        peak_lines = [l for l in text.splitlines() if "ops/s" in l and "workers" in l]
+        assert peak_lines, f"{name}: no peak-throughput row found"
+        for l in peak_lines:
+            want = f"{peak} ± {peak_std} ops/s at {workers} workers"
+            if want not in l:
+                problems.append(f"{name}: peak row does not say '{want}': {l.strip()}")
+    assert not problems, "stale benchmark figures in documentation:\n" + "\n".join(problems)
