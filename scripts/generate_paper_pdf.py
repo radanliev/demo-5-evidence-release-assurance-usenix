@@ -239,6 +239,103 @@ def generate_benchmark_figures(docs_dir: Path):
         fig.tight_layout()
         fig.savefig(fig_dir / "comparative_block_rate.png", dpi=600)
         plt.close(fig)
+
+        # ---------------------------------------------------------
+        # Figure 5: coverage matrix -- WHICH vector each verifier stops.
+        #
+        # Figure 4 gives the totals with intervals; the prose of Sections
+        # 7.5-7.6 used to enumerate, vector by vector, what receipts, chains
+        # and the composed pipeline miss. A matrix carries that in one glance
+        # and cannot drift from the artifact, because every cell is read from
+        # results/security_evaluation.json: panel (a) is the scored tamper
+        # suite against the executed baselines, panel (b) the omission suite
+        # against the completeness baselines. Two fills only (stopped / not),
+        # each with a glyph so the figure survives greyscale printing; the
+        # honest control OC1 is drawn in a third, neutral style because there
+        # "approved" is the correct outcome.
+        # ---------------------------------------------------------
+        from matplotlib.patches import Rectangle
+        pv = [v for v in sec["vectors"]["per_vector"] if v.get("scored", True)]
+        tamper_cols = [v["vector_id"] for v in pv]
+
+        def _col(v, sub):
+            for k, val in v.items():
+                if isinstance(val, bool) and sub.lower() in k.lower():
+                    return val
+            return False
+        tamper_rows = [
+            ("Status gate",  lambda v: _col(v, "status gate")),
+            ("OPA Rego",     lambda v: _col(v, "OPA")),
+            ("in-toto/DSSE", lambda v: _col(v, "DSSE")),
+            ("TUF",          lambda v: _col(v, "TUF")),
+            ("Composed",     lambda v: _col(v, "Composed")),
+            ("EviAssure",    lambda v: bool(v.get("eviassure_blocked"))),
+        ]
+        om = sec["omission"]["per_vector"]
+        om_cols = [v["vector_id"] for v in om]
+
+        def _om(v, sub):
+            for k, val in v["blocked_by"].items():
+                if sub.lower() in k.lower():
+                    return bool(val)
+            return False
+        om_rows = [
+            ("in-toto/DSSE",      lambda v: _om(v, "DSSE")),
+            ("TUF",               lambda v: _om(v, "TUF")),
+            ("Hash chain",        lambda v: _om(v, "chain")),
+            ("Receipts",          lambda v: _om(v, "receipt")),
+            ("EviAssure, no WTC", lambda v: _om(v, "without")),
+            ("EviAssure + WTC",   lambda v: _om(v, "+ WTC")),
+        ]
+
+        HIT, MISS, CTRL, INK = '#1D4ED8', '#E5E7EB', '#D1FAE5', '#0F172A'
+        fig, (ax1, ax2) = plt.subplots(
+            2, 1, figsize=(3.35, 2.9),
+            gridspec_kw={'height_ratios': [1, 1], 'hspace': 0.55})
+
+        def _draw(ax, cols, rows, control_ids=()):
+            for r, (name, fn) in enumerate(rows):
+                y = len(rows) - 1 - r
+                hits = 0
+                for c, cid in enumerate(cols):
+                    v = next(x for x in (pv if cols is tamper_cols else om)
+                             if x["vector_id"] == cid)
+                    stopped = fn(v)
+                    is_ctrl = cid in control_ids
+                    if is_ctrl:
+                        face, glyph, gcol = CTRL, '\u2713', '#065F46'   # approved, as it must be
+                    elif stopped:
+                        face, glyph, gcol = HIT, '\u2713', 'white'
+                        hits += 1
+                    else:
+                        face, glyph, gcol = MISS, '\u00b7', '#6B7280'
+                    ax.add_patch(Rectangle((c, y), 0.92, 0.92, facecolor=face,
+                                           edgecolor='white', linewidth=0.6))
+                    ax.text(c + 0.46, y + 0.46, glyph, ha='center', va='center',
+                            fontsize=6.0, color=gcol, fontweight='bold')
+                n = len([c for c in cols if c not in control_ids])
+                ax.text(len(cols) + 0.15, y + 0.46, f'{hits}/{n}', ha='left', va='center',
+                        fontsize=7.0, color=INK,
+                        fontweight='bold' if name.startswith('EviAssure +') or name == 'EviAssure' else 'normal')
+            ax.grid(False)
+            ax.set_xlim(0, len(tamper_cols) + 1.6)     # same cell size in both panels
+            ax.set_ylim(0, len(rows))
+            ax.set_xticks([c + 0.46 for c in range(len(cols))])
+            ax.set_xticklabels(cols, fontsize=6.2, rotation=90)
+            ax.set_yticks([len(rows) - 1 - r + 0.46 for r in range(len(rows))])
+            ax.set_yticklabels([n for n, _ in rows], fontsize=7.0)
+            ax.tick_params(length=0, pad=1.5)
+            for sp in ax.spines.values():
+                sp.set_visible(False)
+            ax.set_aspect('equal')
+
+        _draw(ax1, tamper_cols, tamper_rows)
+        ax1.set_title('(a) Tamper vectors (Table 1): blocked', fontsize=7.5, loc='left', pad=2)
+        _draw(ax2, om_cols, om_rows, control_ids=('OC1',))
+        ax2.set_title('(b) Omission vectors (Table 2): detected (OC1 must be approved)',
+                      fontsize=7.5, loc='left', pad=2)
+        fig.savefig(fig_dir / "coverage_matrix.png", dpi=600, bbox_inches='tight')
+        plt.close(fig)
     else:
         print("[i] results/security_evaluation.json absent -- comparison figure skipped")
 

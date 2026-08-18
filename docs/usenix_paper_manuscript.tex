@@ -110,11 +110,7 @@ Cryptographic Attestation, Fail-Closed Gates, and Tamper-Resilient Audit Infrast
 \maketitle
 
 \begin{abstract}
-Release pipelines for autonomous agents increasingly gate promotion on attested execution traces: signed records of what the agent did during its evaluation run. These attestations share an unaddressed weakness. The evidence collector is the only observer of the run, so an adversary who controls the agent and the collector need not forge or alter anything: it performs an action and does not record it. The resulting bundle is internally consistent, every signature verifies, and every integrity check passes, because nothing was tampered with.
-
-We define \emph{Witnessed Trace Completeness}, a completeness property stated relative to a declared set of \emph{witnesses}: the tool endpoints, API gateways and sandbox brokers that actually serve agent actions. Each witness serves only sessions opened by an orchestrator-signed credential, issues receipts carrying a monotonic per-session sequence number and, at session end, signs a commitment to how many actions it served. A stateful, fail-closed release gate then \emph{reconciles} the submitted trace set against those receipts and closings for the session it credentialed, rather than verifying a document. We prove that, under EUF-CMA security of the witness and orchestrator signatures, an adversary holding the agent, the collector and the collector's key cannot omit, fabricate, relabel or substitute a witnessed action; and we show that no verifier achieves witnessed completeness unless its input carries a served-count commitment signed by a party outside the adversary's domain, however the records are signed or chained, nor replay-freedom without state. That places record formats and receipt schemes on one side of a structural boundary and stateful, witness-reconciling gates on the other, and makes the signed closing necessary as well as sufficient.
-
-We implement the protocol in \textsc{EviAssure}, an evidence-bundle format that rides inside in-toto/SLSA envelopes with a domain-separated, depth-bound Merkle trace commitment, and evaluate it against executed in-toto/DSSE and TUF verifiers and re-implemented receipt and hash-chain designs. Against \omVectors{} omission attacks and an honest control, reconciliation detects \omWtc/\omVectors{}, receipt-only verification \omReceipts/\omVectors{}, and per-issuer chaining \omChain/\omVectors{}; on the orthogonal tampering axis the gate blocks \eviBlocked/\eviTotal{} vectors (95\% CI [\eviCIlo, \eviCIhi]) against \compBlocked/\compTotal{} for a composed in-toto/DSSE + TUF + OPA pipeline, and we report the one it does not. We state the guarantee's boundary as plainly as the guarantee: it is exactly as wide as the deployed witness set, it says nothing about actions no witness mediates, and it approves a semantically misbehaving trace that is honestly recorded; held-out inspection over a \corpusProfiles{}-profile corpus recovers \insOvertK/\insOvertN{} structurally overt anomalies and \insStealthK/\insStealthN{} disguised ones.
+Release pipelines for autonomous agents increasingly gate promotion on attested execution traces. Every such attestation shares a weakness: the evidence collector is the run's only observer, so an adversary who controls the agent and the collector need not forge anything; it performs an action and does not record it, and every signature and integrity check still passes. We define \emph{Witnessed Trace Completeness}, a completeness property stated relative to a declared set of \emph{witnesses}, the tool endpoints and gateways that actually serve agent actions. Each witness serves only sessions opened by an orchestrator-signed credential, issues sequence-numbered receipts and, at session end, signs a count of the actions it served; a stateful, fail-closed gate reconciles the submitted traces against those receipts and closings for the credentialed session. We prove that omitting, fabricating, relabelling or substituting a witnessed action requires a witness- or orchestrator-key forgery, and that no verifier achieves completeness without such a second-domain count commitment. \textsc{EviAssure} implements the protocol inside in-toto/SLSA envelopes. Against executed in-toto/DSSE and TUF verifiers and re-implemented receipt and hash-chain designs, reconciliation detects \omWtc/\omVectors{} omission attacks (receipts \omReceipts/\omVectors, chaining \omChain/\omVectors); on the tampering axis the gate blocks \eviBlocked/\eviTotal{} vectors against \compBlocked/\compTotal{} for a composed DSSE + TUF + OPA pipeline, and we report the one it misses. The guarantee is exactly as wide as the deployed witness set and says nothing about semantics: held-out inspection over a \corpusProfiles{}-profile corpus recovers \insOvertK/\insOvertN{} overt anomalies and \insStealthK/\insStealthN{} disguised ones.
 \end{abstract}
 
 \section{Introduction}
@@ -133,6 +129,59 @@ We implement the protocol in \textsc{EviAssure}\footnote{The complete anonymous 
     \item \textbf{An evidence-bound, fail-closed release gate}: a bundle format compatible with in-toto Statement / SLSA Provenance v1.0 envelopes, a domain-separated, depth-bound Merkle trace attestation with truncation-resistant count binding, and a gate whose verdict is reproducible under a pinned policy version and holds replay state.
     \item \textbf{A falsifiable evaluation with executed baselines and disclosed failures}: \omVectors{} omission attacks with an honest-execution control against executed in-toto/DSSE and TUF verifiers and re-implemented receipt and hash-chain designs; \scoredVectors{} tamper vectors, five of them authored against the design rather than the check list, with clean negative controls; a held-out inspection protocol; Wilson intervals on every rate; and an explicit account of the vector the gate does not block, the anomaly class inspection misses, and the actions no witness covers.
 \end{enumerate}
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[x=1mm, y=1mm,
+    box/.style={rectangle, draw=#1!80!black, fill=#1!12, rounded corners=3pt, minimum width=19mm, minimum height=8mm, align=center, font=\small, thick, inner sep=2pt},
+    gate_box/.style={rectangle, draw=blue!85!black, fill=blue!15, rounded corners=3pt, minimum width=26mm, minimum height=10mm, align=center, font=\small\bfseries, very thick, inner sep=2pt},
+    zone/.style={draw=#1, dashed, rounded corners=5pt, fill=#1!3},
+    flow/.style={thick, ->, >=stealth, draw=black!75},
+    secflow/.style={very thick, ->, >=stealth, draw=blue!80!black},
+    wflow/.style={very thick, ->, >=stealth, draw=orange!80!black},
+    lbl/.style={font=\small, fill=white, inner sep=1.5pt, rounded corners=1pt, draw=gray!30}
+]
+
+\begin{scope}[on background layer]
+\draw[zone=red] (-90, -22) rectangle (-44, 22);
+\node[anchor=north, font=\small\bfseries\color{red!80!black}] at (-67, 22) {Adversary: agent, collector, $K_C$};
+\draw[zone=orange!80!black] (-39, -22) rectangle (-7, 22);
+\node[anchor=north, font=\small\bfseries\color{orange!80!black}] at (-23, 22) {Witnesses (own keys)};
+\draw[zone=green!60!black] (-2, -22) rectangle (56, 22);
+\node[anchor=north, font=\small\bfseries\color{green!60!black}] at (27, 22) {Trusted control plane};
+\draw[zone=green!70!black] (61, -22) rectangle (85, 22);
+\node[anchor=north, font=\small\bfseries\color{green!70!black}] at (73, 22) {Target};
+\end{scope}
+
+\node[box=orange] (agent) at (-78, 9) {\textbf{Agent}\\untrusted runtime};
+\node[box=red] (collector) at (-59, -11) {\textbf{Collector}\\signs bundle $\mathcal{E}$ with $K_C$};
+
+\node[box=orange] (w1) at (-23, 13) {\textbf{DB proxy $W_1$}\\counter per $\mathit{sid}$};
+\node[box=orange] (w2) at (-23, 0) {\textbf{API gateway $W_2$}\\counter per $\mathit{sid}$};
+\node[box=orange] (w3) at (-23, -13) {\textbf{Sandbox broker $W_3$}\\counter per $\mathit{sid}$};
+
+\node[box=gray] (orch) at (11, 12) {\textbf{Orchestrator}\\issues $\mathrm{Sign}_{\mathcal{O}}(\mathit{sid},\mathit{rid})$};
+\node[box=gray] (registry) at (42, 12) {\textbf{Registry}\\$K_C$, $W_j$, $\mathcal{O}$, $\mathcal{P}$, CRL};
+\node[gate_box] (gate) at (26, -10) {Release Gate\\\mdseries verify $\mathcal{E}$; hold nonce state;\\\mdseries reconcile receipts \& closings};
+
+\node[box=green!70!black] (prod) at (73, -10) {\textbf{Production}\\cluster};
+
+\draw[flow] (agent.east) -- node[above=1pt, sloped, lbl, pos=0.55] {action $a$ + credential} (w1.west);
+\draw[flow] (agent.east) -- (w2.west);
+\draw[flow] (agent.east) -- (w3.west);
+\draw[wflow] (w3.west) -- (collector.east);
+\node[lbl, text=orange!60!black] at (-42, -19) {receipts $r$, closings $c_j$};
+\draw[flow] (orch.north) -- (11, 28) -- (-78, 28) -- (agent.north);
+\node[lbl] at (-34, 28) {session credential $\mathrm{Sign}_{\mathcal{O}}(\mathit{sid},\mathit{rid})$};
+\draw[secflow] (collector.south) -- (-59, -28) -- (26, -28) -- (gate.south);
+\node[lbl] at (-17, -28) {bundle $\mathcal{E}$ = traces, root, $N$, receipts, closings, nonce, $\mathit{sid}$; signed with $K_C$};
+\draw[flow] (orch.south) -- node[left=2pt, lbl] {expected $\mathit{sid}$} (16, -5);
+\draw[flow] (registry.south) -- node[right=2pt, lbl] {$\mathcal{P}$, keys} (37, -5);
+\draw[flow, draw=green!60!black, very thick] (gate.east) -- node[above=2pt, lbl] {\textbf{APPROVED}} (prod.west);
+\end{tikzpicture}
+\caption{EviAssure with witnesses. The adversary controls the agent, the collector and the collector's key $K_C$, but no witness key and not the orchestrator's key. Witnesses serve only requests carrying the orchestrator's session credential, sign a receipt for every action they serve and a closing count at session end; the collector packages traces and attestations into a bundle signed under $K_C$; the gate verifies the bundle, holds replay state, and reconciles the trace set against receipts and closings \emph{for the session the orchestrator credentialed}, so an omitted, fabricated, relabelled or substituted witnessed action requires a witness-key or orchestrator-key forgery. Actions outside every witness's mediated set are outside the guarantee.}
+\label{fig:architecture}
+\end{figure*}
 
 \paragraph{Record formats versus authorization layers.}
 in-toto and SLSA define \emph{passive record formats}: they attest what occurred and supply no stateful layer that gates a release on a non-deterministic trace. EviAssure is that layer, and Theorem~\ref{thm:separation} states what such a layer must be given; an \texttt{EvidenceBundle} is an in-toto Statement / SLSA Provenance v1.0 envelope, so existing records ride inside it unmodified. The implementation, corpus, attack harnesses and executed baselines are released as an anonymous artifact (Appendix~\ref{sec:appendix_open_science}).
@@ -192,58 +241,6 @@ The architecture involves six entities (Figure~\ref{fig:architecture}): the \emp
 \textbf{Registry}: an out-of-band store for release policies, the pinned collector, witness (with the action types each mediates) and orchestrator keys, and the revocation list.
 \textbf{Release Assurance Gate}: the enforcement entity in a trusted CI/CD step, evaluating the signed \texttt{EvidenceBundle} against the pinned policy and reconciling it against the witnesses for the credentialed session.
 
-\begin{figure*}[t]
-\centering
-\begin{tikzpicture}[x=1mm, y=1mm,
-    box/.style={rectangle, draw=#1!80!black, fill=#1!12, rounded corners=3pt, minimum width=19mm, minimum height=8mm, align=center, font=\small, thick, inner sep=2pt},
-    gate_box/.style={rectangle, draw=blue!85!black, fill=blue!15, rounded corners=3pt, minimum width=26mm, minimum height=10mm, align=center, font=\small\bfseries, very thick, inner sep=2pt},
-    zone/.style={draw=#1, dashed, rounded corners=5pt, fill=#1!3},
-    flow/.style={thick, ->, >=stealth, draw=black!75},
-    secflow/.style={very thick, ->, >=stealth, draw=blue!80!black},
-    wflow/.style={very thick, ->, >=stealth, draw=orange!80!black},
-    lbl/.style={font=\small, fill=white, inner sep=1.5pt, rounded corners=1pt, draw=gray!30}
-]
-
-\begin{scope}[on background layer]
-\draw[zone=red] (-90, -22) rectangle (-44, 22);
-\node[anchor=north, font=\small\bfseries\color{red!80!black}] at (-67, 22) {Adversary: agent, collector, $K_C$};
-\draw[zone=orange!80!black] (-39, -22) rectangle (-7, 22);
-\node[anchor=north, font=\small\bfseries\color{orange!80!black}] at (-23, 22) {Witnesses (own keys)};
-\draw[zone=green!60!black] (-2, -22) rectangle (56, 22);
-\node[anchor=north, font=\small\bfseries\color{green!60!black}] at (27, 22) {Trusted control plane};
-\draw[zone=green!70!black] (61, -22) rectangle (85, 22);
-\node[anchor=north, font=\small\bfseries\color{green!70!black}] at (73, 22) {Target};
-\end{scope}
-
-\node[box=orange] (agent) at (-78, 9) {\textbf{Agent}\\untrusted runtime};
-\node[box=red] (collector) at (-59, -11) {\textbf{Collector}\\signs bundle $\mathcal{E}$ with $K_C$};
-
-\node[box=orange] (w1) at (-23, 13) {\textbf{DB proxy $W_1$}\\counter per $\mathit{sid}$};
-\node[box=orange] (w2) at (-23, 0) {\textbf{API gateway $W_2$}\\counter per $\mathit{sid}$};
-\node[box=orange] (w3) at (-23, -13) {\textbf{Sandbox broker $W_3$}\\counter per $\mathit{sid}$};
-
-\node[box=gray] (orch) at (11, 12) {\textbf{Orchestrator}\\issues $\mathrm{Sign}_{\mathcal{O}}(\mathit{sid},\mathit{rid})$};
-\node[box=gray] (registry) at (42, 12) {\textbf{Registry}\\$K_C$, $W_j$, $\mathcal{O}$, $\mathcal{P}$, CRL};
-\node[gate_box] (gate) at (26, -10) {Release Gate\\\mdseries verify $\mathcal{E}$; hold nonce state;\\\mdseries reconcile receipts \& closings};
-
-\node[box=green!70!black] (prod) at (73, -10) {\textbf{Production}\\cluster};
-
-\draw[flow] (agent.east) -- node[above=1pt, sloped, lbl, pos=0.55] {action $a$ + credential} (w1.west);
-\draw[flow] (agent.east) -- (w2.west);
-\draw[flow] (agent.east) -- (w3.west);
-\draw[wflow] (w3.west) -- (collector.east);
-\node[lbl, text=orange!60!black] at (-42, -19) {receipts $r$, closings $c_j$};
-\draw[flow] (orch.north) -- (11, 28) -- (-78, 28) -- (agent.north);
-\node[lbl] at (-34, 28) {session credential $\mathrm{Sign}_{\mathcal{O}}(\mathit{sid},\mathit{rid})$};
-\draw[secflow] (collector.south) -- (-59, -28) -- (26, -28) -- (gate.south);
-\node[lbl] at (-17, -28) {bundle $\mathcal{E}$ = traces, root, $N$, receipts, closings, nonce, $\mathit{sid}$; signed with $K_C$};
-\draw[flow] (orch.south) -- node[left=2pt, lbl] {expected $\mathit{sid}$} (16, -5);
-\draw[flow] (registry.south) -- node[right=2pt, lbl] {$\mathcal{P}$, keys} (37, -5);
-\draw[flow, draw=green!60!black, very thick] (gate.east) -- node[above=2pt, lbl] {\textbf{APPROVED}} (prod.west);
-\end{tikzpicture}
-\caption{EviAssure with witnesses. The adversary controls the agent, the collector and the collector's key $K_C$, but no witness key and not the orchestrator's key. Witnesses serve only requests carrying the orchestrator's session credential, sign a receipt for every action they serve and a closing count at session end; the collector packages traces and attestations into a bundle signed under $K_C$; the gate verifies the bundle, holds replay state, and reconciles the trace set against receipts and closings \emph{for the session the orchestrator credentialed}, so an omitted, fabricated, relabelled or substituted witnessed action requires a witness-key or orchestrator-key forgery. Actions outside every witness's mediated set are outside the guarantee.}
-\label{fig:architecture}
-\end{figure*}
 
 \subsection{Adversary Model}\label{sec:threat}
 The security model considers a powerful adversary $\mathcal{A}$ attempting to deploy an unapproved, regression-prone, or malicious agent update to production environments~\cite{shostack2014threat, carlini2024poisoning, schuster2021get}. $\mathcal{A}$ may control the agent, the evidence collector and the collector's signing key, intermediate runner environments, network transit layers, and build scripts.
@@ -284,7 +281,43 @@ A witness is the component that \emph{actually serves} an agent action: a tool e
 
 \paragraph{Sessions are opened by the orchestrator, not named by the agent.} A release evaluation begins when the orchestrator issues a session credential $\mathrm{Sign}_{\mathcal{O}}(\mathit{sid}, \mathit{rid})$ for release $\mathit{rid}$ and injects it into the agent's environment. Every witness pins $\mathcal{O}$'s public key and serves a request only if it carries a credential that verifies; a bare session string, or a credential signed by anyone else, is refused and the action is not performed. Without this rule the guarantee below would be empty: an adversary who owns the agent and the collector could label the actions it wants to hide with a different session identifier at the witness and submit a complete, honestly reconciling bundle for the benign one: omission without a forgery (vector O7, Section~\ref{sec:omission}). With it, relabelling requires forging $\mathcal{O}$'s signature, and the gate binds each release to the one session $\mathcal{O}$ credentialed for it.
 
-Each witness keeps a monotonic counter per session. On serving action $a$ in session $\mathit{sid}$ it returns
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=1mm, y=1mm, font=\small, >=stealth,
+    head/.style={draw=#1!70!black, fill=#1!10, rounded corners=2pt, minimum width=15mm, minimum height=7mm, align=center, inner sep=1pt, thick},
+    msg/.style={->, thick, draw=black!75},
+    lab/.style={fill=white, inner sep=1pt, font=\small},
+    note/.style={draw=#1!70!black, fill=#1!8, rounded corners=1.5pt, align=left, inner sep=1.5pt, font=\small, text=#1!40!black}]
+% lifelines
+\node[head=gray]   (o) at (8,0)    {Orchestrator\\$\mathcal{O}$};
+\node[head=red]    (a) at (31,0)   {Agent /\\Collector};
+\node[head=orange] (w) at (55,0)   {Witness\\$W_j$};
+\node[head=blue]   (g) at (76,0)   {Gate};
+\foreach \n in {o,a,w,g} \draw[gray!60, dashed] (\n.south) -- ++(0,-81);
+% 1. credential
+\draw[msg] (8,-7) -- node[lab, above] {$c=\mathrm{Sign}_{\mathcal{O}}(\mathit{sid},\mathit{rid})$} (31,-7);
+\draw[msg] (8,-13) -- node[lab, above, pos=0.6] {expected $\mathit{sid}$ for $\mathit{rid}$} (76,-13);
+% 2. actions and receipts
+\draw[msg] (31,-20) -- node[lab, above] {$a_1$, $c$} (55,-20);
+\draw[msg] (55,-24) -- node[lab, below] {$r_1$ (seq $1$)} (31,-24);
+\draw[msg] (31,-31) -- node[lab, above] {$a_2$, $c$} (55,-31);
+\draw[msg] (55,-35) -- node[lab, below] {$r_2$ (seq $2$)} (31,-35);
+\draw[msg] (31,-42) -- node[lab, above] {$a_3$, $c$} (55,-42);
+\draw[msg] (55,-46) -- node[lab, below] {$r_3$ (seq $3$)} (31,-46);
+\node[note=red, anchor=east] at (28,-46) {collector records\\$a_1,a_2$; drops $a_3$};
+\node[note=orange, anchor=west] at (58,-31) {counter per $\mathit{sid}$;\\refuses without $c$};
+% 3. closing
+\draw[msg] (8,-55) -- node[lab, above, pos=0.7] {close($c$)} (55,-55);
+\draw[msg] (55,-61) -- node[lab, above] {closing $\mathrm{cl}_j$: $W_j$ signs $(\mathit{sid},\,n_j{=}3)$} (31,-61);
+% 4. bundle and verdict
+\draw[msg, very thick] (31,-68) -- node[lab, above] {$\mathcal{E}$: $\{a_1,a_2\}$, $r_1,r_2$, $\mathrm{cl}_j$, $\mathit{sid}$; $K_C$} (76,-68);
+\node[note=blue, anchor=north east, text width=46mm] at (82,-71) {reconcile for $\mathit{sid}$: closing says $n_j{=}3$, receipts are $\{1,2\}$; seq $3$ absent $\Rightarrow$ \textbf{BLOCKED}};
+\end{tikzpicture}
+\caption{One credentialed session under the witness protocol, and the omission it defeats. The orchestrator opens the session with $c$ and tells the gate which session it credentialed; each action reaches the witness with $c$ and returns a sequence-numbered receipt; at session end the witness signs a closing count. A collector that performs $a_3$ but records only $a_1,a_2$ presents a bundle $\mathcal{E}$ (signed under its own key $K_C$) whose closing and receipts disagree, and the gate blocks; the missing receipt or a lower closing needs $W_j$'s key (Theorem~\ref{thm:wtc}).}
+\label{fig:protocol}
+\end{figure}
+
+Each witness keeps a monotonic counter per session (Figure~\ref{fig:protocol}). On serving action $a$ in session $\mathit{sid}$ it returns
 \begin{equation}
 r = \mathrm{Sign}_{W_j}(\mathit{sid},\ \mathrm{seq},\ H_{\mathrm{act}}(a),\ \mathrm{prev})
 \end{equation}
@@ -375,7 +408,7 @@ The evaluation has two parts: a micro-level validation of the gate's enforcement
 
 \textbf{Mechanism evaluation.} Performance is measured through Merkle scaling latency and multi-core verifier throughput. Adversarial resilience is measured against the vector suite: twelve vectors derived from the five capability classes ($\mathcal{A}_1$--$\mathcal{A}_5$), each exercising one enforcement, plus five authored against the design rather than the check list, the ones with the power to fail, three of which found defects during development. Clean negative controls measure the false-block rate, without which a block rate is uninterpretable. The bundles on this axis carry no witness attestations by construction, so the gate is evaluated here with witness reconciliation disabled (the \emph{unwitnessed evaluation profile}, \texttt{witnessed=False}, recorded in the artifact); the omission suite (Section~\ref{sec:omission}) tests reconciliation itself, the axis the tamper vectors structurally cannot reach, and the shipped policy requires it.
 
-\textbf{System-level deployment.} A corpus-scale evaluation over \corpusProfiles{} agent trace profiles exercises the interaction between the cryptographic integrity gate and an out-of-band semantic inspection layer, and shows where that interaction still leaves a gap.
+\textbf{System-level deployment.} A corpus-scale evaluation over \corpusProfiles{} profiles exercises the integrity gate together with an out-of-band semantic inspection layer, and shows where the pair still leaves a gap.
 
 Results are split by kind. \emph{Deterministic} security results (block counts, ablation, inspection) reproduce identically on any machine; \nolinkurl{scripts/run_security_eval.py} writes them to \nolinkurl{results/security_evaluation.json}. \emph{Timed} measurements were recorded on an Apple M4 Max (14 cores, no SMT) running Python 3.14.x by \nolinkurl{scripts/run_release_benchmark.py} into \nolinkurl{results/benchmark_summary.json}, as the mean over \benchRepeats{} runs with the standard deviation alongside. Verdicts are deterministic, so run-to-run dispersion is zero; every rate carries a Wilson 95\% interval over the finite vector set, which is descriptive (the vectors are authored, not sampled) and bounds what a suite of this size can show.
 
@@ -452,7 +485,7 @@ EviAssure blocks \eviBlocked{} of \eviTotal{} scored vectors (\eviPct\%, 95\% CI
 
 \textbf{Three vectors ($\dagger$) found real defects during development.} V14: a gate that falls back to the key carried \emph{inside the bundle} when the registry is disabled approves an adversary's own keypair with a conformant ARN. V17: a length heuristic lets a 64-character leaf string be adopted as its own digest. V15: the \mbox{CVE-2017-12842}-family internal-node substitution against the auditor path. Each was found by writing the vector and is now blocked and regression-tested, which is the argument for authoring vectors against the design.
 
-\textbf{V16 is not blocked, and we report it.} The same approved bundle presented to a second gate replica that does not share nonce state is APPROVED, because replay protection is a property of gate \emph{state}, not of the evidence. The shipped verifier persists nonces and fails closed when the ledger is unavailable, but cross-replica correctness needs shared storage the prototype does not provide.
+\textbf{V16 is not blocked, and we report it.} The same approved bundle presented to a second gate replica that does not share nonce state is APPROVED, because replay protection is a property of gate \emph{state}, not of the evidence; the shipped verifier persists nonces and fails closed without its ledger, but cross-replica correctness needs shared storage the prototype lacks (Section~\ref{sec:limitations}).
 
 \textbf{Differential wire fuzzing.} A campaign whose every mutation perturbs a field inside the signed payload cannot fail (a verifying bundle is unreachable), so it carries no information. Ours perturbs the \emph{serialization} of a validly signed bundle (key order, whitespace, unicode escaping, number formatting, duplicate keys, byte-order marks), where both outcomes are reachable. Over \fuzzCases{} cases (20\% clean controls): \fuzzBlockedK/\fuzzBlockedN{} semantics-changing encodings blocked, \fuzzApprovedK/\fuzzApprovedN{} semantics-preserving encodings approved. The campaign found a real defect during development: a duplicate-key detector that accumulated key counts across every object registered sibling objects in the \texttt{traces} array as duplicates, so any deployment supplying raw wire text rejected every multi-trace bundle. It is fixed and regression-tested.
 
@@ -462,7 +495,7 @@ Each enforcement was disabled in turn and the suite re-evaluated (matrix in the 
 Two results are worth stating precisely. First, not every check is necessary against this suite: disabling the signed trace-count binding releases no vector, because V12 is also caught by root recomputation; the count binding earns its place by protecting the \emph{auditor} path, whose proof depth derives from the signed count. Second, emptying the trusted-key registry collapses the gate rather than weakening it: all Ed25519 evidence is rejected, which is only true of an implementation that never falls back to a bundle-supplied key; V14 checks it.
 
 \subsection{Omission Attacks}\label{sec:omission}
-The tamper suite and the omission suite test different things. A tamper vector modifies evidence and is caught by an integrity check. An omission vector modifies \emph{nothing}: the adversary performs an action and declines to record it, or performs it in a session the gate never sees, then signs honestly over what it presents. There is no discrepancy to detect, which is why Theorem~\ref{thm:separation} rules the class out for every verifier without a second-domain count commitment, rather than merely predicting that such verifiers will do badly at it.
+A tamper vector modifies evidence and is caught by an integrity check; an omission vector modifies \emph{nothing}: the adversary performs an action and declines to record it, or performs it in a session the gate never sees, then signs honestly over what it presents. There is no discrepancy to detect, which is why Theorem~\ref{thm:separation} rules the class out for every verifier without a second-domain count commitment, rather than merely predicting that such verifiers will do badly at it.
 
 We construct seven (Table~\ref{tab:omission}) plus an honest fully-witnessed control that every system must approve, without which a reconciler that rejects everything would score perfectly. O1--O4 truncate: an interior action, the trailing action, every action of one witness, and the trailing action with a forged lower closing. O5 splices receipts from a second credentialed session into the gap. O6 fabricates a mediated action no witness served. O7 performs the dangerous action in one credentialed session and submits the complete, honestly witnessed bundle of a second, benign credentialed session for the release. Credential refusal (a bare or foreign-signed session is refused by the witness before any bundle exists) is exercised by a test rather than scored as a vector.
 
@@ -486,29 +519,25 @@ EviAssure & full gate, no reconciliation & \omNoWtc/\omVectors \\
 \end{tabular}
 \end{table}
 
-Three results are worth reading carefully. First, EviAssure without reconciliation detects \omNoWtc{} of \omVectors{} despite enforcing signatures, Merkle re-derivation, count binding, freshness and replay. The mechanism, not some incidental check, is what closes the class.
-
-Second, per-action receipts detect \omReceipts{} of \omVectors{}. Receipts catch the two attacks that leave a trace \emph{without} a matching attestation (cross-session splicing and fabrication) and miss all four truncations, because dropping an action drops its receipt and the remaining pairs still match; they miss substitution, because the substituted bundle's receipts match its own session perfectly. This is the empirical form of the paper's central observation: a receipt proves an action happened; a set of receipts proves neither that no other action happened nor that it happened in the session under evaluation.
-
-Third, hash chaining detects \omChain{} of \omVectors{}. A chain links records that are present, so an interior gap breaks it and a spliced foreign receipt fails to link, but a suffix truncation does not (the end simply moves), and neither does dropping a whole issuer, forging a closing the chain never consults, fabricating an unchained trace, or substituting a session whose chain is intact. This is the precise limitation of AAS-1's omission story, and why the closing count and the credentialed session, not the chain, make truncation and substitution detectable.
-
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/comparative_block_rate.png}
-\caption{Executed baselines against the \scoredVectors{}-vector suite, with Wilson 95\%
-intervals. The intervals overlap, and that is the point: at this sample
-size the evaluation supports a qualitative account of \emph{which} vectors
-survive a modern composed pipeline, not a strong quantitative separation
-(Section~\ref{sec:comparative}).}
-\label{fig:comparative}
+\includegraphics[width=\columnwidth]{figures/coverage_matrix.png}
+\caption{Which vector each verifier stops, read cell by cell from \nolinkurl{results/security_evaluation.json}. (a) The \scoredVectors{} scored tamper vectors of Table~\ref{tab:tamper}: what survives the composed pipeline is exactly the trace-level and stateful set (V2, V8, V12, V15, V17, V4); V16 escapes every row. (b) The \omVectors{} omission vectors of Table~\ref{tab:omission}: receipts catch only the two attacks that leave an unmatched trace (O5, O6), chaining only the two that break a link (O1, O5); OC1 is approved by every row, as it must be.}
+\label{fig:coverage}
 \end{figure}
 
+Three results are worth reading carefully (Figure~\ref{fig:coverage}b). First, EviAssure without reconciliation detects \omNoWtc{} of \omVectors{} despite enforcing signatures, Merkle re-derivation, count binding, freshness and replay: the mechanism, not some incidental check, closes the class.
+
+Second, per-action receipts detect \omReceipts{} of \omVectors{}: the two attacks that leave a trace \emph{without} a matching attestation, splicing (O5) and fabrication (O6). They miss every truncation, because dropping an action drops its receipt and the remaining pairs still match, and substitution, because the substituted bundle's receipts match its own session. A receipt proves an action happened; a set of receipts proves neither that no other action happened nor that it happened in the session under evaluation.
+
+Third, hash chaining detects \omChain{} of \omVectors{}: an interior gap (O1) breaks the chain and a spliced foreign receipt (O5) fails to link, but a suffix truncation does not (the end simply moves), and neither does dropping a whole issuer, forging a closing the chain never consults, fabricating an unchained trace, or substituting a session whose chain is intact. This is the precise limitation of AAS-1's omission story, and why the closing count and the credentialed session, not the chain, make truncation and substitution detectable.
+
 \subsection{Comparative Gate Analysis}\label{sec:comparative}
-Each baseline is configured as a competent engineer would deploy it, and executed; counts and intervals are in Figure~\ref{fig:comparative}. in-toto/DSSE (DSSE v1 pre-authentication encoding + Ed25519 verification) authenticates the envelope against a \emph{pinned trust root} rather than a key travelling with the payload. TUF evaluates Timestamp-role expiry with \texttt{python-tuf}'s metadata objects over that trust-root check, so it supplies \texttt{expires}, a signature threshold and root-driven revocation. OPA Rego (\nolinkurl{governance/baseline_opa.rego}) is executed by the \texttt{opa} binary; \texttt{--require-executed} and the artifact packager refuse to record or ship a modelled substitute for any of the three. The composed pipeline is DSSE $\wedge$ TUF $\wedge$ OPA; the unauthenticated status gate is a \emph{floor}, not a competitor.
+Each baseline is configured as a competent engineer would deploy it, and executed; per-vector outcomes are in Figure~\ref{fig:coverage}a. in-toto/DSSE (DSSE v1 pre-authentication encoding + Ed25519 verification) authenticates the envelope against a \emph{pinned trust root} rather than a key travelling with the payload. TUF evaluates Timestamp-role expiry with \texttt{python-tuf}'s metadata objects over that trust-root check, so it supplies \texttt{expires}, a signature threshold and root-driven revocation. OPA Rego (\nolinkurl{governance/baseline_opa.rego}) is executed by the \texttt{opa} binary, and \texttt{--require-executed} refuses to record a modelled substitute for any of the three. The composed pipeline is DSSE $\wedge$ TUF $\wedge$ OPA; the unauthenticated status gate is a \emph{floor}, not a competitor.
 
-The honest headline is \eviBlocked/\eviTotal{} versus \compBlocked/\compTotal{} (Figure~\ref{fig:comparative}), and the intervals overlap: with \eviTotal{} vectors this evaluation cannot support a strong quantitative separation, and we do not claim one. What it supports is a \emph{qualitative} account of which vectors survive a modern composed pipeline and why. The composed baseline blocks every authentication, freshness, revocation and policy-threshold vector; TUF alone blocks \tufBlocked{}, since freshness, revocation and threshold signing were solved in 2010~\cite{samuel2010surviving}.
+The honest headline is \eviBlocked/\eviTotal{} versus \compBlocked/\compTotal{}, and the Wilson intervals overlap ([\eviCIlo, \eviCIhi] against [\compCIlo, \compCIhi]): with \eviTotal{} vectors this evaluation cannot support a strong quantitative separation, and we do not claim one. What it supports is a \emph{qualitative} account of which vectors survive a modern composed pipeline and why. The composed baseline blocks every authentication, freshness, revocation and policy-threshold vector; TUF alone blocks \tufBlocked{}, since freshness, revocation and threshold signing were solved in 2010~\cite{samuel2010surviving}.
 
-The vectors it does not block are the ones this paper is actually about: V2 and V8 (trace-level integrity: no baseline recomputes a Merkle root over an action history), V12 (trace-set truncation), V15 and V17 (proof-path and leaf-typing attacks on the audit surface), and V4 (within-gate replay, which requires the verifier to hold state across submissions rather than to validate a document). That is the delta: \emph{binding the release decision to the execution trace, and holding state while deciding}. It is a narrow claim, and it is one the evaluation can carry.
+The vectors it does not block (Figure~\ref{fig:coverage}a) are the ones this paper is actually about: V2 and V8 (trace-level integrity: no baseline recomputes a Merkle root over an action history), V12 (trace-set truncation), V15 and V17 (proof-path and leaf-typing attacks on the audit surface), and V4 (within-gate replay, which needs state across submissions rather than a document check). That is the delta: \emph{binding the release decision to the execution trace, and holding state while deciding}. It is a narrow claim, and one the evaluation can carry.
 
 \subsection{Corpus-Scale Layered Evaluation}\label{sec:twolayer}
 Neither the tamper nor the omission suite reaches the semantic axis: a complete, witnessed, correctly signed bundle can still record behaviour nobody authorised. The corpus measures that third layer (Table~\ref{tab:corpus}).
@@ -535,7 +564,7 @@ L3 Inspect & Clean falsely flagged & \insFPK/\insFPN & 0\% \\
 \end{tabular}
 \end{table}
 
-L1 and L2 are as before: all bundles are Merkle-consistent with valid depth-bound proofs, all clean profiles are APPROVED, and \emph{all} anomalous profiles are also APPROVED. We report the latter rather than hiding it: semantic misbehaviour that is cryptographically well-formed is outside the gate's scope by design.
+L1 and L2: all bundles are Merkle-consistent with valid depth-bound proofs, all clean profiles are APPROVED, and \emph{all} anomalous profiles are also APPROVED, which we report rather than hide: cryptographically well-formed semantic misbehaviour is outside the gate's scope by design.
 
 L3 is a held-out protocol. The detector consults no list of anomalous actions. It is fitted on clean profiles alone, learning an action vocabulary, a status vocabulary and a per-action duration envelope, and every anomaly class is held out from that fit. Under this protocol it recalls \insOvertK/\insOvertN{} overt anomalies and \insStealthK/\insStealthN{} stealth anomalies, overall \insRecallK/\insRecallN{} (\insRecallPct\%, CI [\insRecallCIlo, \insRecallCIhi]) at \insFPK/\insFPN{} false positives.
 
@@ -548,8 +577,7 @@ decides what to do? We therefore ran \liveSessions{} sessions of real
 tool-calling LLMs (\liveModelCount{} model families,
 \liveProviderCount{} providers) against a small tool set fronted by
 witnesses of Section~\ref{sec:witness}. The model chooses the actions; nothing
-is scripted (Table~\ref{tab:live}). What the harness does and does not separate must be stated before
-its numbers are read. Each witness runs outside the collector: it executes the
+is scripted (Table~\ref{tab:live}). Before the numbers, what the harness separates: each witness runs outside the collector, executes the
 tool, digests the output \emph{it} produced, and signs with a key never
 exported from its own address space, so an altered or dropped record no longer
 matches its receipt. Separation is by process, key and
@@ -636,7 +664,7 @@ which we report rather than retry into silence.
 
 \section{Related Work}
 
-\textbf{Positioning.} Threshold signing, metadata expiry, rollback protection and key revocation are \emph{not} novel here: TUF has supplied them since 2010~\cite{samuel2010surviving}, which is why our executed TUF baseline blocks \tufBlocked{} of \tufTotal{} vectors. EviAssure's claim is narrow: it binds the release decision to a Merkle-attested \emph{execution trace} for a credentialed session, reconciles it against a second trust domain, and holds replay state, which none of the systems below does.
+\textbf{Positioning.} Threshold signing, metadata expiry, rollback protection and key revocation are \emph{not} novel here; TUF has supplied them since 2010~\cite{samuel2010surviving}, and Section~\ref{sec:comparative} executes it as a baseline. EviAssure's claim is narrow: it binds the release decision to a Merkle-attested \emph{execution trace} for a credentialed session, reconciles it against a second trust domain, and holds replay state, which none of the systems below does.
 
 \subsection{Provenance, Policy and Updates}
 in-toto~\cite{torres2019in-toto}, SLSA~\cite{slsa2023supply} and Sigstore/Cosign~\cite{sigstore2022cosign} provide cryptographic provenance for build pipelines and image digests, including a vetted runtime-trace predicate~\cite{intoto_runtime_trace}; any release pipeline should use them for the static artifact side. They supply no stateful authorization layer: freshness and replay are not integral to step attestations, and release decisions are not bound to attested traces under a pinned policy version. Policy engines (OPA~\cite{opa2021openpolicy}, Kyverno~\cite{kyverno2022policy}) evaluate rules over admission payloads but compute no Merkle root over an action history and hold no replay state; workload identity (SPIFFE/SPIRE~\cite{spiffe2020spire}, Macaroons~\cite{birgisson2014macaroons}) establishes \emph{who} the runner is, not what it did. TUF~\cite{samuel2010surviving} and its delegation extensions~\cite{kuppusamy2016tuf, moore2023artemis} supply expiry, thresholds, rollback and revocation, which is why we execute TUF as a baseline rather than claim those properties.
@@ -647,7 +675,7 @@ Tamper-evident logs~\cite{schneier1999secureauditlogs, crosby2009tamperevident} 
 \subsection{AI-Agent Provenance and Receipts}\label{sec:related-2026}
 Three 2026 initiatives address agent provenance as a \emph{record format}. The in-toto \texttt{agent-decision/v0.1} RFC~\cite{intoto2026agent-decision} standardises the shape of a signed policy-decision record, leaving freshness, replay and revocation to the verifier. APAS~\cite{apas2026agent-provenance} builds provenance chains on in-toto Statements and grades itself candidly: at its lower levels provenance is ``self-attested --- an attacker who compromises the orchestrator can forge records.'' AAS-1~\cite{aas12026agent-audit} defines evidentiary record classes with per-issuer hash chains that detect omission \emph{between} records a verifier already holds, which, as Section~\ref{sec:omission} measures, a suffix truncation evades.
 
-The closest designs are receiver-attested receipts. Notarized Agents~\cite{notarized2026agents} has the serving service sign a receipt over the call's input and output digests, encrypted to the agent's owner and published to a transparency log, and names what it does not solve: the ``suppression attack'' (an agent that does not call a service produces no receipt) and set-completeness of the receipts a log returns. PipeLab's action receipts~\cite{pipelab2026receipts} are signed by a mediator outside the agent process and hash-chained. Both give per-receipt verifiability from a second trust domain, which is the same move as ours; neither gives a verifier a way to know that the receipt set is \emph{all} of them. Appendix~\ref{sec:appendix_relwork} contrasts this with completeness obtained from a transparency log. Runtime defences decide what an agent \emph{may} do: privilege control at the tool boundary~\cite{shi2025progent}, execution isolation between agent applications~\cite{wu2025isolategpt}, and benchmarks of prompt-injection defences~\cite{debenedetti2024agentdojo}. EviAssure attests what the agent \emph{did}, for a release decision taken afterwards; the two compose, since a witness is the natural host for a call-time policy check whose decision a receipt can carry.
+The closest designs are receiver-attested receipts. Notarized Agents~\cite{notarized2026agents} has the serving service sign a receipt over the call's input and output digests, encrypted to the agent's owner and published to a transparency log, and names what it does not solve: the ``suppression attack'' (an agent that does not call a service produces no receipt) and set-completeness of the receipts a log returns. PipeLab's action receipts~\cite{pipelab2026receipts} are signed by a mediator outside the agent process and hash-chained. Both give per-receipt verifiability from a second trust domain, which is the same move as ours; neither gives a verifier a way to know that the receipt set is \emph{all} of them (Appendix~\ref{sec:appendix_relwork} contrasts this with a transparency log). Runtime defences decide what an agent \emph{may} do: privilege control at the tool boundary~\cite{shi2025progent}, execution isolation between agent applications~\cite{wu2025isolategpt}, and benchmarks of prompt-injection defences~\cite{debenedetti2024agentdojo}. EviAssure attests what the agent \emph{did}, for a release decision taken afterwards; the two compose, since a witness is the natural host for a call-time policy check whose decision a receipt can carry.
 
 Theorem~\ref{thm:separation} explains why record formats and receipt sets alone are structurally short of completeness: none carries a commitment, by the party that served the actions, to how many it served, so a suffix omission is invisible to them by construction rather than by accident of implementation. Their records ride inside EviAssure's envelope unmodified; what it adds is the closing, the credentialed session and the replay state.
 

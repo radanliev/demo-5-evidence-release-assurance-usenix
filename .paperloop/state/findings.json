@@ -2,17 +2,17 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-18T23:46:00"
+    "generated": "2026-08-19T00:20:34"
   },
   "summary": {
-    "total": 10,
+    "total": 8,
     "by_severity": {
       "BLOCKER": 0,
       "MAJOR": 0,
-      "MINOR": 6,
+      "MINOR": 4,
       "INFO": 4
     },
-    "actionable": 6,
+    "actionable": 4,
     "gated_actionable": 0,
     "clean": true
   },
@@ -53,27 +53,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 117,
-      "page": null,
-      "evidence": "We implement the protocol in \\textsc{EviAssure}, an evidence-bundle format that rides inside in-toto/SLSA envelopes with a domain-separated, depth-bound Merkle trace commitment, an",
-      "expected": "rule: rate_without_denominator",
-      "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "cde3e2e5331f5edc",
-      "gated": true,
-      "autofixable": false
-    },
-    {
-      "check": "science",
-      "category": "science.stat_reporting",
-      "severity": "MINOR",
-      "message": "percentage without an explicit denominator",
-      "file": "docs/usenix_paper_manuscript.tex",
-      "line": 449,
+      "line": 482,
       "page": null,
       "evidence": "EviAssure blocks \\eviBlocked{} of \\eviTotal{} scored vectors (\\eviPct\\%, 95\\% CI [\\eviCIlo, \\eviCIhi]), and falsely blocks \\falseBlockK{} of \\falseBlockN{} clean negative controls.",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "e722642eb3acadbd",
+      "fingerprint": "1aece072bfea1a94",
       "gated": true,
       "autofixable": false
     },
@@ -83,27 +68,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 457,
+      "line": 490,
       "page": null,
       "evidence": "\\textbf{Differential wire fuzzing.} A campaign whose every mutation perturbs a field inside the signed payload cannot fail (a verifying bundle is unreachable), so it carries no inf",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "70939405e171015b",
-      "gated": true,
-      "autofixable": false
-    },
-    {
-      "check": "science",
-      "category": "science.stat_reporting",
-      "severity": "MINOR",
-      "message": "percentage without an explicit denominator",
-      "file": "docs/usenix_paper_manuscript.tex",
-      "line": 498,
-      "page": null,
-      "evidence": "\\caption{Executed baselines against the \\scoredVectors{}-vector suite, with Wilson 95\\%",
-      "expected": "rule: rate_without_denominator",
-      "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "c5c48d1900d34e59",
+      "fingerprint": "0a8b44467bfb40ea",
       "gated": true,
       "autofixable": false
     },
