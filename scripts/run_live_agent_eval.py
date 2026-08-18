@@ -63,6 +63,12 @@ TASKS = [
 def _load_dotenv() -> List[str]:
     """Read keys from the usual places. Returns the names loaded, never values."""
     loaded: List[str] = []
+    # Keys this function set, so a later file can correct an earlier one. A
+    # value already exported in the real environment always wins and is never
+    # touched. Without this, a stale key in the first file found shadows the
+    # corrected key in a later one and the run fails with an authentication
+    # error that looks like a bad credential rather than a stale one.
+    from_file: set = set()
     for base in (Path.home() / "Projects", Path.home() / "mnt" / "Projects", Path.home(), ROOT):
         for fname in (".env", ".paperloop-env"):
             f = base / fname
@@ -79,8 +85,9 @@ def _load_dotenv() -> List[str]:
                 k, v = line.split("=", 1)
                 k = k.replace("export", "").strip()
                 v = v.strip().strip('"').strip("'")
-                if k and v and k not in os.environ:
+                if k and v and (k not in os.environ or k in from_file):
                     os.environ[k] = v
+                    from_file.add(k)
                     loaded.append(k)
     return sorted(set(loaded))
 
@@ -300,8 +307,13 @@ def main() -> int:
         merged = [p for p in prior if p["session_id"] not in known] + per_session
         print(f"[*] merging {len(prior)} prior session(s) -> {len(merged)} total")
         per_session = merged
-        prior_requested = json.loads(out_path.read_text()).get(
-            "summary", {}).get("sessions_requested", len(prior))
+        prior_summary = json.loads(out_path.read_text()).get("summary", {})
+        prior_requested = prior_summary.get("sessions_requested", len(prior))
+        # Failures must accumulate exactly as sessions_requested does. Keeping
+        # only the current batch's failures made the file self-contradictory:
+        # 42 requested, 31 recorded, 0 failures. A clean final batch silently
+        # erased every earlier provider quota and credit-limit loss.
+        failures = list(prior_summary.get("session_failures", [])) + failures
         vector_tally = {}
         for p in per_session:
             for k, v in p.get("omission_vectors", {}).items():

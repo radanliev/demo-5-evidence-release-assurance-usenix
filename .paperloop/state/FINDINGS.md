@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 14:03
+**Run:** 2026-08-18 14:44
 
 | Severity | Count |
 |---|---|
@@ -93,9 +93,9 @@ Recorded for the round log; no action implied.
 
 ### [INFO] science.artifact_missing
 
-indexed 202 distinct values from 7 artifacts
+indexed 205 distinct values from 7 artifacts
 
-- **id:** `c6553375288c13ff`
+- **id:** `c36d4129c343f2f8`
 
 ### [INFO] venue.font
 

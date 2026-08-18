@@ -113,7 +113,12 @@ if live_path.exists():
     rows += [
         ("liveSessions", LA["sessions_completed"]),
         ("liveRequested", LA["sessions_requested"]),
-        ("liveFailures", len(LA["session_failures"])),
+        # Derived, not counted: sessions_requested accumulates across --append
+        # runs and the recorded sessions are what survived, so the difference is
+        # the loss whether or not every failure string was retained. Counting
+        # the strings alone under-reports historical batches.
+        ("liveFailures", max(len(LA["session_failures"]),
+                             LA["sessions_requested"] - LA["sessions_completed"])),
         ("liveModel", LA["model"].replace("_", r"\_")),
         ("liveDistinctSeq", LA["distinct_action_sequences"]),
         ("liveNondetPct", f"{LA['nondeterminism_ratio'] * 100:.0f}"),

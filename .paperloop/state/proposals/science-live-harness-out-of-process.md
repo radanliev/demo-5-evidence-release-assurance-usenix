@@ -157,3 +157,41 @@ aside in the coverage paragraph and the "Detection is cryptographic, so this
 confirms rather than surprises" sentence. Both are argumentation rather than
 result, so removing either is an editorial decision for the author, not one an
 agent should take.
+
+---
+
+## UPDATE 18 Aug 2026 — page budget resolved via the appendix
+
+The author asked whether ethics declarations could move to the appendix to keep
+the science in the 13-page body. **The venue allows it.** The USENIX Security
+2027 CFP sets 13 pages for the main body *excluding References and any
+appendices*, and the ethics appendix is "no longer mandatory but strongly
+encouraged" — an appendix is where USENIX expects this material.
+
+Applied accordingly:
+
+* §9 was "Ethics and Conclusion"; it is now "Conclusion" with a one-line
+  pointer (`\textbf{Ethics.}` ... Appendix~\ref{sec:appendix_ethics}) so a
+  reviewer who never opens the appendix still sees that ethics was addressed.
+  The substance moved into Appendix A, which gained the synthetic-data and
+  no-live-credentials statements plus a new sentence on the live-agent sessions
+  calling commercial model APIs.
+* The reclaimed space paid for the clause the page limit had forced out. It is
+  back in §7.9, tightened to "so an altered or dropped record no longer matches
+  its receipt". Body is 13 of 13 pages, BLOCKER 0.
+
+Two further corrections found while doing this:
+
+1. **Failure accounting was self-contradictory.** `sessions_requested`
+   accumulated across `--append` runs but `session_failures` held only the last
+   batch, so the file read 42 requested, 31 recorded, 0 failures — a clean final
+   batch silently erased every earlier quota loss. The script now accumulates
+   failures, and `\liveFailures` is derived as requested minus recorded, which
+   is true regardless of which failure strings survived. It reads 11. The prose
+   also called these "a provider-side output-parsing error"; the real losses
+   were provider quota, credit and rate limits, and it now says so.
+2. **Table 4's caption named one model** for what is now a five-model dataset.
+   An earlier attempt to fix this silently failed to match the source (the
+   caption uses `\liveModel`, not `\texttt{\liveModel}`); it now reads
+   "\liveModelCount{} model families, \liveProviderCount{} providers" and the
+   replacement is asserted.

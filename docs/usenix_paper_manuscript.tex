@@ -617,14 +617,15 @@ witnesses of Section~\ref{sec:witness}. The model chooses the actions; nothing
 is scripted (Table~\ref{tab:live}). What the harness does and does not separate must be stated before
 its numbers are read. Each witness runs outside the collector: it executes the
 tool, digests the output \emph{it} produced, and signs with a key never
-exported from its own address space. Separation is by process, key and
+exported from its own address space, so an altered or dropped record no longer
+matches its receipt. Separation is by process, key and
 credential --- and by container, with no network and a read-only repository,
 in \liveIsoContainer{} sessions --- on one host: not by host or trust domain,
 nor against root or a debugger.
 
 \begin{table}[t]
 \centering
-\caption{Live agent sessions (\liveModel). Coverage is the share of the agent's
+\caption{Live agent sessions (\liveModelCount{} model families, \liveProviderCount{} providers). Coverage is the share of the agent's
 calls that went to the four witnessed tools; the fifth tool is unwitnessed by
 design. It is split by how the session ended, because a run stopped by the turn
 cap never reaches the unwitnessed call.}
@@ -676,7 +677,7 @@ The number reports the residue Definition~\ref{def:wtc} leaves open for this
 deployment --- roughly one action in five of a completed session lay outside
 the guarantee --- and its value is that it is declared and measurable rather
 than assumed away, not that it is a discovery about agents. \liveFailures{} of
-\liveRequested{} sessions was lost to a provider-side output-parsing error,
+\liveRequested{} sessions were lost to provider quota, credit and rate limits,
 which we report rather than retry into silence.
 
 \subsection{Limitations and Threats to Validity}\label{sec:limitations}
@@ -714,8 +715,8 @@ The closest designs are receiver-attested receipts. Notarized Agents~\cite{notar
 
 Theorem~\ref{thm:separation} explains why record formats and receipt sets alone are structurally short of completeness: each verifies a submitted document. Their records ride inside EviAssure's envelope unmodified; what it adds is the state, the second trust domain and the session binding a document cannot carry.
 
-\section{Ethics and Conclusion}
-All datasets, trace profiles and harnesses are synthetic and locally generated: no human subjects, no customer PII, no live credentials, and no measurement touching third-party systems; dual-use considerations are analysed in Appendix~\ref{sec:appendix_ethics}.
+\section{Conclusion}
+\textbf{Ethics.} This work raises no human-subjects concerns; the ethical and dual-use analysis is Appendix~\ref{sec:appendix_ethics}.
 
 EviAssure binds a release decision to a domain-separated, depth-bound Merkle attestation of an agent's execution trace, evaluated by a stateful fail-closed gate. Its central claim is Witnessed Trace Completeness: reconciling collector evidence against signed witness receipts and closing counts, for the session the orchestrator credentialed, detects \omWtc/\omVectors{} omission attacks every record-format baseline misses --- a class Theorem~\ref{thm:separation} shows no stateless verifier can close. On the tamper axis it blocks \eviBlocked/\eviTotal{} against \compBlocked{} for a composed in-toto/DSSE + TUF + OPA pipeline and reports the one it fails; held-out inspection recalls \insOvertK/\insOvertN{} overt and \insStealthK/\insStealthN{} disguised anomalies. Evidence-bound release assurance makes an unauthorised release undeniable and attributable, not impossible.
 
@@ -732,7 +733,7 @@ The author is a researcher at The Alan Turing Institute.
 The authors disclose the use of AI coding assistants for manuscript drafting assistance, LaTeX typography checking, test-harness refactoring, and an automated build-and-consistency pipeline that regenerates every numeral in this paper from the artifact's results files. All references were verified by the authors against primary sources (publisher records, arXiv, or the live specification pages). The core conceptual architecture, security proofs, empirical findings, and intellectual claims remain the original work of the authors, who take responsibility for all content.
 
 \section{Ethics and Dual-Use Analysis}\label{sec:appendix_ethics}
-The research presented in this paper introduces a defensive mechanism to ensure the security and provenance of autonomous agent releases. This work does not involve human subjects, does not analyze personally identifiable information, and does not conduct active measurements against production systems or networks operated by third parties. The \scoredVectors{} adversarial tamper vectors and the \corpusProfiles{}-profile corpus are fully synthetic and generated within isolated, local test environments for the sole purpose of evaluating the proposed cryptographic and policy enforcement mechanisms. 
+The research presented in this paper introduces a defensive mechanism to ensure the security and provenance of autonomous agent releases. This work does not involve human subjects, does not analyze personally identifiable information, and does not conduct active measurements against production systems or networks operated by third parties. All datasets, trace profiles and harnesses are synthetic and locally generated, and no live credentials were used at any point. The live-agent sessions of Section~\ref{sec:live} call commercial model APIs under the authors' own accounts, with synthetic tools over a local in-memory database; no third-party system is probed and no data leaves the harness beyond the prompts themselves. The \scoredVectors{} adversarial tamper vectors and the \corpusProfiles{}-profile corpus are fully synthetic and generated within isolated, local test environments for the sole purpose of evaluating the proposed cryptographic and policy enforcement mechanisms. 
 
 \paragraph{Dual-Use Considerations.}
 Cryptographic execution attestation mechanisms, if repurposed maliciously, could theoretically be employed to construct invasive employee monitoring frameworks or enforce rigid software lock-in. EviAssure mitigates these dual-use concerns by enforcing decentralized multi-signature threshold governance and open policy schemas (\nolinkurl{governance/release_policy.yaml}), and by keeping raw payloads out of evidence bundles entirely --- traces carry digests only. Salted HMAC blinding (\texttt{blind\_payload}) additionally unlinks the same recorded action across deployments, though as Section~\ref{sec:witness} states, it does not conceal payload equality within one deployment.

@@ -81,12 +81,22 @@ PROVIDERS = {
     "openrouter": {
         "url": "https://openrouter.ai/api/v1/chat/completions",
         "env": "OPENROUTER_API_KEY",
-        "default_model": "meta-llama/llama-3.3-70b-instruct",
+        # llama-3.3-70b answers this prompt in prose instead of calling a
+        # tool, which ends a session at turn 1 and measures nothing.
+        "default_model": "mistralai/mistral-small-3.2-24b-instruct",
     },
     # A second *provider*, not just a second model: different company, network
     # path, and serving stack, so a coverage or reconciliation result that held
     # only because of one vendor's tool-calling quirks would show up as a
     # disagreement between providers rather than hide inside one of them.
+    # Gemini speaks the OpenAI chat-completions dialect at this path. Model ids
+    # here are the bare alias, not the "models/..." form the list endpoint
+    # returns -- the prefixed form 404s.
+    "gemini": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        "env": "GEMINI_API_KEY",
+        "default_model": "gemini-flash-latest",
+    },
     "huggingface": {
         "url": "https://router.huggingface.co/v1/chat/completions",
         "env": "HF_TOKEN",
