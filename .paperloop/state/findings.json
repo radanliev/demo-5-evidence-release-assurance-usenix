@@ -2,7 +2,7 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-18T14:59:03"
+    "generated": "2026-08-18T15:12:59"
   },
   "summary": {
     "total": 9,
@@ -53,12 +53,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 515,
+      "line": 462,
       "page": null,
       "evidence": "EviAssure blocks \\eviBlocked{} of \\eviTotal{} scored vectors (\\eviPct\\%, 95\\% CI [\\eviCIlo, \\eviCIhi]), and falsely blocks \\falseBlockK{} of \\falseBlockN{} clean negative controls.",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "45d5d35f673e4061",
+      "fingerprint": "ea3afa42d3d84933",
       "gated": true,
       "autofixable": false
     },
@@ -68,12 +68,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 523,
+      "line": 470,
       "page": null,
       "evidence": "\\textbf{Differential wire fuzzing.} A fuzzing campaign whose every mutation perturbs a field inside the signed payload cannot fail --- a verifying bundle is unreachable and no clea",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "6322cc329a98e00d",
+      "fingerprint": "847f07f332bc6f23",
       "gated": true,
       "autofixable": false
     },
@@ -83,12 +83,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 564,
+      "line": 511,
       "page": null,
       "evidence": "\\caption{Executed baselines against the \\scoredVectors{}-vector suite, with Wilson 95\\%",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "6e4c635ca9ecd10e",
+      "fingerprint": "ba8e689904b17a6f",
       "gated": true,
       "autofixable": false
     },

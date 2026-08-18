@@ -168,19 +168,13 @@ Completeness is stated \emph{relative to} $\mathcal{W}$: an action of a type no 
 Let $\mathcal{A}$ control the agent, the evidence collector and the collector's signing key, but no key in $\mathcal{W}$ and not $\mathcal{O}$'s key. If the gate accepts a witness-complete bundle for release $\mathit{rid}$ with credentialed session $\mathit{sid}$, then except with probability $(m+1) \cdot \mathrm{Adv}^{euf\text{-}cma}_{\mathrm{Ed25519}}$, the trace set contains every witnessed action performed for $\mathit{rid}$, and every witnessed action it contains was performed.
 \end{theorem}
 
-\begin{proof}
-A witnessed action performed for $\mathit{rid}$ is served by some $W_j$ under a credential; since $\mathcal{O}$ issues one credential per release, that credential names $\mathit{sid}$ unless $\mathcal{A}$ minted one, an Ed25519 forgery under $\mathcal{O}$'s key. So suppose $\mathcal{A}$ omits a witnessed action $a$ served by $W_j$ under $\mathit{sid}$ as its $k$-th action, and the gate accepts. $W_j$'s counter is monotone and advances only on service, so $W_j$ issued receipts $1,\dots,n_j$ with $k \le n_j$, and its closing commits to $n_j$. Acceptance requires the receipt sequence for $W_j$ to be exactly $1,\dots,n'_j$ with a matching closing. Three cases. (i) $n'_j = n_j$: then $\mathcal{A}$ supplied $n_j$ distinct receipts, but only $n_j - 1$ correspond to submitted actions, so some receipt is unmatched and reconciliation rejects --- unless $\mathcal{A}$ minted a receipt, an Ed25519 forgery under $W_j$. (ii) $n'_j < n_j$: the presented closing differs from the one $W_j$ signed, so $\mathcal{A}$ forged a closing under $W_j$. (iii) $\mathcal{A}$ substitutes a receipt from another session $\mathit{sid}' \neq \mathit{sid}$, or presents a complete bundle for $\mathit{sid}'$: the session identifier is inside the signed receipt and closing payloads and the gate reconciles only against the $\mathit{sid}$ it credentialed for $\mathit{rid}$, so both are rejected without forgery. Each surviving case is a forgery against one of $m$ witness keys or the orchestrator key; a union bound gives the stated advantage. Fabrication of a witnessed action is symmetric: the action carries no receipt, and minting one is again a forgery. $\square$
-\end{proof}
+\noindent\emph{Proof in Appendix~\ref{sec:appendix_proofs}.}
 
 \begin{theorem}[Record Formats Cannot Achieve These Properties]\label{thm:separation}
 Let $V$ be a \emph{stateless document verifier}: a deterministic predicate $V(d) \in \{\mathrm{accept},\mathrm{reject}\}$ over a single submitted document $d$, with access to fixed public parameters (trust roots, policy) but no state that varies with prior submissions and no channel to $\mathcal{W}$. Then $V$ achieves neither replay-freedom nor witnessed completeness.
 \end{theorem}
 
-\begin{proof}
-\emph{Replay-freedom.} Determinism gives $V(d)=V(d)$: if $V$ accepts $d$ once it accepts every resubmission, so an adversary replays an approved release indefinitely. Distinguishing first from subsequent submission requires state that varies across submissions, which $V$ by definition lacks.
-
-\emph{Witnessed completeness.} Fix a witness $W$ and consider two executions: $E_1$ serving $n$ actions, and $E_2$ serving the same first $n-1$ and then a further action whose record the adversary omits. Let $d_1, d_2$ be the honestly-signed documents. Every attestation in $d_2$ is genuine: the collector signs truthfully over what it recorded, and each retained receipt is authentic. So $d_1$ and $d_2$ are identically distributed over every field $V$ can inspect, and $V(d_1)=V(d_2)$. Since $V$ must accept $d_1$ (a correct execution), it accepts $d_2$. The only field that could differ is a commitment to $W$'s served count, which $W$ alone can produce --- and requiring it makes the verifier's input depend on a trust domain outside $d$, contradicting statelessness.
-\end{proof}
+\noindent\emph{Proof in Appendix~\ref{sec:appendix_proofs}.}
 
 Theorem~\ref{thm:separation} is why we describe in-toto, SLSA, TUF, AAS-1, \texttt{agent-decision} and receipt schemes as record formats rather than as weaker gates. Their verification is by construction a function of the submitted document; the gap is structural, not a matter of maturity, and Section~\ref{sec:omission} measures it.
 
@@ -319,26 +313,6 @@ Leaves and internal nodes are hashed under \emph{disjoint domain prefixes} follo
 
 The proof is valid if and only if $C_K = R_M$ \emph{and} the path length equals the committed tree depth $d=\lceil\log_2 N\rceil$ derived from the signed execution trace count. The two defences are independent and both are necessary: domain separation prevents an internal digest from ever being interpreted as a leaf, and the depth bound prevents the shortened-path substitution of the CVE-2012-2459 family, which succeeds without any hash collision. Vector V15 (Section~\ref{sec:tamper}) exercises exactly this attack against the third-party auditor path. Transmission size for an audited step remains $<5\text{ KB}$.
 
-\begin{lstlisting}[language=python,caption={Merkle Trace Aggregation Protocol.},label={lst:proto1}]
-LEAF, NODE = b"\\x00", b"\\x01"   # RFC 6962 domain separation
-
-def leaf_digest(content):
-    return sha256(LEAF + content.encode()).hexdigest()
-
-def node_digest(l, r):
-    return sha256(NODE + bytes.fromhex(l)
-                       + bytes.fromhex(r)).hexdigest()
-
-def build_merkle_tree(leaf_digests):
-    current, levels = leaf_digests, [leaf_digests]
-    while len(current) > 1:
-        current = [node_digest(current[i],
-                     current[i+1] if i+1 < len(current)
-                                  else current[i])
-                   for i in range(0, len(current), 2)]
-        levels.append(current)
-    return current[0], levels
-\end{lstlisting}
 
 \subsection{SLSA v1.0 and in-toto Predicate Envelopes}
 To integrate with cloud-native artifact registries and software supply chain attestors, EviAssure formats each generated \texttt{EvidenceBundle} into an in-toto v0.2 Statement envelope compatible with SLSA Provenance v1.0 specifications~\cite{torres2019in-toto, slsa2023supply}. The envelope carries \texttt{\_type} \texttt{https://in-toto.io/Statement/v0.1}, the artifact digest as \texttt{subject}, \texttt{predicateType} \texttt{https://slsa.dev/provenance/v1}, and the \texttt{evidence\_id} under \texttt{predicate.buildDefinition.externalParameters}; a complete example is in the artifact.
@@ -367,29 +341,6 @@ where:
 
 Listing~\ref{lst:proto2} outlines the complete zero-trust verification algorithm enforced by \textnormal{\texttt{ReleasePolicyEngine}}.
 
-\begin{lstlisting}[language=python,caption={Fail-Closed Policy Gate Verification Protocol.},label={lst:proto2}]
-# In: Evidence E, Policy P, revoked K_rev, seen N_seen
-# Out: D in {APPROVED, BLOCKED}; any exception => BLOCKED
-def evaluate_release_gate(E, P, K_rev, N_seen):
-    if N_seen is None: return BLOCKED  # no replay state
-    valid = set()
-    for s in E.signatures:
-        if s.key_id in K_rev: continue
-        if s.key_id not in K_trusted: continue   # registry
-        pk = K_trusted[s.key_id]                 # pinned only:
-        if s.pub_key and s.pub_key != pk: continue
-        if not match_kms_arn(s.kms_arn, P.kms): continue
-        if verify_ed25519(canon(E), s.sig, pk):
-            valid.add(s.key_id)          # distinct signers
-    if len(valid) < P.min_signatures:     return BLOCKED
-    if merkle_root(E.traces) != E.merkle_root: return BLOCKED
-    if E.traces_count != len(E.traces):   return BLOCKED
-    if E.test_pass_pct < P.min_pass_pct:  return BLOCKED
-    if E.unresolved_drift > P.max_drift:  return BLOCKED
-    if E.nonce in N_seen:                 return BLOCKED
-    if not fresh(E.timestamp, P.window, skew=30): return BLOCKED
-    N_seen.add(E.nonce);  return APPROVED
-\end{lstlisting}
 
 \subsection{Formal Security Analysis}\label{sec:proofs}
 
@@ -400,9 +351,7 @@ The analysis has two layers. Theorem~\ref{thm:failclosed} is primitive-level: a 
 Under the assumption that Ed25519~\cite{bernstein2012high} is EUF-CMA secure~\cite{goldwasser1988digital, brendel2021ed25519} and SHA-256 is collision-resistant, no probabilistic polynomial-time adversary $\mathcal{A}$ can induce \textnormal{\texttt{ReleasePolicyEngine}} to output $\text{APPROVED}$ for a modified trace history, forged signature, replayed nonce, or non-compliant evidence payload except with negligible probability $\text{negl}(\lambda)$.
 \end{theorem}
 
-\begin{proof}
-Two hops carry content. $\mathbf{Game}_1$ aborts if $\mathcal{A}$ produces a valid signature over a payload the honest packager never issued; an EUF-CMA adversary $\mathcal{B}$ installs its challenge key as the sole registry entry and answers packaging requests through its signing oracle on $\mathrm{canon}(E)$, so the simulation is perfect and a $\text{Game}_1$ abort is a forgery on a never-queried message. $\mathbf{Game}_2$ aborts on $\mathcal{T}^*\neq\mathcal{T}$ with equal root; under domain-separated leaves and the committed depth this needs a SHA-256 collision. Replay, freshness, revocation, registry membership and threshold comparison are table lookups over the signed payload, rejecting with probability $1$ given correct gate state, and contribute no term. Hence $\mathrm{Adv}^{\text{tamper}} \le \mathrm{Adv}^{euf\text{-}cma}_{\mathrm{Ed25519}}(\mathcal{B},t,q_s) + \mathrm{Adv}^{coll}_{\mathrm{SHA256}}(\mathcal{C},t)$, read at the 128-bit level rather than asymptotically in $\lambda$, since both primitives are fixed-parameter.
-\end{proof}
+\noindent\emph{Proof in Appendix~\ref{sec:appendix_proofs}.}
 
 Theorem~\ref{thm:failclosed} bounds an adversary's ability to \emph{fake} evidence; it says nothing on its own about what a genuine, honestly-signed evidence pack entitles its holder to. That is the release-gate question, and it is Theorem~\ref{thm:authorization}.
 
@@ -419,9 +368,7 @@ Fix a policy version $P$ and a trusted key registry $\mathcal{K}_{\text{trusted}
 \paragraph{Scope and Operational Assumptions.}
 The guarantees hold conditionally on (a) the \emph{collector assumption} of Definition~\ref{def:completeness} --- the evidence collector observed and recorded every action of the release execution --- which supplies the completeness half of the guarantee, and (b) the \emph{key-management assumption} --- registry keys are honestly generated and the HSM/KMS enforces the ARN boundary. The theorem asserts nothing about actions that never reached the collector, nor about the semantic correctness of recorded trace content; both are defined in the threat model and handled by the out-of-band semantic inspection layer.
 
-\begin{proof}
-\textbf{(i)} Follows from Theorem~\ref{thm:failclosed}, Game$_1$, plus the deterministic registry checks enforced before any signature verification (\texttt{policy.py}): unknown key IDs, bundle-supplied keys disagreeing with the registry, and revoked keys are rejected outright, so per-signature success is bounded by $\text{Adv}_{\text{Ed25519}}^{\text{euf-cma}}(\mathcal{A})$. \textbf{(ii)} Follows from Theorem~\ref{thm:failclosed}, Game$_2$, plus the deterministic signed-count check $N = |\text{traces}|$; substitution requires either a hash collision or a broken signature. \textbf{(iii)} Freshness, skew, and nonce checks are deterministic (Game$_3$; Listing~\ref{lst:proto2}) and hold with probability $1$ given correct gate state, with the disclosed caveat that replay protection requires sharing the nonce cache across gate replicas in distributed environments. \textbf{(iv)} Threshold comparisons are deterministic over the signed payload and the pinned policy version. Composition yields the statement; the only probabilistic terms reduce to the primitive advantages of Theorem~\ref{thm:failclosed}.
-\end{proof}
+\noindent\emph{Proof in Appendix~\ref{sec:appendix_proofs}.}
 
 \section{Deployment Integration and Workload Specimens}
 EviAssure runs as a GitHub Action against two synthetic workload specimens --- a backend multi-step agent (\nolinkurl{specimens/agent_runner.py}: JWT claims, vector retrieval, sandboxed SQL) and a browser agent (\nolinkurl{specimens/web_app_runner.py}: navigation, clicks, DOM and screenshot digests) --- both simulations, and a third (\nolinkurl{specimens/live_agent_runner.py}) that drives a real tool-calling LLM through witnessed tools (Section~\ref{sec:live}). The production collector of Section~\ref{sec:system_threat} (eBPF syscall mediation) remains an architectural proposal rather than an evaluated component, which is why Section~\ref{sec:witness} moves the completeness guarantee onto witnesses a compromised collector cannot speak for.
@@ -698,6 +645,9 @@ which we report rather than retry into silence.
 \textbf{Measurement and key management.} Timed figures are means over \benchRepeats{} runs on one platform. The artifact signs with static demo keys so results reproduce; there is no real KMS round trip, so no KMS latency is measured or claimed.
 
 
+
+\textbf{Ethics.} The work raises no human-subjects concerns; the ethical and dual-use analysis, including responsible disclosure, is Appendix~\ref{sec:appendix_ethics}.
+
 \section{Related Work}
 
 \textbf{Positioning.} Threshold signing, metadata expiry, rollback protection and key revocation are \emph{not} novel here --- TUF has supplied them since 2010~\cite{samuel2010surviving}, which is why our executed TUF baseline blocks \tufBlocked{} of \tufTotal{} vectors (Section~\ref{sec:comparative}). EviAssure's claim is narrow: it binds the release decision to a Merkle-attested \emph{execution trace} for a credentialed session, reconciles it against a second trust domain, and holds replay state, which none of the systems below does.
@@ -711,12 +661,11 @@ Policy engines (OPA~\cite{opa2021openpolicy}, Kyverno~\cite{kyverno2022policy}) 
 \subsection{AI-Agent Provenance Standards and Receipts}\label{sec:related-2026}
 Three 2026 initiatives address agent provenance as a \emph{record format}. The in-toto \texttt{agent-decision/v0.1} RFC~\cite{intoto2026agent-decision} standardises the shape of a signed policy-decision record, leaving freshness, replay and revocation to the verifier. APAS~\cite{apas2026agent-provenance} builds provenance chains on in-toto Statements and grades itself candidly: at its lower levels provenance is ``self-attested --- an attacker who compromises the orchestrator can forge records.'' AAS-1~\cite{aas12026agent-audit} defines evidentiary record classes with per-issuer hash chains that detect omission \emph{between} records a verifier already holds --- which, as Section~\ref{sec:omission} measures, a suffix truncation evades.
 
-The closest designs are receiver-attested receipts. Notarized Agents~\cite{notarized2026agents} has the service that serves an agent call sign a receipt binding the call's input and output digests, encrypt it to the agent's owner and publish it to a transparency log, and names what it does not solve: the ``suppression attack'', in which an agent that does not call a service produces no receipt, and set-completeness of the receipts a log returns. PipeLab's action receipts~\cite{pipelab2026receipts} are signed by a mediator outside the agent process and hash-chained. Both give per-receipt verifiability from a second trust domain, which is the same move as ours; neither gives a verifier a way to know that the receipt set is \emph{all} of them. Publishing receipts to a transparency service in the SCITT model~\cite{rfc9943scitt} or a Certificate-Transparency-style log~\cite{laurie2014certificate} is one route to that: a verifier that audits the log for every receipt in a session obtains completeness relative to the log, at the cost of a log operator in the trust domain and a query whose own completeness must be authenticated. The closing count is the other: each witness commits, under its own key, to how many actions it served, so completeness relative to the witness set needs no log and no cross-witness agreement, and the credentialed session pins which set the gate reconciles. The two compose --- receipts and closings can be logged --- and we regard the log as the natural place to keep closings for post-hoc audit.
+The closest designs are receiver-attested receipts. Notarized Agents~\cite{notarized2026agents} has the service that serves an agent call sign a receipt binding the call's input and output digests, encrypt it to the agent's owner and publish it to a transparency log, and names what it does not solve: the ``suppression attack'', in which an agent that does not call a service produces no receipt, and set-completeness of the receipts a log returns. PipeLab's action receipts~\cite{pipelab2026receipts} are signed by a mediator outside the agent process and hash-chained. Both give per-receipt verifiability from a second trust domain, which is the same move as ours; neither gives a verifier a way to know that the receipt set is \emph{all} of them. How completeness could instead be obtained from a transparency log, and why the closing count does not need one, is Appendix~\ref{sec:appendix_relwork}.
 
 Theorem~\ref{thm:separation} explains why record formats and receipt sets alone are structurally short of completeness: each verifies a submitted document. Their records ride inside EviAssure's envelope unmodified; what it adds is the state, the second trust domain and the session binding a document cannot carry.
 
 \section{Conclusion}
-\textbf{Ethics.} This work raises no human-subjects concerns; the ethical and dual-use analysis is Appendix~\ref{sec:appendix_ethics}.
 
 EviAssure binds a release decision to a domain-separated, depth-bound Merkle attestation of an agent's execution trace, evaluated by a stateful fail-closed gate. Its central claim is Witnessed Trace Completeness: reconciling collector evidence against signed witness receipts and closing counts, for the session the orchestrator credentialed, detects \omWtc/\omVectors{} omission attacks every record-format baseline misses --- a class Theorem~\ref{thm:separation} shows no stateless verifier can close. On the tamper axis it blocks \eviBlocked/\eviTotal{} against \compBlocked{} for a composed in-toto/DSSE + TUF + OPA pipeline and reports the one it fails; held-out inspection recalls \insOvertK/\insOvertN{} overt and \insStealthK/\insStealthN{} disguised anomalies. Evidence-bound release assurance makes an unauthorised release undeniable and attributable, not impossible.
 
@@ -731,6 +680,83 @@ The author is a researcher at The Alan Turing Institute.
 \appendix
 \section*{Use of Generative AI and Automated Tooling}
 The authors disclose the use of AI coding assistants for manuscript drafting assistance, LaTeX typography checking, test-harness refactoring, and an automated build-and-consistency pipeline that regenerates every numeral in this paper from the artifact's results files. All references were verified by the authors against primary sources (publisher records, arXiv, or the live specification pages). The core conceptual architecture, security proofs, empirical findings, and intellectual claims remain the original work of the authors, who take responsibility for all content.
+
+\section{Extended Related Work}\label{sec:appendix_relwork}
+Publishing receipts to a transparency service in the SCITT model~\cite{rfc9943scitt} or a Certificate-Transparency-style log~\cite{laurie2014certificate} is one route to that: a verifier that audits the log for every receipt in a session obtains completeness relative to the log, at the cost of a log operator in the trust domain and a query whose own completeness must be authenticated. The closing count is the other: each witness commits, under its own key, to how many actions it served, so completeness relative to the witness set needs no log and no cross-witness agreement, and the credentialed session pins which set the gate reconciles. The two compose --- receipts and closings can be logged --- and we regard the log as the natural place to keep closings for post-hoc audit.
+
+\section{Algorithms and Policy Listings}\label{sec:appendix_listings}
+The body refers to these by number; they are reproduced here so the main
+text stays within the page limit.
+
+\begin{lstlisting}[language=python,caption={Merkle Trace Aggregation Protocol.},label={lst:proto1}]
+LEAF, NODE = b"\\x00", b"\\x01"   # RFC 6962 domain separation
+
+def leaf_digest(content):
+    return sha256(LEAF + content.encode()).hexdigest()
+
+def node_digest(l, r):
+    return sha256(NODE + bytes.fromhex(l)
+                       + bytes.fromhex(r)).hexdigest()
+
+def build_merkle_tree(leaf_digests):
+    current, levels = leaf_digests, [leaf_digests]
+    while len(current) > 1:
+        current = [node_digest(current[i],
+                     current[i+1] if i+1 < len(current)
+                                  else current[i])
+                   for i in range(0, len(current), 2)]
+        levels.append(current)
+    return current[0], levels
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=python,caption={Fail-Closed Policy Gate Verification Protocol.},label={lst:proto2}]
+# In: Evidence E, Policy P, revoked K_rev, seen N_seen
+# Out: D in {APPROVED, BLOCKED}; any exception => BLOCKED
+def evaluate_release_gate(E, P, K_rev, N_seen):
+    if N_seen is None: return BLOCKED  # no replay state
+    valid = set()
+    for s in E.signatures:
+        if s.key_id in K_rev: continue
+        if s.key_id not in K_trusted: continue   # registry
+        pk = K_trusted[s.key_id]                 # pinned only:
+        if s.pub_key and s.pub_key != pk: continue
+        if not match_kms_arn(s.kms_arn, P.kms): continue
+        if verify_ed25519(canon(E), s.sig, pk):
+            valid.add(s.key_id)          # distinct signers
+    if len(valid) < P.min_signatures:     return BLOCKED
+    if merkle_root(E.traces) != E.merkle_root: return BLOCKED
+    if E.traces_count != len(E.traces):   return BLOCKED
+    if E.test_pass_pct < P.min_pass_pct:  return BLOCKED
+    if E.unresolved_drift > P.max_drift:  return BLOCKED
+    if E.nonce in N_seen:                 return BLOCKED
+    if not fresh(E.timestamp, P.window, skew=30): return BLOCKED
+    N_seen.add(E.nonce);  return APPROVED
+\end{lstlisting}
+
+
+\section{Deferred Proofs}\label{sec:appendix_proofs}
+The theorem statements, their assumptions and the intuition behind each
+appear in the body; the full arguments are reproduced here so the main
+text stays within the page limit.
+
+\begin{proof}[Proof of Theorem~\ref{thm:wtc}]
+A witnessed action performed for $\mathit{rid}$ is served by some $W_j$ under a credential; since $\mathcal{O}$ issues one credential per release, that credential names $\mathit{sid}$ unless $\mathcal{A}$ minted one, an Ed25519 forgery under $\mathcal{O}$'s key. So suppose $\mathcal{A}$ omits a witnessed action $a$ served by $W_j$ under $\mathit{sid}$ as its $k$-th action, and the gate accepts. $W_j$'s counter is monotone and advances only on service, so $W_j$ issued receipts $1,\dots,n_j$ with $k \le n_j$, and its closing commits to $n_j$. Acceptance requires the receipt sequence for $W_j$ to be exactly $1,\dots,n'_j$ with a matching closing. Three cases. (i) $n'_j = n_j$: then $\mathcal{A}$ supplied $n_j$ distinct receipts, but only $n_j - 1$ correspond to submitted actions, so some receipt is unmatched and reconciliation rejects --- unless $\mathcal{A}$ minted a receipt, an Ed25519 forgery under $W_j$. (ii) $n'_j < n_j$: the presented closing differs from the one $W_j$ signed, so $\mathcal{A}$ forged a closing under $W_j$. (iii) $\mathcal{A}$ substitutes a receipt from another session $\mathit{sid}' \neq \mathit{sid}$, or presents a complete bundle for $\mathit{sid}'$: the session identifier is inside the signed receipt and closing payloads and the gate reconciles only against the $\mathit{sid}$ it credentialed for $\mathit{rid}$, so both are rejected without forgery. Each surviving case is a forgery against one of $m$ witness keys or the orchestrator key; a union bound gives the stated advantage. Fabrication of a witnessed action is symmetric: the action carries no receipt, and minting one is again a forgery. $\square$
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:separation}]
+\emph{Replay-freedom.} Determinism gives $V(d)=V(d)$: if $V$ accepts $d$ once it accepts every resubmission, so an adversary replays an approved release indefinitely. Distinguishing first from subsequent submission requires state that varies across submissions, which $V$ by definition lacks.
+
+\emph{Witnessed completeness.} Fix a witness $W$ and consider two executions: $E_1$ serving $n$ actions, and $E_2$ serving the same first $n-1$ and then a further action whose record the adversary omits. Let $d_1, d_2$ be the honestly-signed documents. Every attestation in $d_2$ is genuine: the collector signs truthfully over what it recorded, and each retained receipt is authentic. So $d_1$ and $d_2$ are identically distributed over every field $V$ can inspect, and $V(d_1)=V(d_2)$. Since $V$ must accept $d_1$ (a correct execution), it accepts $d_2$. The only field that could differ is a commitment to $W$'s served count, which $W$ alone can produce --- and requiring it makes the verifier's input depend on a trust domain outside $d$, contradicting statelessness.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:failclosed}]
+Two hops carry content. $\mathbf{Game}_1$ aborts if $\mathcal{A}$ produces a valid signature over a payload the honest packager never issued; an EUF-CMA adversary $\mathcal{B}$ installs its challenge key as the sole registry entry and answers packaging requests through its signing oracle on $\mathrm{canon}(E)$, so the simulation is perfect and a $\text{Game}_1$ abort is a forgery on a never-queried message. $\mathbf{Game}_2$ aborts on $\mathcal{T}^*\neq\mathcal{T}$ with equal root; under domain-separated leaves and the committed depth this needs a SHA-256 collision. Replay, freshness, revocation, registry membership and threshold comparison are table lookups over the signed payload, rejecting with probability $1$ given correct gate state, and contribute no term. Hence $\mathrm{Adv}^{\text{tamper}} \le \mathrm{Adv}^{euf\text{-}cma}_{\mathrm{Ed25519}}(\mathcal{B},t,q_s) + \mathrm{Adv}^{coll}_{\mathrm{SHA256}}(\mathcal{C},t)$, read at the 128-bit level rather than asymptotically in $\lambda$, since both primitives are fixed-parameter.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:authorization}]
+\textbf{(i)} Follows from Theorem~\ref{thm:failclosed}, Game$_1$, plus the deterministic registry checks enforced before any signature verification (\texttt{policy.py}): unknown key IDs, bundle-supplied keys disagreeing with the registry, and revoked keys are rejected outright, so per-signature success is bounded by $\text{Adv}_{\text{Ed25519}}^{\text{euf-cma}}(\mathcal{A})$. \textbf{(ii)} Follows from Theorem~\ref{thm:failclosed}, Game$_2$, plus the deterministic signed-count check $N = |\text{traces}|$; substitution requires either a hash collision or a broken signature. \textbf{(iii)} Freshness, skew, and nonce checks are deterministic (Game$_3$; Listing~\ref{lst:proto2}) and hold with probability $1$ given correct gate state, with the disclosed caveat that replay protection requires sharing the nonce cache across gate replicas in distributed environments. \textbf{(iv)} Threshold comparisons are deterministic over the signed payload and the pinned policy version. Composition yields the statement; the only probabilistic terms reduce to the primitive advantages of Theorem~\ref{thm:failclosed}.
+\end{proof}
 
 \section{Ethics and Dual-Use Analysis}\label{sec:appendix_ethics}
 The research presented in this paper introduces a defensive mechanism to ensure the security and provenance of autonomous agent releases. This work does not involve human subjects, does not analyze personally identifiable information, and does not conduct active measurements against production systems or networks operated by third parties. All datasets, trace profiles and harnesses are synthetic and locally generated, and no live credentials were used at any point. The live-agent sessions of Section~\ref{sec:live} call commercial model APIs under the authors' own accounts, with synthetic tools over a local in-memory database; no third-party system is probed and no data leaves the harness beyond the prompts themselves. The \scoredVectors{} adversarial tamper vectors and the \corpusProfiles{}-profile corpus are fully synthetic and generated within isolated, local test environments for the sole purpose of evaluating the proposed cryptographic and policy enforcement mechanisms. 

@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 14:59
+**Run:** 2026-08-18 15:12
 
 | Severity | Count |
 |---|---|
@@ -12,23 +12,6 @@
 | INFO | 4 |
 
 Gated (human sign-off required): **0**
-
-<details><summary>Build output (tail)</summary>
-
-```
-=== USENIX Security Paper PDF Builder & Figure Generator ===
-[+] High-resolution 600 DPI benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
-[*] Froze headline metrics -> frozen_metrics.tex (throughput=7,025, overhead=0.000%)
-[*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
-[SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-
-[+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-findfont: Failed to find font weight semibold, now using 700.
-findfont: Failed to find font weight semibold, now using 700.
-findfont: Failed to find font weight semibold, now using 700.
-findfont: Failed to find font weight semibold, now using 700.
-```
-</details>
 
 ## Auto-fix mandate
 
@@ -54,32 +37,32 @@ percentage without an explicit denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
 - **id:** `fbe242416462876d`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:515
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:462
 
 percentage without an explicit denominator
 
 - **found:** `EviAssure blocks \eviBlocked{} of \eviTotal{} scored vectors (\eviPct\%, 95\% CI [\eviCIlo, \eviCIhi]), and falsely blocks \falseBlockK{} of \falseBlockN{} clean negative controls.`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `45d5d35f673e4061`
+- **id:** `ea3afa42d3d84933`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:523
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:470
 
 percentage without an explicit denominator
 
 - **found:** `\textbf{Differential wire fuzzing.} A fuzzing campaign whose every mutation perturbs a field inside the signed payload cannot fail --- a verifying bundle is unreachable and no clea`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `6322cc329a98e00d`
+- **id:** `847f07f332bc6f23`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:564
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:511
 
 percentage without an explicit denominator
 
 - **found:** `\caption{Executed baselines against the \scoredVectors{}-vector suite, with Wilson 95\%`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `6e4c635ca9ecd10e`
+- **id:** `ba8e689904b17a6f`
 
 ## Measurements
 

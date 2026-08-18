@@ -404,8 +404,23 @@ def check(cfg: Config) -> list[Finding]:
         cands = [x for x in (ref_page if excl_refs else None,
                              appendix_page if excl_appendix else None) if x]
         if cands:
-            cut = min(cands) - 1
-            basis = f"body ends p.{cut} (references/appendix start p.{min(cands)})"
+            first = min(cands)
+            cut = first - 1
+            basis = f"body ends p.{cut} (references/appendix start p.{first})"
+            # A heading that starts partway down its page leaves body text
+            # above it, and that page counts toward the limit. Subtracting one
+            # unconditionally under-reported by a page whenever the References
+            # heading shared a page with trailing body text -- the paper read
+            # as 13 pages while most of p.14 was still body.
+            head_re = ref_head if first == ref_page else app_head
+            pg = next((x for x in pages if x["page"] == first), None)
+            if pg is not None:
+                m = head_re.search(pg["text"])
+                before = pg["text"][:m.start()].strip() if m else ""
+                if len(before) > 200:
+                    cut = first
+                    basis = (f"body runs onto p.{first}: {len(before)} chars of body "
+                             f"text precede the heading")
         if cut > limit:
             out.append(Finding("venue", "venue.pagecount", "BLOCKER",
                                f"over the {v.get('name')} page limit by {cut - limit} page(s)",
