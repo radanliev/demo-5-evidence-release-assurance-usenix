@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-19 00:20
+**Run:** 2026-08-19 00:34
 
 | Severity | Count |
 |---|---|
@@ -35,23 +35,23 @@ shi2025progent is cited as arXiv — check for a peer-reviewed version
 
 **The writer agent must not touch these.** Changing a number to make a gate pass converts a data error into a published claim. Each one gets a proposed diff in `.paperloop/state/proposals/`, and the loop halts.
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:482
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:518
 
 percentage without an explicit denominator
 
 - **found:** `EviAssure blocks \eviBlocked{} of \eviTotal{} scored vectors (\eviPct\%, 95\% CI [\eviCIlo, \eviCIhi]), and falsely blocks \falseBlockK{} of \falseBlockN{} clean negative controls.`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `1aece072bfea1a94`
+- **id:** `48dd7d0fe41d5226`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:490
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:526
 
 percentage without an explicit denominator
 
 - **found:** `\textbf{Differential wire fuzzing.} A campaign whose every mutation perturbs a field inside the signed payload cannot fail (a verifying bundle is unreachable), so it carries no inf`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `0a8b44467bfb40ea`
+- **id:** `4cf2748735cd4fe5`
 
 ## Measurements
 

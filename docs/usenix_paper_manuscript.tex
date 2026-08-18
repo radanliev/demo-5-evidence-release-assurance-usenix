@@ -284,36 +284,72 @@ A witness is the component that \emph{actually serves} an agent action: a tool e
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}[x=1mm, y=1mm, font=\small, >=stealth,
-    head/.style={draw=#1!70!black, fill=#1!10, rounded corners=2pt, minimum width=15mm, minimum height=7mm, align=center, inner sep=1pt, thick},
-    msg/.style={->, thick, draw=black!75},
-    lab/.style={fill=white, inner sep=1pt, font=\small},
-    note/.style={draw=#1!70!black, fill=#1!8, rounded corners=1.5pt, align=left, inner sep=1.5pt, font=\small, text=#1!40!black}]
-% lifelines
-\node[head=gray]   (o) at (8,0)    {Orchestrator\\$\mathcal{O}$};
-\node[head=red]    (a) at (31,0)   {Agent /\\Collector};
-\node[head=orange] (w) at (55,0)   {Witness\\$W_j$};
-\node[head=blue]   (g) at (76,0)   {Gate};
-\foreach \n in {o,a,w,g} \draw[gray!60, dashed] (\n.south) -- ++(0,-81);
-% 1. credential
-\draw[msg] (8,-7) -- node[lab, above] {$c=\mathrm{Sign}_{\mathcal{O}}(\mathit{sid},\mathit{rid})$} (31,-7);
-\draw[msg] (8,-13) -- node[lab, above, pos=0.6] {expected $\mathit{sid}$ for $\mathit{rid}$} (76,-13);
-% 2. actions and receipts
-\draw[msg] (31,-20) -- node[lab, above] {$a_1$, $c$} (55,-20);
-\draw[msg] (55,-24) -- node[lab, below] {$r_1$ (seq $1$)} (31,-24);
-\draw[msg] (31,-31) -- node[lab, above] {$a_2$, $c$} (55,-31);
-\draw[msg] (55,-35) -- node[lab, below] {$r_2$ (seq $2$)} (31,-35);
-\draw[msg] (31,-42) -- node[lab, above] {$a_3$, $c$} (55,-42);
-\draw[msg] (55,-46) -- node[lab, below] {$r_3$ (seq $3$)} (31,-46);
-\node[note=red, anchor=east] at (28,-46) {collector records\\$a_1,a_2$; drops $a_3$};
-\node[note=orange, anchor=west] at (58,-31) {counter per $\mathit{sid}$;\\refuses without $c$};
-% 3. closing
-\draw[msg] (8,-55) -- node[lab, above, pos=0.7] {close($c$)} (55,-55);
-\draw[msg] (55,-61) -- node[lab, above] {closing $\mathrm{cl}_j$: $W_j$ signs $(\mathit{sid},\,n_j{=}3)$} (31,-61);
-% 4. bundle and verdict
-\draw[msg, very thick] (31,-68) -- node[lab, above] {$\mathcal{E}$: $\{a_1,a_2\}$, $r_1,r_2$, $\mathrm{cl}_j$, $\mathit{sid}$; $K_C$} (76,-68);
-\node[note=blue, anchor=north east, text width=46mm] at (82,-71) {reconcile for $\mathit{sid}$: closing says $n_j{=}3$, receipts are $\{1,2\}$; seq $3$ absent $\Rightarrow$ \textbf{BLOCKED}};
+  panel/.style={draw=#1!55!black, fill=#1!4, rounded corners=6pt, thick},
+  ptitle/.style={font=\small\bfseries, text=#1!55!black, anchor=north west, inner sep=2pt},
+  rowlab/.style={font=\small, text=black!65, anchor=east, inner sep=1pt},
+  act/.style={draw=#1!70!black, fill=#1!18, rounded corners=1.5pt, minimum width=8mm, minimum height=5mm, inner sep=1pt},
+  rcp/.style={draw=#1!70!black, fill=white, rounded corners=1.5pt, minimum width=8mm, minimum height=4.6mm, inner sep=1pt},
+  cls/.style={draw=#1!70!black, fill=#1!28, rounded corners=1.5pt, minimum width=12mm, minimum height=4.6mm, inner sep=1pt, font=\small\bfseries},
+  gap/.style={draw=red!80!black, dashed, thick, rounded corners=1.5pt, minimum width=8mm, minimum height=5mm, inner sep=1pt, text=red!80!black},
+  chk/.style={font=\small, anchor=west, inner sep=1pt},
+  verdict/.style={rounded corners=2pt, draw=#1!70!black, fill=#1!14, font=\small\bfseries, inner sep=2.2pt, text=#1!50!black, anchor=west},
+  flow/.style={->, thick, dotted, draw=black!70}]
+% ---------- (a) executed ----------
+\draw[panel=black] (0,0) rectangle (84,-21);
+\node[ptitle=black] at (0,0) {(a) Executed in session $\mathit{sid}$};
+\node[rowlab] at (14,-9.5)  {action};
+\node[rowlab] at (14,-16)   {receipt};
+\node[act=orange] (a1) at (19,-9.5)  {$a_1$};
+\node[act=teal]   (a2) at (30,-9.5)  {$a_2$};
+\node[act=orange] (a3) at (41,-9.5)  {$a_3$};
+\node[act=orange] (a4) at (52,-9.5)  {$a_4$};
+\node[act=teal]   (a5) at (63,-9.5)  {$a_5$};
+\node[rcp=orange] at (19,-16) {seq 1};
+\node[rcp=teal]   at (30,-16) {seq 1};
+\node[rcp=orange] at (41,-16) {seq 2};
+\node[rcp=orange] at (52,-16) {seq 3};
+\node[rcp=teal]   (r5) at (63,-16) {seq 2};
+\node[cls=orange] at (74,-9.5) {$W_1$: $n{=}3$};
+\node[cls=teal]   at (74,-16)  {$W_2$: $n{=}2$};
+\node[font=\small, text=black!65, anchor=center] at (74,-4.6) {closings};
+% ---------- (b) recorded ----------
+\draw[panel=red] (0,-23) rectangle (84,-44);
+\node[ptitle=red] at (0,-23) {(b) Recorded by the collector (bundle $\mathcal{E}$)};
+\node[rowlab] at (14,-32.5) {trace};
+\node[rowlab] at (14,-39)   {receipt};
+\node[act=orange] at (19,-32.5) {$a_1$};
+\node[act=teal]   at (30,-32.5) {$a_2$};
+\node[act=orange] at (41,-32.5) {$a_3$};
+\node[act=orange] at (52,-32.5) {$a_4$};
+\node[gap] (g5) at (63,-32.5) {$a_5$};
+\node[rcp=orange] at (19,-39) {seq 1};
+\node[rcp=teal]   at (30,-39) {seq 1};
+\node[rcp=orange] at (41,-39) {seq 2};
+\node[rcp=orange] at (52,-39) {seq 3};
+\node[gap, minimum height=4.6mm] at (63,-39) {seq 2};
+\node[cls=orange] at (74,-32.5) {$W_1$: $n{=}3$};
+\node[cls=teal]   at (74,-39)  {$W_2$: $n{=}2$};
+\node[font=\small, text=red!80!black, anchor=west] at (66.5,-27) {dropped};
+\draw[flow, draw=red!80!black] (r5.south) -- (g5.north);
+% ---------- (c) verifiers ----------
+\draw[panel=gray] (0,-46) rectangle (41,-76);
+\node[ptitle=gray] at (0,-46) {(c) Document verifier};
+\node[chk] at (1.5,-53) {$\checkmark$ signature (pinned key)};
+\node[chk] at (1.5,-58) {$\checkmark$ Merkle root, $N{=}4$};
+\node[chk] at (1.5,-63) {$\checkmark$ each receipt has a trace};
+\node[chk] at (1.5,-68) {$\checkmark$ prev-links intact};
+\node[verdict=gray] at (1.5,-73) {APPROVED};
+\node[font=\small, text=red!80!black, anchor=west] at (24,-73) {wrong};
+\draw[panel=blue] (44,-46) rectangle (84,-76);
+\node[ptitle=blue] at (44,-46) {(d) Reconciliation (\S\ref{sec:witness})};
+\node[chk] at (46,-53) {$W_1$: closing 3, seq $\{1,2,3\}$ $\checkmark$};
+\node[chk] at (46,-58) {$W_2$: closing 2, seq $\{1\}$};
+\node[chk, text=red!80!black] at (46,-63) {\quad seq 2 absent: omitted};
+\node[chk] at (46,-68) {$\checkmark$ each trace has a receipt};
+\node[verdict=blue] at (46,-73) {BLOCKED};
+\node[font=\small, text=blue!50!black, anchor=west] at (66,-73) {correct};
 \end{tikzpicture}
-\caption{One credentialed session under the witness protocol, and the omission it defeats. The orchestrator opens the session with $c$ and tells the gate which session it credentialed; each action reaches the witness with $c$ and returns a sequence-numbered receipt; at session end the witness signs a closing count. A collector that performs $a_3$ but records only $a_1,a_2$ presents a bundle $\mathcal{E}$ (signed under its own key $K_C$) whose closing and receipts disagree, and the gate blocks; the missing receipt or a lower closing needs $W_j$'s key (Theorem~\ref{thm:wtc}).}
+\caption{Why a suffix omission is invisible to a document verifier and visible to reconciliation. (a) In session $\mathit{sid}$ two witnesses, $W_1$ (orange) and $W_2$ (teal), serve five actions, returning a sequence-numbered receipt for each and, at session end, a signed closing count. (b) The collector performs all five but records four, dropping $a_5$ and its receipt; everything it presents is genuine and correctly signed under its own key. (c) A verifier of the document (DSSE, TUF, per-action receipts, hash chains) finds nothing wrong: the end of the record simply moved. (d) The gate reconciles per witness: $W_2$'s closing commits to two served actions but one receipt is present, so the bundle is blocked; producing the missing receipt with a matching trace, or a lower closing, needs $W_2$'s key (Theorem~\ref{thm:wtc}).}
 \label{fig:protocol}
 \end{figure}
 

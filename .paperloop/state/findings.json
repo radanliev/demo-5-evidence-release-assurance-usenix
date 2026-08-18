@@ -2,7 +2,7 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-19T00:20:34"
+    "generated": "2026-08-19T00:34:37"
   },
   "summary": {
     "total": 8,
@@ -53,12 +53,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 482,
+      "line": 518,
       "page": null,
       "evidence": "EviAssure blocks \\eviBlocked{} of \\eviTotal{} scored vectors (\\eviPct\\%, 95\\% CI [\\eviCIlo, \\eviCIhi]), and falsely blocks \\falseBlockK{} of \\falseBlockN{} clean negative controls.",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "1aece072bfea1a94",
+      "fingerprint": "48dd7d0fe41d5226",
       "gated": true,
       "autofixable": false
     },
@@ -68,12 +68,12 @@
       "severity": "MINOR",
       "message": "percentage without an explicit denominator",
       "file": "docs/usenix_paper_manuscript.tex",
-      "line": 490,
+      "line": 526,
       "page": null,
       "evidence": "\\textbf{Differential wire fuzzing.} A campaign whose every mutation perturbs a field inside the signed payload cannot fail (a verifying bundle is unreachable), so it carries no inf",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
-      "fingerprint": "0a8b44467bfb40ea",
+      "fingerprint": "4cf2748735cd4fe5",
       "gated": true,
       "autofixable": false
     },
