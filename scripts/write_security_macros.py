@@ -130,6 +130,33 @@ if live_path.exists():
         ("liveOmDetected", sum(v["detected"] for k, v in od.items() if _ATTACK.fullmatch(k))),
         ("liveOmTotal", sum(v["of"] for k, v in od.items() if _ATTACK.fullmatch(k))),
     ]
+    # Coverage split by how the session ended. A session truncated by the turn
+    # cap never reaches the unmediated bookkeeping call, so its coverage is
+    # 100% by construction of the cap rather than by property of the witness
+    # set. Reporting only the pooled mean would repeat the error that produced
+    # the old 50/50 recall figure: a number that describes the harness.
+    _S = json.loads(live_path.read_text())["sessions"]
+    _done = [x for x in _S if x["stopped_reason"].startswith("agent emitted")]
+    _trunc = [x for x in _S if not x["stopped_reason"].startswith("agent emitted")]
+    _cov = lambda xs: (sum(x["coverage"] for x in xs) / len(xs) * 100.0) if xs else 0.0
+    rows += [
+        ("liveCompleted", len(_done)),
+        ("liveTruncated", len(_trunc)),
+        ("liveCoverageCompleted", f"{_cov(_done):.1f}"),
+        ("liveCoverageTruncated", f"{_cov(_trunc):.1f}"),
+    ]
+    # How many of the six omission vectors the live harness can actually build.
+    # O5 (cross-session splice) needs a second concurrent session, which the
+    # runner does not create -- sessions are independent. Reporting 69/69 while
+    # implying all six would overclaim; the count is generated so it cannot
+    # drift if the harness later gains the missing vector.
+    rows += [
+        ("liveOmVectorsRun", len([k for k in od if _ATTACK.fullmatch(k)])),
+        ("liveOmVectorsSuite", sec["omission"]["n_omission_vectors"]),
+        ("liveOmMissing", ", ".join(sorted(
+            {f"O{i}" for i in range(1, sec["omission"]["n_omission_vectors"] + 1)}
+            - {k for k in od if _ATTACK.fullmatch(k)})) or "none"),
+    ]
     print(f"[+] live-agent macros from {LA['sessions_completed']} session(s)")
 else:
     print("[i] no live_agent_evaluation.json -- live-agent macros omitted")

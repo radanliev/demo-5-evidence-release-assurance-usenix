@@ -1,6 +1,9 @@
 \documentclass[letterpaper,10pt,twocolumn]{article}
 \usepackage{usenix}
-\usepackage{lmodern}
+% NOTE: do NOT add \usepackage{lmodern} here. usenix.sty loads mathptmx
+% (Times Roman); lmodern loaded afterwards silently overrides it, and the CFP
+% requires "10-point Times Roman type" and forbids changing font defaults.
+% An earlier revision carried lmodern and shipped a Latin Modern PDF.
 
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
 \DeclareMathAlphabet{\mathcal}{OMS}{cmsy}{m}{n}
@@ -127,7 +130,7 @@ Release pipelines verify no such thing. Deployment gates evaluate unauthenticate
 
 The gap is one of subject rather than of strength. Supply-chain security attests the origin and integrity of \emph{static} artifacts --- container images, compiled binaries, model weight files --- and does so well. But an agent's security posture is not defined by its code artifact alone; it is defined by the dynamic, non-deterministic execution trace that artifact produced against a test suite. We can cryptographically attest \emph{what} an agent is. We cannot, today, authorize a release on \emph{how it behaved}.
 
-To address these critical vulnerabilities, EviAssure\footnote{The complete anonymous source code, evaluation corpus, and benchmark suite are available at \url{https://anonymous.4open.science/r/eviassure-release-assurance/}.} introduces an evidence-backed release assurance architecture that fills this niche. It replaces informal release signals with cryptographically authenticated Evidence Bundles backed by Merkle inclusion proofs, timestamp freshness windows, digital signatures, and provenance envelopes.
+To address these critical vulnerabilities, EviAssure\footnote{The complete anonymous source code, evaluation corpus, and benchmark suite are available at \url{https://anonymous.4open.science/r/eviassure-artifact-781D/}.} introduces an evidence-backed release assurance architecture that fills this niche. It replaces informal release signals with cryptographically authenticated Evidence Bundles backed by Merkle inclusion proofs, timestamp freshness windows, digital signatures, and provenance envelopes.
 
 \subsection{Key Contributions}
 The primary contributions of this work are:
@@ -270,7 +273,7 @@ The EviAssure release assurance architecture involves four primary entities: the
 \subsection{Adversary Model}\label{sec:threat}
 The security model considers a powerful adversary $\mathcal{A}$ attempting to deploy an unapproved, regression-prone, or malicious agent update to production environments~\cite{shostack2014threat, carlini2024poisoning, schuster2021get}. The adversary $\mathcal{A}$ may control intermediate runner environments, network transit layers, or build scripts. 
 
-\paragraph{Trust Model Boundaries.} EviAssure assumes Ed25519 and SHA-256 remain computationally intractable for PPT adversaries, and that the Cloud KMS / HSM faithfully enforces identity access control over private signing keys. It further requires strict environment isolation: an agent that escapes its sandboxed tier to obtain local file access or code execution on the assurance engine or the collector host can forge an evidence payload \emph{prior} to KMS signing. Compromise of the assurance engine's trusted computing base is therefore an explicit out-of-scope limitation --- the cryptographic guarantees hold assuming a tamper-proof control plane. HSM side channels, subversion of provider root keys, and hypervisor rootkits are likewise out of scope. \emph{Witness} keys are a distinct trust domain: Section~\ref{sec:witness} assumes the adversary holds the agent and collector keys but no witness key, and Section~\ref{sec:limitations} states what degrades when that assumption is weakened.
+\paragraph{Trust Model Boundaries.} EviAssure assumes Ed25519 and SHA-256 remain computationally intractable for PPT adversaries, and that the Cloud KMS / HSM faithfully enforces identity access control over private signing keys. It further requires strict environment isolation: an agent that escapes its sandboxed tier to obtain local file access or code execution on the assurance engine or the collector host can forge an evidence payload \emph{prior} to KMS signing. Compromise of the assurance engine's trusted computing base is therefore an explicit out-of-scope limitation --- the cryptographic guarantees hold assuming a tamper-proof control plane. Physical hardware side-channel attacks on HSM microchips, total subversion of the cloud provider's root KMS master keys, and hypervisor rootkits are likewise out of scope for the release gate layer. \emph{Witness} keys are a distinct trust domain: Section~\ref{sec:witness} assumes the adversary holds the agent and collector keys but no witness key, and Section~\ref{sec:limitations} states what degrades when that assumption is weakened.
 
 We categorize $\mathcal{A}$'s in-scope capabilities into five classes, mapped to vectors in Table~\ref{tab:tamper}: runner and memory tampering ($\mathcal{A}_1$), network and signature forgery ($\mathcal{A}_2$), replay and time skew ($\mathcal{A}_3$), governance bypass ($\mathcal{A}_4$), and serialization malleability ($\mathcal{A}_5$).
 \subsection{Security Requirements}
@@ -313,7 +316,9 @@ where $H_{\mathrm{act}}$ digests the action identity the witness can see (reques
 
 The gate reconciles: authenticate every attestation under a registry-pinned witness key; require the session identifier to match; require each witness's receipts to form exactly $1..n_j$; require every receipt to bind to a submitted trace; and require every trace claiming a mediated action to carry a receipt. The bundle signature covers a digest of the whole attestation set, so a collector cannot delete receipts from a signed bundle and leave the signature intact.
 
-\paragraph{Cost and deployment.} A receipt is one Ed25519 signature over 100 bytes at the point of service, and the gate performs $O(|T|)$ verifications. The real cost is organisational, not computational: witnesses must be deployed at the boundaries that matter, and Definition~\ref{def:wtc} makes the resulting guarantee exactly as strong as that deployment. We regard stating the guarantee relative to a declared, auditable witness set as an improvement over assuming a perfect collector, not as a weaker claim.
+\paragraph{Cost and deployment.} A receipt is one Ed25519 signature over 100 bytes at the point of service, and the gate performs $O(|T|)$ verifications. The real cost is organisational, not computational: witnesses must be deployed at the boundaries that matter, and Definition~\ref{def:wtc} makes the resulting guarantee exactly as strong as that deployment.
+
+The natural objection is whether such a set can be assembled at all. Three properties make it more tractable than instrumenting an agent. First, a witness is a component that already exists --- an API gateway, a database proxy, a service-mesh sidecar, a sandbox syscall broker --- and the change is to sign what it already logs, not to introduce a new interposition point. Second, witnesses need no agreement with each other: each signs only its own counter, so coverage grows incrementally and a partially witnessed deployment is still sound over the actions it does mediate. Third, the guarantee degrades \emph{visibly} rather than silently: an action of an unmediated type is outside the guarantee by definition, and Section~\ref{sec:live} reports that residue as a measured quantity instead of an assumption. That is the substantive difference from a perfect-collector assumption, which cannot be audited at all. We therefore state the guarantee relative to a declared, auditable witness set and regard that as a strengthening, not a weaker claim.
 
 \paragraph{Parameter blinding.} Bundles carry digests, never raw payloads. A keyed HMAC mode (\texttt{blind\_payload}) additionally re-keys those digests per deployment, which buys unlinkability across environments and resistance to dictionary recovery of low-entropy outputs --- $\mathrm{SHA256}(\texttt{"TOKEN\_VALIDATED"})$ is recoverable by exhaustive search, the salted HMAC is not. It is deterministic, so it does not conceal repetition within one deployment. We record it as a hardening measure rather than a contribution.
 
@@ -359,7 +364,7 @@ Listing~\ref{lst:proto1} implements the recursive aggregation of agent trace has
 \subsection{SLSA v1.0 and in-toto Predicate Envelopes}
 To integrate with cloud-native artifact registries and software supply chain attestors, EviAssure formats each generated \texttt{EvidenceBundle} into an in-toto v0.2 Statement envelope compatible with SLSA Provenance v1.0 specifications~\cite{torres2019in-toto, slsa2023supply}. The envelope carries \texttt{\_type} \texttt{https://in-toto.io/Statement/v0.1}, the artifact digest as \texttt{subject}, \texttt{predicateType} \texttt{https://slsa.dev/provenance/v1}, and the \texttt{evidence\_id} under \texttt{predicate.buildDefinition.externalParameters}; a complete example is in the artifact.
 
-The envelope binds the target release artifact --- an agent weight package, code container, or configuration tarball --- to the evidence attestation. \texttt{subject} carries the artifact filename and SHA-256 digest; \texttt{predicateType} asserts SLSA Provenance v1.0; within \texttt{predicate.buildDefinition}, \texttt{buildType} names the gate evaluation parameters and \texttt{externalParameters} anchors the \texttt{evidence\_id}, binding the evidence pack to the SLSA statement.
+The envelope binds the target release artifact --- an agent weight package, code container, or configuration tarball --- to the evidence attestation. \texttt{subject} carries the artifact filename and SHA-256 digest; \texttt{predicateType} asserts SLSA Provenance v1.0; within \texttt{predicate.buildDefinition}, \texttt{buildType} names the gate evaluation parameters and \texttt{externalParameters} anchors the \texttt{evidence\_id}, binding the evidence pack to the SLSA statement. A verifier that understands only in-toto therefore still authenticates the envelope and reads the subject binding; it simply does not perform the reconciliation of Section~\ref{sec:witness}, which is precisely the separation Theorem~\ref{thm:separation} formalises.
 
 \section{Fail-Closed Policy Verification Engine}
 Release authorization in EviAssure is governed by a zero-trust policy engine (\textnormal{\texttt{ReleasePolicyEngine}}) that enforces mandatory fail-closed default rules. This section details the declarative policy schema, multi-factor evaluation protocol, key governance rules, and the system-level formal security analysis.
@@ -452,25 +457,25 @@ The gate ships as a GitHub Action that loads the pinned key and witness registri
 \subsection{Agent Execution Trace Corpus (\texorpdfstring{$N=\corpusProfiles$}{N=1,075})}\label{sec:corpus}
 The corpus (\nolinkurl{corpus/agent_trace_corpus.json}) contains \corpusProfiles{} profiles / \corpusRecords{} trace records across five agent architectures, each profile carrying four to six steps: \corpusClean{} clean, \corpusOvert{} \emph{overt} anomalies over ten classes, and \corpusStealth{} \emph{stealth} anomalies over five classes. It is entirely synthetic and templated; this is stated in the artifact's own \texttt{provenance} field and is the principal threat to external validity (Section~\ref{sec:limitations}).
 
-The overt/stealth split exists because an earlier revision of this corpus was not a benchmark. Every planted anomaly used an action name and status absent from clean traffic, and the detector keyed off a hard-coded list of exactly those names: generator and detector were one list, written together, so the reported recall was a property of the generator. \emph{Overt} classes retain that structure (out-of-vocabulary action and status) and are the easy half. \emph{Stealth} classes are the point: a mutating statement issued through the read-only query path, a ledger transfer to an attacker-controlled destination, retrieval returning injected context, extraction used as an exfiltration channel, a linter invoked with findings suppressed. Each uses an action, a status and a duration drawn from clean traffic, so no per-leaf vocabulary or envelope test can separate them. Section~\ref{sec:twolayer} reports both halves separately.
+The overt/stealth split exists because an earlier revision of this corpus was not a benchmark. Every planted anomaly used an action name and a status string that appeared nowhere in clean traffic, and the inspection layer keyed off a hard-coded list of exactly those action names --- the generator and the detector were the same list, written together. The reported 50/50 recall was a property of the generator. \emph{Overt} classes retain that structure (out-of-vocabulary action and status) and are the easy half. \emph{Stealth} classes are the point: a mutating statement issued through the read-only query path, a ledger transfer to an attacker-controlled destination, retrieval returning injected context, extraction used as an exfiltration channel, a linter invoked with findings suppressed. Each uses an action, a status and a duration drawn from clean traffic, so no per-leaf vocabulary or envelope test can separate them. Section~\ref{sec:twolayer} reports both halves separately.
 \subsection{Forensics and Diagnostics: CLI Inspection \& Audit Tool}\label{sec:forensics}
 To support incident response after a release has already occurred, EviAssure ships an offline forensic inspection utility (\nolinkurl{scripts/audit_trace_forensics.py}). It parses serialized \texttt{EvidenceBundle} files, reconstructs the full Merkle tree, verifies Ed25519 signatures against the pinned registry and revocation list, and isolates leaf-index anomalies. Presented with a tampered payload it reports the exact leaf position $i$ and the output-hash mismatch, emitting structured JSON for security operations centre (SOC) ingestion.
 
 \section{Systems Security Evaluation}\label{sec:eval}
 The empirical evaluation follows a deliberate two-part strategy: a micro-level validation of the gate's enforcement mechanisms, and a macro-level evaluation of the system deployed at corpus scale.
 
-\textbf{Mechanism evaluation.} Baseline performance is measured through Merkle scaling latency and multi-core verifier throughput. Adversarial resilience is measured against the vector suite: twelve vectors derived from the five capability classes ($\mathcal{A}_1$--$\mathcal{A}_5$), each exercising one enforcement, plus five authored against the design rather than against the check list --- the ones with the power to fail, and three of which did. Clean negative controls measure the false-block rate, without which a block rate is uninterpretable.
+\textbf{Mechanism evaluation.} Baseline performance is measured through Merkle scaling latency and multi-core verifier throughput. Adversarial resilience is measured against the vector suite: twelve vectors derived from the five capability classes ($\mathcal{A}_1$--$\mathcal{A}_5$), each exercising one enforcement, plus five authored against the design rather than against the check list --- the ones with the power to fail, and three of which did. Clean negative controls measure the false-block rate, without which a block rate is uninterpretable. The omission suite (Section~\ref{sec:omission}) tests the axis the tamper vectors structurally cannot reach.
 
 \textbf{System-level deployment.} A corpus-scale evaluation over \corpusProfiles{} agent trace profiles exercises the interaction between the cryptographic integrity gate and an out-of-band semantic inspection layer --- and, importantly, shows where that interaction still leaves a gap.
 
 Results are split by kind. \emph{Deterministic} security results (block counts, ablation, inspection) are produced by \nolinkurl{scripts/run_security_eval.py} into \nolinkurl{results/security_evaluation.json} and are platform-independent: they reproduce identically on any machine. \emph{Timed} measurements are wall-clock timings recorded by \nolinkurl{scripts/run_release_benchmark.py} into \nolinkurl{results/benchmark_summary.json} on an Apple M4 Max with 14 cores (10 performance, 4 efficiency; no SMT, so logical and physical core counts coincide) running Python 3.14.x. Each scaling point, throughput configuration, proof cost, blinding cost, and hashing figure is the mean over \benchRepeats{} runs, with the standard deviation recorded alongside in the artifact (\texttt{*\_std} fields); per-worker throughput aggregates 1,000 policy evaluations per run. Tamper vectors and gate verdicts are deterministic checks evaluated once each, so run-to-run dispersion there is zero by construction; sampling uncertainty over the finite vector set is reported instead, as a Wilson 95\% interval on every rate.
 
 \subsection{Merkle Scaling up to \texorpdfstring{$N=1,000,000$}{N=1,000,000} Traces}
-Merkle build time was evaluated from $N=10$ to $N=10^6$ over \benchRepeats{} runs per point. Construction scales to $10^6$ traces in $\merkleBuildOneMMs\text{ ms}$ (mean; $\sigma=\merkleBuildOneMStd\text{ ms}$ across runs), and to $\merkleBuildMs\text{ ms}$ for $N=100,000$. We previously reported a ``packaging overhead'' percentage here and have withdrawn it. The numerator timed only post-tree bundle construction and signing --- a constant, independent of $N$ --- while the denominator grew as $1.5\text{ ms} \times N$, so the ratio fell monotonically for arithmetic reasons rather than measuring any property of the system. Merkle construction, the component that actually scales, is reported directly above.
+Merkle build time was evaluated from $N=10$ to $N=10^6$ over \benchRepeats{} runs per point. Construction scales to $10^6$ traces in $\merkleBuildOneMMs\text{ ms}$ (mean; $\sigma=\merkleBuildOneMStd\text{ ms}$ across runs), and to $\merkleBuildMs\text{ ms}$ for $N=100,000$. We previously reported a ``packaging overhead'' percentage here and have withdrawn it. The numerator timed only post-tree bundle construction and signing --- a constant, independent of $N$ --- while the denominator grew as $1.5\text{ ms} \times N$, so the ratio fell monotonically for arithmetic reasons rather than measuring any property of the system. A reviewer would have been entitled to read the falling curve as evidence of favourable scaling; it was evidence of division. Merkle construction, the component that actually scales, is reported directly above.
 
 
 \subsection{Parallel Verifier Throughput}
-Verifier throughput was evaluated using a Python \texttt{ProcessPoolExecutor} across 1, 2, 4, 8, and 16 worker cores over 1,000 evaluation requests per run and \benchRepeats{} runs per configuration; each evaluation is a distinct fresh-nonce bundle against a warm policy engine (evidence creation and replay-state checks are measured separately, so the timed region is steady-state verification). Throughput rises from \singleWorkerThroughput{} ops/s on a single worker to a peak of \peakThroughput{} $\pm$ \peakThroughputStd{} operations/second (mean $\pm$ std) at \peakWorkers{} workers (a $\peakRatio\times$ speedup), then declines. We do not attribute the decline to a hardware effect: each task is a three-trace bundle shipped to a worker process, so the measurement is dominated by inter-process serialization rather than verification. Two consequences must be read together with Section~\ref{sec:eval}: this figure characterises \emph{small} bundles, and because the gate recomputes the whole tree (Listing~\ref{lst:proto2}, step 2), per-bundle verification cost is linear in $N$ --- at $N=10^6$ the gate is bounded by the $\merkleBuildOneMMs\text{ ms}$ rebuild, not by this throughput number.
+Verifier throughput was evaluated using a Python \texttt{ProcessPoolExecutor} across 1, 2, 4, 8, and 16 worker cores over 1,000 evaluation requests per run and \benchRepeats{} runs per configuration; each evaluation is a distinct fresh-nonce bundle against a warm policy engine (evidence creation and replay-state checks are measured separately, so the timed region is steady-state verification). Throughput rises from \singleWorkerThroughput{} ops/s on a single worker to a peak of \peakThroughput{} $\pm$ \peakThroughputStd{} operations/second (mean $\pm$ std) at \peakWorkers{} workers (a $\peakRatio\times$ speedup), then declines. We do not attribute the decline to a specific hardware effect: each task is a three-trace bundle shipped to a worker process, so the measurement is dominated by inter-process serialization rather than by verification, and the $\peakRatio\times$ ceiling on a 14-core machine reflects that. Two consequences must be read together with Section~\ref{sec:eval}: this figure characterises \emph{small} bundles, and because the gate recomputes the whole tree (Listing~\ref{lst:proto2}, step 2), per-bundle verification cost is linear in $N$ --- at $N=10^6$ the gate is bounded by the $\merkleBuildOneMMs\text{ ms}$ rebuild, not by this throughput number.
 
 
 \subsection{Sparse Inclusion Proofs}
@@ -516,7 +521,7 @@ V18 & Post-signing DOM mutation & $\mathcal{A}_1$ & Blocked \\
 
 EviAssure blocks \eviBlocked{} of \eviTotal{} scored vectors (\eviPct\%, 95\% CI [\eviCIlo, \eviCIhi]), and falsely blocks \falseBlockK{} of \falseBlockN{} clean negative controls. Three points about how that number should be read.
 
-\textbf{The mechanism vectors do not demonstrate resilience.} V1--V12 map close to one-to-one onto the gate's checks, because we wrote both; they are a completeness test for the implementation and nothing more. An earlier version argued this 1:1 map proved complete coverage; V14 and V17 are why that is invalid.
+\textbf{The mechanism vectors do not demonstrate resilience.} V1--V12 map close to one-to-one onto the gate's checks, because we wrote both; they are a completeness test for the implementation and nothing more. An earlier version of this paper argued that a 1:1 map ``proves the engine covers the complete formal domain without coverage gaps''. That argument is invalid, and V14 and V17 are why.
 
 \textbf{Three vectors ($\dagger$) broke earlier revisions.} V14 exploits a disabled trusted-key registry: the gate verified against the key carried \emph{inside the bundle}, so an adversary with their own keypair and a conformant ARN was APPROVED with zero violations. V17 exploits a \texttt{len(x) != 64} heuristic, letting a 64-character leaf string be adopted as its own digest. V15 is the CVE-2012-2459-family internal-node substitution against the auditor path. None was reachable by the mechanism suite, which is the argument for authoring vectors against the design.
 
@@ -531,7 +536,7 @@ Two results are worth stating precisely, because the previous version of this se
 
 First, \textbf{not every check is necessary against this suite}. Disabling the signed trace-count binding releases no vector: V12 is independently caught by root recomputation. The count binding earns its place by protecting the \emph{auditor} path --- proof depth is derived from the signed count --- not by adding coverage at the gate. We previously wrote that ``every check is necessary''; the artifact's own matrix contradicted it.
 
-Second, \textbf{emptying the trusted-key registry collapses the gate rather than weakening it}: all Ed25519 evidence is rejected because no signature can be authenticated. This is now true of the implementation. When we first claimed it, the ablation flag redirected verification to the bundle-supplied key rather than disabling it --- the V14 bypass --- so establishing the claim required fixing the code, not re-reading the matrix.
+Second, \textbf{emptying the trusted-key registry collapses the gate rather than weakening it}: all Ed25519 evidence is rejected because no signature can be authenticated. This is now true of the implementation. It was not true when we first claimed it: the ablation variant set a \texttt{require\_trusted\_key} flag which, far from disabling verification, redirected it to the bundle-supplied key --- the V14 bypass. The registry is the trust anchor, but establishing that required fixing the code, not re-reading the matrix.
 
 \subsection{Omission Attacks}\label{sec:omission}
 The tamper suite and the omission suite test different things. A tamper vector modifies evidence and is caught by an integrity check. An omission vector modifies \emph{nothing}: the adversary performs an action and declines to record it, then signs honestly over what remains. There is no discrepancy to detect, which is why Theorem~\ref{thm:separation} rules the class out for document verifiers rather than merely predicting they will do badly at it.
@@ -565,7 +570,7 @@ Second, \textbf{per-action receipts detect \omReceipts{} of \omVectors{}}. Recei
 Third, \textbf{hash chaining detects \omChain{} of \omVectors{}}. A chain links records that are present, so an interior gap breaks it and a suffix truncation does not --- the end simply moves. This is the precise limitation of AAS-1's omission story, and it is why the closing count, not the chain, is what makes truncation detectable.
 
 \subsection{Comparative Gate Analysis}\label{sec:comparative}
-The previous version of this comparison was not defensible. It scored strawman baselines --- a ``Sigstore/Cosign-style'' gate that was a presence check on a JSON field, an ``exit-code gate'' that was \texttt{test\_pass\_pct > 0} --- against a vector set derived from our own check list, and the resulting near-zero figures reached the abstract as though they characterised the state of the art. They did not. We have rebuilt it.
+The previous version of this comparison was not defensible. It scored a ``Sigstore/Cosign-style'' gate implemented as \texttt{signed and signature is not None} --- a presence check on a JSON field --- and an ``exit-code gate'' implemented as \texttt{test\_pass\_pct > 0}. Against a vector set derived from our own check list, both scored near zero by arithmetic, and the resulting figures appeared in the abstract as though they characterised the state of the art. They did not. We have rebuilt it.
 
 Each baseline is now configured as a competent engineer would deploy it, and executed:
 \begin{enumerate}
@@ -576,9 +581,9 @@ Each baseline is now configured as a competent engineer would deploy it, and exe
     \item \textbf{Unauthenticated status gate}: \cigateBlocked/\cigateTotal{}. Retained explicitly as a \emph{floor}, not a competitor.
 \end{enumerate}
 
-The honest headline is therefore \eviBlocked/\eviTotal{} versus \compBlocked/\compTotal{}, and the intervals overlap: with \eviTotal{} vectors this evaluation cannot support a strong quantitative separation, and we do not claim one. What it does support is a \emph{qualitative} account of which vectors survive a modern composed pipeline and why. The composed baseline blocks every authentication, freshness, revocation and policy-threshold vector; TUF alone blocks \tufBlocked{} (Section~\ref{sec:related-2026}).
+The honest headline is therefore \eviBlocked/\eviTotal{} versus \compBlocked/\compTotal{}, and the intervals overlap: with \eviTotal{} vectors this evaluation cannot support a strong quantitative separation, and we do not claim one. What it does support is a \emph{qualitative} account of which vectors survive a modern composed pipeline and why. TUF alone already blocks \tufBlocked{} --- freshness, revocation and threshold signing have been solved since 2010~\cite{samuel2010surviving, kuppusamy2016tuf}, and any paper claiming them as novel for agent releases is mistaken. The composed baseline blocks every authentication, freshness, revocation and policy-threshold vector.
 
-The vectors it does not block are the ones this paper is actually about: V2 and V8 (trace-level integrity --- no baseline recomputes a Merkle root over an action history), V12 (trace-set truncation), V15 and V17 (proof-path and leaf-typing attacks on the audit surface), and V4 (within-gate replay, which requires the verifier to hold state across submissions rather than to validate a document). That is the delta: \emph{binding the release decision to the execution trace, and holding state while deciding}. It is a narrower claim than 100\% versus 30.8\%, and it is one the evaluation can carry.
+The vectors it does not block are the ones this paper is actually about: V2 and V8 (trace-level integrity --- no baseline recomputes a Merkle root over an action history), V12 (trace-set truncation), V15 and V17 (proof-path and leaf-typing attacks on the audit surface), and V4 (within-gate replay, which requires the verifier to hold state across submissions rather than to validate a document). That is the delta: \emph{binding the release decision to the execution trace, and holding state while deciding}. It is a narrower claim than the 100\% versus 30.8\% of the withdrawn comparison, and it is one the evaluation can carry.
 
 \subsection{Corpus-Scale Layered Evaluation}\label{sec:twolayer}
 Neither the tamper nor the omission suite reaches the semantic axis: a complete, witnessed, correctly signed bundle can still record behaviour nobody authorised. The corpus measures that third layer (Table~\ref{tab:corpus}).
@@ -618,6 +623,28 @@ decides what to do? We therefore ran \liveSessions{} sessions of a real
 tool-calling LLM (\texttt{\liveModel}) whose tools are fronted by the witnesses
 of Section~\ref{sec:witness}. The model chooses the actions; nothing is scripted.
 
+\begin{table}[t]
+\centering
+\caption{Live agent sessions (\liveModel). Coverage is split by how the session
+ended: a run stopped by the turn cap never reaches the unmediated action.}
+\label{tab:live}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+& \textbf{Ran to completion} & \textbf{Truncated} \\
+\midrule
+Sessions & \liveCompleted & \liveTruncated \\
+Witness coverage & \textbf{\liveCoverageCompleted\%} & \liveCoverageTruncated\% \\
+\midrule
+\multicolumn{3}{@{}l}{\emph{Over all \liveSessions{} sessions}}\\
+Distinct action sequences & \multicolumn{2}{c@{}}{\liveDistinctSeq/\liveSessions\ (\liveNondetPct\%)} \\
+Honest control reconciles & \multicolumn{2}{c@{}}{\liveControlOk} \\
+Omission attacks detected & \multicolumn{2}{c@{}}{\liveOmDetected/\liveOmTotal\ (\liveOmVectorsRun\ vectors)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 The sequences are genuinely non-deterministic --- \liveDistinctSeq{} of
 \liveSessions{} sessions were distinct (\liveNondetPct\%), over
 \liveActionsMean{} $\pm$ \liveActionsStd{} actions --- and the agent generated
@@ -626,28 +653,57 @@ and queries against non-existent tables (\texttt{ERROR}), rather than executing
 a happy path we wrote for it.
 
 \textbf{Reconciliation is sound on real traces}: the honest control reconciles
-\liveControlOk{}, and re-deriving the omission attacks per session detects
-\liveOmDetected/\liveOmTotal. Detection is cryptographic, so this confirms rather than
-surprises --- but a protocol that failed here would have been refuted.
+\liveControlOk{}, and re-deriving the omission attacks against each live session
+detects \liveOmDetected/\liveOmTotal. That total covers
+\liveOmVectorsRun{} of the \liveOmVectorsSuite{} vectors: \liveOmMissing{}
+(cross-session splice) needs a second concurrent session, and the runner
+executes sessions independently, so it cannot be built here. A vector that
+cannot be constructed for a given session --- an interior omission in a
+three-action run, say --- is dropped rather than scored, since counting an
+attack that never ran as detected is how a suite flatters itself. Detection is
+cryptographic, so this confirms rather than surprises; but a protocol that
+failed here would have been refuted, and it was not.
 
-\textbf{Witness coverage was \liveCoverageMean\% on average, \liveCoverageMin\%
-at worst.} This is the quantity Definition~\ref{def:wtc} leaves open: the
-guarantee holds relative to the witness set, and that set covered most but not
-all of what a real agent did. The residue was \texttt{\liveUnmediated}, a local
-bookkeeping call no witness fronts by construction. That is the honest shape of
-the property --- completeness over the actions a deployment chose to mediate,
-with a measurable remainder rather than a hypothetical one.
-\liveFailures{} of \liveRequested{} sessions was lost to a provider-side
-output-parsing error, which we report rather than retry into silence.
+\textbf{Witness coverage, read carefully, was \liveCoverageCompleted\%.} This is
+the quantity Definition~\ref{def:wtc} leaves open, and the pooled figure over
+all \liveSessions{} sessions --- \liveCoverageMean\% --- overstates it. Only
+\liveCompleted{} sessions ran to completion; the other \liveTruncated{} hit the
+turn cap, and a truncated session never reaches \texttt{\liveUnmediated}, the
+one action no witness fronts. Their coverage is \liveCoverageTruncated\% by
+construction of the cap rather than by property of the witness set. Restricting
+to sessions that actually finished gives \liveCoverageCompleted\%, and that is
+the number we stand behind.
+
+We report the pooled mean alongside it because the distinction is the point: a
+coverage figure computed over truncated runs measures the harness, not the
+deployment, which is precisely the error that produced this paper's earlier
+50/50 recall claim (Section~\ref{sec:corpus}). The residue is real --- roughly
+one action in five of a completed session lies outside the guarantee --- and it
+is measurable rather than hypothetical, which is the difference between this and
+a perfect-collector assumption. \liveFailures{} of \liveRequested{} sessions was
+lost to a provider-side output-parsing error, which we report rather than retry
+into silence.
+
+What would strengthen this is clear. \liveSessions{} sessions on one provider
+with benign local tools establishes composition and measures coverage; it does
+not characterise an adversarial agent or a heterogeneous tool estate. The turn
+cap that truncated \liveTruncated{} runs should be raised until sessions end on
+their own, so coverage is never an artefact of the harness, and a second concurrent session would make \liveOmMissing{} constructible --- the one vector the live suite cannot build. None of this changes
+the protocol; all of it would sharpen the number attached to it.
+
+\subsection{Deployment Trade-offs}
+Two engineering consequences follow. \emph{Audit granularity}: since a depth-bound proof costs \sparseProofSizeKb{}\,KB against \rawSizeOneMKb{}\,KB of raw trace, organisations can archive payloads to cold storage and keep only proofs online. \emph{Replay state}: the gate must hold state across submissions, which V16 shows it cannot do across replicas without shared storage; a key-value store with atomic set-if-absent and TTL $\Delta T_{\text{max}}$ is the natural implementation, and it must fail closed when that store is unreachable rather than admit a split-brain replay. Neither deployment is measured here.
 
 \subsection{Limitations and Threats to Validity}\label{sec:limitations}
-\textbf{The corpus is still synthetic.} Section~\ref{sec:live} runs a real tool-calling LLM against the witness protocol, so the completeness claim is no longer evaluated only on templates. The \corpusProfiles-profile corpus behind Sections~\ref{sec:twolayer} and the semantic-inspection results is not: it remains synthetic and templated,, as the artifact's own \texttt{provenance} field declares. The layer this paper contributes is now exercised on non-deterministic behaviour; the layer it inherits is not. The live sessions are also modest in scale (\liveSessions{}), single-provider, and use benign tools; they establish that the protocol composes with a real agent and what coverage it achieved, not how it behaves under an adversarial one.
+\textbf{The corpus is still synthetic.} Section~\ref{sec:live} runs a real tool-calling LLM against the witness protocol, so the completeness claim is no longer evaluated only on templates. The \corpusProfiles-profile corpus behind Sections~\ref{sec:twolayer} and the semantic-inspection results is not: it remains synthetic and templated, as the artifact's own \texttt{provenance} field declares. The layer this paper contributes is now exercised on non-deterministic behaviour; the layer it inherits is not. The live sessions are also modest in scale (\liveSessions{}), single-provider, and use benign tools; they establish that the protocol composes with a real agent and what coverage it achieved, not how it behaves under an adversarial one. Only \liveCompleted{} of them ran to completion, and witness coverage is reported over those (Section~\ref{sec:live}): a run truncated by the turn cap cannot reach the unmediated action, so pooling it in would inflate the figure.
 
 \textbf{The collector is unimplemented.} Every security guarantee is conditioned on complete mediation at the collection boundary (Definition~\ref{def:completeness}). The production design grounds this at the OS boundary via eBPF; the evaluation uses Python instrumentation wrappers. The load-bearing component is therefore an architectural proposal, not a measured one.
 
 \textbf{The gate does not block semantic misbehaviour, and inspection misses the hard half.} L2 approves all \insRecallN{} anomalous profiles by design; held-out L3 inspection recalls \insStealthK/\insStealthN{} stealth anomalies (Section~\ref{sec:twolayer}). Content-level policy over trace semantics is future work.
 
-\textbf{V16 is unblocked.} Cross-replica replay protection requires shared nonce storage the prototype does not implement (Section~\ref{sec:tamper}).
+\textbf{V16 is unblocked.} Replay protection is a property of gate state. The shipped verifier persists nonces and fails closed when the ledger is unavailable, but cross-replica correctness requires shared storage (Redis/DynamoDB) that the prototype does not implement.
+
+\textbf{Baseline scope.} DSSE/in-toto and TUF baselines are executed; OPA is executed when the binary is available and declares itself modeled otherwise; the unauthenticated status gate is modeled and reported as a floor, not a competitor.
 
 \textbf{Witness trust and availability.} Witnessed completeness is exactly as strong as the declared witness set. An adversary holding a witness key mints valid receipts and closings for that witness, and action types no witness mediates lie outside the guarantee by construction (Definition~\ref{def:wtc}). We evaluate neither witness compromise nor key rotation, and a witness that fails to close a session blocks the release --- fail-closed, but a denial-of-service surface a deployment must plan for.
 
@@ -661,7 +717,7 @@ output-parsing error, which we report rather than retry into silence.
 \textbf{Positioning.} We state the boundary of the claim first: threshold signing, metadata expiry, rollback protection and key revocation are \emph{not} novel here --- TUF has supplied them since 2010~\cite{samuel2010surviving}, and our executed TUF baseline blocks \tufBlocked{} of \tufTotal{} vectors on that basis alone (Section~\ref{sec:comparative}). EviAssure bridges a narrower gap than earlier drafts of this paper claimed: it binds the release decision to a Merkle-attested \emph{execution trace} and holds replay state across submissions, which is what none of the systems below does.
 
 \subsection{Supply Chain Provenance}
-in-toto~\cite{torres2019in-toto}, SLSA~\cite{slsa2023supply} and Sigstore/Cosign~\cite{sigstore2022cosign} provide cryptographic provenance for build pipelines and image digests, including vetted runtime-trace predicates~\cite{intoto_runtime_trace}; any release pipeline should use them for the static artifact side. What they do not provide is the stateful authorization layer of Section~\ref{sec:proofs}. EviAssure supplies it while remaining envelope-compatible --- an \texttt{EvidenceBundle} is an in-toto Statement and can carry SLSA provenance, \texttt{agent-decision} records, or custom predicates alongside Merkle-attested traces.
+in-toto~\cite{torres2019in-toto}, SLSA~\cite{slsa2023supply} and Sigstore/Cosign~\cite{sigstore2022cosign} provide cryptographic provenance for build pipelines and image digests, including vetted runtime-trace predicates~\cite{intoto_runtime_trace}; any release pipeline should use them for the static artifact side. What they do not provide is a stateful authorization layer: freshness windows and replay caches are not integral to step attestations, and release decisions are not bound to attested traces under a pinned policy version. EviAssure supplies that layer while remaining envelope-compatible --- an \texttt{EvidenceBundle} is an in-toto Statement and can carry SLSA provenance, \texttt{agent-decision} records, or custom predicates alongside Merkle-attested traces.
 
 \subsection{Policy Engines and Workload Identity}
 Policy engines (OPA~\cite{opa2021openpolicy}, Kyverno~\cite{kyverno2022policy}) evaluate declarative rules over admission payloads but compute no Merkle root over an action history and hold no replay state. Workload identity frameworks (SPIFFE/SPIRE~\cite{spiffe2020spire}, Macaroons~\cite{birgisson2014macaroons}) are orthogonal: they establish \emph{who} the runner is, not what action history it produced. Runtime LLM guardrails filter inference-time inputs and outputs; they do not gate the promotion of a checkpoint, prompt template, or tool scope. Update frameworks are the closest prior art on governance: TUF~\cite{samuel2010surviving} and its delegation extensions~\cite{kuppusamy2016tuf, moore2023artemis} supply expiry, thresholds, rollback and revocation, which is why we execute TUF as a baseline rather than claim those properties.
@@ -675,7 +731,7 @@ Theorem~\ref{thm:separation} explains why this is structural rather than a matur
 All datasets, trace profiles and harnesses are synthetic and locally generated: no human subjects, no customer PII, no live credentials, and no measurement touching third-party systems. Dual-use considerations --- workplace surveillance, parameter blinding, and what this system does \emph{not} prevent --- are analysed in Appendix~\ref{sec:appendix_ethics}.
 
 \section{Conclusion}
-EviAssure binds a release decision to a domain-separated, depth-bound Merkle attestation of an agent's execution trace, evaluated by a stateful fail-closed gate. Its central claim is Witnessed Trace Completeness: reconciling collector evidence against signed witness receipts and closing counts detects \omWtc/\omVectors{} omission attacks every executed record-format baseline misses, and Theorem~\ref{thm:separation} shows no stateless document verifier can close that class at all. On the tamper axis it blocks \eviBlocked/\eviTotal{} against \compBlocked{} for an executed in-toto/DSSE + TUF + OPA composition, and fails one --- cross-replica nonce replay --- which we report. Held-out inspection recalls \insOvertK/\insOvertN{} overt and \insStealthK/\insStealthN{} disguised anomalies: the honest boundary of the contribution. Evidence-bound release assurance makes an unauthorised agent release undeniable and attributable, not impossible.
+EviAssure binds a release decision to a domain-separated, depth-bound Merkle attestation of an agent's execution trace, evaluated by a stateful fail-closed gate. Its central claim is Witnessed Trace Completeness: reconciling collector evidence against signed witness receipts and closing counts detects \omWtc/\omVectors{} omission attacks every record-format baseline misses, a class Theorem~\ref{thm:separation} shows no stateless document verifier can close. On the tamper axis it blocks \eviBlocked/\eviTotal{} against \compBlocked{} for an executed in-toto/DSSE + TUF + OPA composition, failing one (cross-replica nonce replay) that we report. Across \liveSessions{} sessions of a real tool-calling LLM it reconciles on non-deterministic traces at \liveCoverageCompleted\% witness coverage, the residue measured rather than assumed. Held-out inspection recalls \insOvertK/\insOvertN{} overt and \insStealthK/\insStealthN{} disguised anomalies --- the honest boundary of the contribution. Evidence-bound release assurance makes an unauthorised agent release undeniable and attributable --- not impossible.
 
 \ifanonymous\else
 \section*{Acknowledgements}
@@ -701,16 +757,13 @@ Autonomous software agents frequently process confidential prompt texts, custome
 \paragraph{Responsible Disclosure \& Safety Impact.}
 EviAssure raises the cost of forging or replaying release evidence produced by a compromised runner. It does \emph{not} prevent prompt injection: an injected agent produces genuine actions that the collector honestly records and the gate correctly approves, and Section~\ref{sec:twolayer} measures this directly --- all \insRecallN{} anomalous corpus profiles, including the injection class, are APPROVED. The contribution is that such a release becomes \emph{undeniable and attributable} after the fact, not that it is prevented. An earlier version of this appendix claimed prevention; that claim contradicted our own Section~\ref{sec:twolayer} results and has been withdrawn.
 
-\section{Deployment Trade-offs}\label{sec:tradeoffs}
-Two engineering consequences follow. \emph{Audit granularity}: since a depth-bound proof costs \sparseProofSizeKb{}\,KB against \rawSizeOneMKb{}\,KB of raw trace, organisations can archive payloads to cold storage and keep only proofs online. \emph{Replay state}: the gate must hold state across submissions, which V16 shows it cannot do across replicas without shared storage; a key-value store with atomic set-if-absent and TTL $\Delta T_{\text{max}}$ is the natural implementation, and it must fail closed when that store is unreachable rather than admit a split-brain replay. Neither deployment is measured here.
-
 \section{Open Science Appendix}\label{sec:appendix_open_science}
 The reproducibility materials consist of the complete EviAssure implementation (cryptographic attestation, blinding, held-out inspection, and policy verification modules), the \corpusProfiles{}-profile agent execution trace corpus, the \scoredVectors{}-vector tamper harness with negative controls, the executed DSSE/TUF/OPA baselines, production GitHub Action workflows, benchmark scripts, and the paper figure generator. Furthermore, all datasets used to establish comparative baselines (e.g., the specific OPA Rego policies and JSON payloads used to evaluate the baseline) are included to guarantee full baseline reproducibility.
 
 \subsection{Anonymous Review Artifact \& Verification}
 To comply with USENIX Security '27 Open Science guidelines while preserving double-blind review, the complete artifact has been published to a sanitized, anonymous repository at:
 \begin{center}
-\url{https://anonymous.4open.science/r/eviassure-release-assurance/}
+\url{https://anonymous.4open.science/r/eviassure-artifact-781D/}
 \end{center}
 
 Additionally, an archived review package \texttt{eviassure\_usenix27\_artifact.zip} (size: \artifactSizeKb{} KB) has been prepared using \nolinkurl{scripts/prepare_anonymous_artifact.py}. The archive carries SHA-256 digest:
