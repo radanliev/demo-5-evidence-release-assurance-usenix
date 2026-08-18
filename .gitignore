@@ -40,3 +40,9 @@ governance/witness_keys.local.json
 # Listed explicitly (not globbed) so nothing else is hidden by accident.
 docs/RISK_REGISTER.md
 docs/SESSION_2026-08-18_OPENING.md
+
+# Demo outputs of scripts/package_evidence.py (README quickstart); never source.
+evidence_pack.json
+evidence_pack.json.release_request.json
+unwitnessed.json
+unwitnessed.json.release_request.json

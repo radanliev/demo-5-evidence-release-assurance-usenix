@@ -194,15 +194,22 @@ def test_witness_refuses_to_serve_a_closed_session(pool, cred):
 # passed. They skip -- never substitute -- when no Docker daemon is present.
 # ---------------------------------------------------------------------------
 
-from specimens.witness_process import WITNESS_IMAGE, docker_available  # noqa: E402
+from specimens.witness_process import (                             # noqa: E402
+    WITNESS_IMAGE, docker_available, witness_image_available,
+)
 
 # Checked at call time, not import time: Docker Desktop can stop between
 # collection and execution, and a daemon that went away is a skip, not a
-# failed security property.
+# failed security property. The image is a build product, not a download:
+# a runner with a daemon but no image (GitHub's ubuntu-latest before the CI
+# workflow built it) is likewise a skip with the build command, not a failure.
 @pytest.fixture
 def needs_docker_fx():
     if not docker_available():
         pytest.skip("no Docker daemon reachable")
+    if not witness_image_available():
+        pytest.skip(f"witness image {WITNESS_IMAGE!r} not built; run: "
+                    "docker build -f specimens/witness.Dockerfile -t eviassure-witness:latest .")
 
 
 needs_docker = pytest.mark.usefixtures("needs_docker_fx")

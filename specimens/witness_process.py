@@ -180,6 +180,22 @@ def docker_available() -> bool:
         return False
 
 
+def witness_image_available(image: str = WITNESS_IMAGE) -> bool:
+    """True if the witness image has been built locally.
+
+    `docker run` on a missing local image tries to *pull* it from a registry
+    and fails with a confusing 'pull access denied', which on a CI runner with
+    a daemon but no image looked like a broken witness rather than a missing
+    build step. Callers skip with the build command instead:
+        docker build -f specimens/witness.Dockerfile -t eviassure-witness:latest .
+    """
+    try:
+        return subprocess.run(["docker", "image", "inspect", image],
+                              capture_output=True, timeout=20).returncode == 0
+    except Exception:
+        return False
+
+
 class ProcessWitness:
     """A handle on one out-of-process witness.
 
