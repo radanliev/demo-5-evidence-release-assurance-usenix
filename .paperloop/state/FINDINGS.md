@@ -2,33 +2,16 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 16:54
+**Run:** 2026-08-18 18:25
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 0 |
+| MAJOR | 1 |
 | MINOR | 5 |
 | INFO | 4 |
 
-Gated (human sign-off required): **0**
-
-<details><summary>Build output (tail)</summary>
-
-```
-=== USENIX Security Paper PDF Builder & Figure Generator ===
-[+] High-resolution 600 DPI benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
-[*] Froze headline metrics -> frozen_metrics.tex (throughput=7,025, overhead=0.000%)
-[*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
-[SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-
-[+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-findfont: Failed to find font weight semibold, now using 700.
-findfont: Failed to find font weight semibold, now using 700.
-findfont: Failed to find font weight semibold, now using 700.
-findfont: Failed to find font weight semibold, now using 700.
-```
-</details>
+Gated (human sign-off required): **1**
 
 ## Auto-fix mandate
 
@@ -44,6 +27,15 @@ notarized2026agents is cited as arXiv — check for a peer-reviewed version
 ## Gated — requires your decision
 
 **The writer agent must not touch these.** Changing a number to make a gate pass converts a data error into a published claim. Each one gets a proposed diff in `.paperloop/state/proposals/`, and the loop halts.
+
+### [MAJOR] science.stale_artifact
+
+1 result artifact(s) changed after the manuscript was last edited
+
+- **found:** `results/benchmark_summary.json`
+- **expected:** manuscript newer than the data it reports
+- **remedy:** Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.
+- **id:** `2d6c73e6ef4262a9`
 
 ### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:113
 
@@ -93,9 +85,9 @@ Recorded for the round log; no action implied.
 
 ### [INFO] science.artifact_missing
 
-indexed 205 distinct values from 7 artifacts
+indexed 208 distinct values from 7 artifacts
 
-- **id:** `c36d4129c343f2f8`
+- **id:** `f3a48dcf9a0d3cae`
 
 ### [INFO] venue.font
 
