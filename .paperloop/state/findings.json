@@ -2,7 +2,7 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-18T12:41:36"
+    "generated": "2026-08-18T12:56:41"
   },
   "summary": {
     "total": 12,
@@ -21,14 +21,14 @@
       "check": "science",
       "category": "science.stale_artifact",
       "severity": "MAJOR",
-      "message": "1 result artifact(s) changed after the manuscript was last edited",
+      "message": "2 result artifact(s) changed after the manuscript was last edited",
       "file": null,
       "line": null,
       "page": null,
-      "evidence": "results/security_evaluation.json",
+      "evidence": "results/benchmark_summary.json; results/security_evaluation.json",
       "expected": "manuscript newer than the data it reports",
       "remedy": "Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.",
-      "fingerprint": "2d6c73e6ef4262a9",
+      "fingerprint": "1399079e29b05206",
       "gated": true,
       "autofixable": false
     },
@@ -156,14 +156,14 @@
       "check": "science",
       "category": "science.artifact_missing",
       "severity": "INFO",
-      "message": "indexed 201 distinct values from 8 artifacts",
+      "message": "indexed 199 distinct values from 7 artifacts",
       "file": null,
       "line": null,
       "page": null,
       "evidence": null,
       "expected": null,
       "remedy": null,
-      "fingerprint": "28cf737a3bf72662",
+      "fingerprint": "6916a3eb632d1cfe",
       "gated": true,
       "autofixable": false
     },

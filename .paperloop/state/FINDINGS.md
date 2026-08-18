@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 12:41
+**Run:** 2026-08-18 12:56
 
 | Severity | Count |
 |---|---|
@@ -12,23 +12,6 @@
 | INFO | 4 |
 
 Gated (human sign-off required): **1**
-
-<details><summary>Build output (tail)</summary>
-
-```
-=== USENIX Security Paper PDF Builder & Figure Generator ===
-[+] High-resolution 600 DPI benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
-[*] Froze headline metrics -> frozen_metrics.tex (throughput=7,152, overhead=0.000%)
-[*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
-[SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-
-[+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
-findfont: Failed to find font weight semibold, now using 700.
-findfont: Failed to find font weight semibold, now using 700.
-findfont: Failed to find font weight semibold, now using 700.
-findfont: Failed to find font weight semibold, now using 700.
-```
-</details>
 
 ## Auto-fix mandate
 
@@ -64,12 +47,12 @@ notarized2026agents is cited as arXiv — check for a peer-reviewed version
 
 ### [MAJOR] science.stale_artifact
 
-1 result artifact(s) changed after the manuscript was last edited
+2 result artifact(s) changed after the manuscript was last edited
 
-- **found:** `results/security_evaluation.json`
+- **found:** `results/benchmark_summary.json; results/security_evaluation.json`
 - **expected:** manuscript newer than the data it reports
 - **remedy:** Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.
-- **id:** `2d6c73e6ef4262a9`
+- **id:** `1399079e29b05206`
 
 ### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:113
 
@@ -119,9 +102,9 @@ Recorded for the round log; no action implied.
 
 ### [INFO] science.artifact_missing
 
-indexed 201 distinct values from 8 artifacts
+indexed 199 distinct values from 7 artifacts
 
-- **id:** `28cf737a3bf72662`
+- **id:** `6916a3eb632d1cfe`
 
 ### [INFO] venue.font
 
