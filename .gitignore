@@ -34,3 +34,9 @@ build/
 _to_delete/
 COMMIT_MSG.txt
 governance/witness_keys.local.json
+
+# Internal review documents: kept on the author's machine, never published.
+# The repo is public, and these carry candid pre-submission assessments.
+# Listed explicitly (not globbed) so nothing else is hidden by accident.
+docs/RISK_REGISTER.md
+docs/SESSION_2026-08-18_OPENING.md
