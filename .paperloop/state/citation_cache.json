@@ -263,5 +263,133 @@
     "year": 2023,
     "container": "ICLR",
     "type": "inproceedings"
+  },
+  "ahmad2022hardlog|10.1109/SP46214.2022.9833745|hardlog  practical tamper proof system auditing using a novel audit device": {
+    "source": "crossref",
+    "doi": "10.1109/SP46214.2022.9833745",
+    "title": "HARDLOG: Practical Tamper-Proof System Auditing Using a Novel Audit Device",
+    "year": 2022,
+    "container": "2022 IEEE Symposium on Security and Privacy (SP)",
+    "type": "proceedings-article"
+  },
+  "costan2016sgxexplained||intel sgx explained": {
+    "source": "openalex",
+    "doi": "",
+    "title": "Intel SGX Explained.",
+    "year": 2016,
+    "container": "IACR Cryptology ePrint Archive",
+    "type": "preprint"
+  },
+  "crosby2009tamperevident||efficient data structures for tamper evident logging": {
+    "source": "openalex",
+    "doi": "",
+    "title": "Efficient data structures for tamper-evident logging",
+    "year": 2009,
+    "container": "",
+    "type": "article"
+  },
+  "cve20122459||cve 2012 2459": {
+    "source": "web",
+    "doi": "",
+    "title": "{CVE-2012-2459}",
+    "year": null,
+    "container": "https://nvd.nist.gov/vuln/detail/CVE-2012-2459",
+    "type": "misc"
+  },
+  "cve201712842||cve 2017 12842": {
+    "source": "web",
+    "doi": "",
+    "title": "{CVE-2017-12842}",
+    "year": null,
+    "container": "https://nvd.nist.gov/vuln/detail/CVE-2017-12842",
+    "type": "misc"
+  },
+  "debenedetti2024agentdojo|10.52202/079017-2636|agentdojo  a dynamic environment to evaluate prompt injection attacks and defens": {
+    "source": "crossref",
+    "doi": "10.52202/079017-2636",
+    "title": "AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents",
+    "year": 2024,
+    "container": "Advances in Neural Information Processing Systems 37",
+    "type": "proceedings-article"
+  },
+  "haeberlen2007peerreview|10.1145/1294261.1294279|peerreview  practical accountability for distributed systems": {
+    "source": "crossref",
+    "doi": "10.1145/1294261.1294279",
+    "title": "PeerReview: practical accountability for distributed systems",
+    "year": 2007,
+    "container": "Proceedings of twenty-first ACM SIGOPS symposium on Operating systems principles",
+    "type": "proceedings-article"
+  },
+  "intoto_runtime_trace||runtime trace predicate  v0 1  in toto attestation framework": {
+    "source": "web",
+    "doi": "",
+    "title": "Runtime Trace Predicate (v0.1), in-toto Attestation Framework",
+    "year": null,
+    "container": "https://github.com/in-toto/attestation/blob/main/spec/predicates/runtime-trace.md",
+    "type": "misc"
+  },
+  "levin2009trinc||trinc  small trusted hardware for large distributed systems": {
+    "source": "openalex",
+    "doi": "",
+    "title": "TrInc: small trusted hardware for large distributed systems",
+    "year": 2009,
+    "container": "",
+    "type": "article"
+  },
+  "paccagnella2020custos|10.14722/ndss.2020.24065|custos  practical tamper evident auditing of operating systems using trusted exe": {
+    "source": "crossref",
+    "doi": "10.14722/ndss.2020.24065",
+    "title": "Custos: Practical Tamper-Evident Auditing of Operating Systems Using Trusted Execution",
+    "year": 2020,
+    "container": "Proceedings 2020 Network and Distributed System Security Symposium",
+    "type": "proceedings-article"
+  },
+  "schneier1999secureauditlogs|10.1145/317087.317089|secure audit logs to support computer forensics": {
+    "source": "crossref",
+    "doi": "10.1145/317087.317089",
+    "title": "Secure audit logs to support computer forensics",
+    "year": 1999,
+    "container": "ACM Transactions on Information and System Security",
+    "type": "journal-article"
+  },
+  "schuster2021get||you autocomplete me  poisoning vulnerabilities in neural code completion": {
+    "source": "openalex",
+    "doi": "",
+    "title": "You Autocomplete Me: Poisoning Vulnerabilities in Neural Code Completion",
+    "year": 2021,
+    "container": "arXiv (Cornell University)",
+    "type": "preprint"
+  },
+  "shi2025progent||progent  securing ai agents with privilege control": {
+    "source": "openalex",
+    "doi": "10.48550/arxiv.2504.11703",
+    "title": "Progent: Securing AI Agents with Privilege Control",
+    "year": 2025,
+    "container": "arXiv (Cornell University)",
+    "type": "preprint"
+  },
+  "slsa2023supply||supply chain levels for software artifacts  slsa  specification  version 1 0": {
+    "source": "web",
+    "doi": "",
+    "title": "Supply-chain Levels for Software Artifacts ({SLSA}) Specification, Version 1.0",
+    "year": null,
+    "container": "https://slsa.dev/spec/v1.0/",
+    "type": "misc"
+  },
+  "spiffe2020spire||spiffe  secure production identity framework for everyone  and spire  project do": {
+    "source": "web",
+    "doi": "",
+    "title": "{SPIFFE}: Secure Production Identity Framework for Everyone, and {SPIRE}: Project Documentation",
+    "year": null,
+    "container": "https://spiffe.io/docs/latest/",
+    "type": "misc"
+  },
+  "wu2025isolategpt|10.14722/ndss.2025.241131|isolategpt  an execution isolation architecture for llm based agentic systems": {
+    "source": "crossref",
+    "doi": "10.14722/ndss.2025.241131",
+    "title": "IsolateGPT: An Execution Isolation Architecture for LLM-Based Systems",
+    "year": 2025,
+    "container": "Proceedings 2025 Network and Distributed System Security Symposium",
+    "type": "proceedings-article"
   }
 }

@@ -2,13 +2,13 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 18:25
+**Run:** 2026-08-18 22:16
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
 | MAJOR | 1 |
-| MINOR | 5 |
+| MINOR | 6 |
 | INFO | 4 |
 
 Gated (human sign-off required): **1**
@@ -17,12 +17,19 @@ Gated (human sign-off required): **1**
 
 The writer agent applies these directly. Formatting, layout, figures, references, venue compliance — no interpretation of results required.
 
-### [MINOR] refs.bibfield `docs/references.bib`:273
+### [MINOR] refs.bibfield `docs/references.bib`:268
 
 notarized2026agents is cited as arXiv — check for a peer-reviewed version
 
 - **remedy:** If it appeared at a venue, cite the published version. Reviewers notice arXiv-only bibliographies.
-- **id:** `b6711b95d51ab6d4`
+- **id:** `0773e9972633d214`
+
+### [MINOR] refs.bibfield `docs/references.bib`:340
+
+shi2025progent is cited as arXiv — check for a peer-reviewed version
+
+- **remedy:** If it appeared at a venue, cite the published version. Reviewers notice arXiv-only bibliographies.
+- **id:** `79316e3ed4543120`
 
 ## Gated — requires your decision
 
@@ -30,12 +37,12 @@ notarized2026agents is cited as arXiv — check for a peer-reviewed version
 
 ### [MAJOR] science.stale_artifact
 
-1 result artifact(s) changed after the manuscript was last edited
+2 result artifact(s) changed after the manuscript was last edited
 
-- **found:** `results/benchmark_summary.json`
+- **found:** `results/benchmark_summary.json; results/witness_overhead.json`
 - **expected:** manuscript newer than the data it reports
 - **remedy:** Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.
-- **id:** `2d6c73e6ef4262a9`
+- **id:** `1399079e29b05206`
 
 ### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:113
 
@@ -46,32 +53,32 @@ percentage without an explicit denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
 - **id:** `fbe242416462876d`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:462
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:438
 
 percentage without an explicit denominator
 
 - **found:** `EviAssure blocks \eviBlocked{} of \eviTotal{} scored vectors (\eviPct\%, 95\% CI [\eviCIlo, \eviCIhi]), and falsely blocks \falseBlockK{} of \falseBlockN{} clean negative controls.`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `ea3afa42d3d84933`
+- **id:** `b457f5860f2f5547`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:470
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:446
 
 percentage without an explicit denominator
 
-- **found:** `\textbf{Differential wire fuzzing.} A fuzzing campaign whose every mutation perturbs a field inside the signed payload cannot fail  (a verifying bundle is unreachable and no clean `
+- **found:** `\textbf{Differential wire fuzzing.} A campaign whose every mutation perturbs a field inside the signed payload cannot fail (a verifying bundle is unreachable), so it carries no inf`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `847f07f332bc6f23`
+- **id:** `c1c0dc1ef33dba89`
 
-### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:511
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:487
 
 percentage without an explicit denominator
 
 - **found:** `\caption{Executed baselines against the \scoredVectors{}-vector suite, with Wilson 95\%`
 - **expected:** rule: rate_without_denominator
 - **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
-- **id:** `ba8e689904b17a6f`
+- **id:** `b8945bf90b5b5c44`
 
 ## Measurements
 
@@ -79,15 +86,15 @@ Recorded for the round log; no action implied.
 
 ### [INFO] refs.unverified
 
-33 citation(s) verified against Crossref/OpenAlex/SemanticScholar
+45 citation(s) verified against Crossref/OpenAlex/SemanticScholar
 
-- **id:** `99fa5a895f354914`
+- **id:** `30abfb8ca6869b49`
 
 ### [INFO] science.artifact_missing
 
-indexed 208 distinct values from 7 artifacts
+indexed 235 distinct values from 8 artifacts
 
-- **id:** `f3a48dcf9a0d3cae`
+- **id:** `e91d590adae99747`
 
 ### [INFO] venue.font
 
@@ -101,7 +108,7 @@ body font size correct
 
 page count within limit
 
-- **found:** `13 body pages / 18 total`
+- **found:** `13 body pages / 19 total`
 - **expected:** <= 13
 - **id:** `1f0cf72111de700b`
 

@@ -158,8 +158,10 @@ def expected_tree_depth(n_leaves: int) -> int:
     """Proof path length for a tree over n_leaves (the committed geometry).
 
     Without binding the proof to this length, an internal node digest can be
-    presented as a leaf with a shortened path (classic Merkle ambiguity,
-    CVE-2012-2459 family) - a forgery that needs no hash collision.
+    presented as a leaf with a shortened path (the inner-node/leaf ambiguity
+    of CVE-2017-12842; the odd-node duplication of build_merkle_tree is the
+    CVE-2012-2459 pattern, disambiguated by the signed leaf count) - a forgery
+    that needs no hash collision.
     Third-party auditors MUST pass expected_depth, derived from the signed
     execution_traces_count, alongside the root.
     """

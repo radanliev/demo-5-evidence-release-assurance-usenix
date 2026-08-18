@@ -1,23 +1,24 @@
 @inproceedings{torres2019in-toto,
   title={in-toto: Providing Farm-to-Table Guarantees for Bits and Bytes},
-  author={Torres-Arias, Santiago and Kathpal, Anish and Gupta, Hiten and Cappos, Justin},
+  author={Torres-Arias, Santiago and Afzali, Hammad and Kuppusamy, Trishank Karthik and Curtmola, Reza and Cappos, Justin},
   booktitle={USENIX Security Symposium},
   pages={1393--1410},
   year={2019}
 }
 
-@inproceedings{slsa2023supply,
-  title={Supply-chain Levels for Software Artifacts (SLSA) Framework Specification},
-  author={Google Open Source Security Team},
-  booktitle={Linux Foundation OpenSSF Technical Report},
+@misc{slsa2023supply,
+  title={Supply-chain Levels for Software Artifacts ({SLSA}) Specification, Version 1.0},
+  author={{SLSA Community (OpenSSF)}},
+  howpublished={Open Source Security Foundation / The Linux Foundation, April 2023},
   year={2023},
   url={https://slsa.dev/spec/v1.0/}
 }
 
-@article{merkle1989digital,
+@inproceedings{merkle1989digital,
   title={A Certified Digital Signature},
   author={Merkle, Ralph C},
-  journal={Advances in Cryptology---CRYPTO'89 Proceedings},
+  booktitle={Advances in Cryptology---CRYPTO'89 Proceedings, LNCS 435},
+  publisher={Springer},
   pages={218--238},
   year={1989},
   doi={10.1007/0-387-34805-0_21}
@@ -44,6 +45,7 @@
   title={Diplomat: Using Delegations to Protect Community Repositories},
   author={Kuppusamy, Trishank Karthik and Torres-Arias, Santiago and Diaz, Vladimir and Cappos, Justin},
   booktitle={USENIX Symposium on Networked Systems Design and Implementation (NSDI)},
+  pages={567--581},
   year={2016}
 }
 
@@ -64,10 +66,10 @@
   year={2015}
 }
 
-@inproceedings{laurie2014certificate,
+@misc{laurie2014certificate,
   title={Certificate Transparency},
   author={Laurie, Ben and Langley, Adam and Kasper, Emilia},
-  booktitle={RFC 6962, IETF},
+  howpublished={RFC 6962, IETF (Experimental; obsoleted by RFC 9162)},
   year={2013},
   doi={10.17487/RFC6962}
 }
@@ -80,12 +82,12 @@
   doi={10.14722/ndss.2014.23212}
 }
 
-@inproceedings{spiffe2020spire,
-  title={SPIFFE and SPIRE: Universal Workload Identity for Cloud Native Infrastructure},
-  author={CNCF Identity Working Group},
-  booktitle={Cloud Native Computing Foundation (CNCF) Technical Report},
+@misc{spiffe2020spire,
+  title={{SPIFFE}: Secure Production Identity Framework for Everyone, and {SPIRE}: Project Documentation},
+  author={{SPIFFE Project (CNCF)}},
+  howpublished={Cloud Native Computing Foundation, \url{https://spiffe.io/docs/latest/}},
   year={2020},
-  url={https://spiffe.io/docs/latest/}
+  note={CNCF incubating project since 2020}
 }
 
 @misc{opa2021openpolicy,
@@ -107,8 +109,9 @@
 
 @inproceedings{carlini2024poisoning,
   title={Poisoning Web-Scale Training Datasets is Practical},
-  author={Carlini, Nicholas and Jagielski, Matthew and Choquette-Choo, Christopher A and Paleka, Daniel and Pearce, Will and Anderson, Hyrum and Terzis, Andreas and Thomas, Kurt and Tram{\`e}r, Florian},
+  author={Carlini, Nicholas and Jagielski, Matthew and Choquette-Choo, Christopher A and Paleka, Daniel and Pearce, Will and Anderson, Hyrum S and Terzis, Andreas and Thomas, Kurt and Tram{\`e}r, Florian},
   booktitle={IEEE Symposium on Security and Privacy (IEEE S\&P)},
+  pages={407--425},
   year={2024},
   doi={10.1109/SP54263.2024.00179}
 }
@@ -130,7 +133,7 @@
   title={Survivable Key Compromise in Software Update Systems},
   author={Samuel, Justin and Mathewson, Nick and Cappos, Justin and Dingledine, Roger},
   booktitle={ACM Conference on Computer and Communications Security (ACM CCS)},
-  pages={177--190},
+  pages={61--72},
   year={2010},
   doi={10.1145/1866307.1866315}
 }
@@ -164,7 +167,7 @@
 
 
 @inproceedings{schuster2021get,
-  title={You Autocomplete Me: Poisoning Vulnerabilities in Neural Code Completion Systems},
+  title={You Autocomplete Me: Poisoning Vulnerabilities in Neural Code Completion},
   author={Schuster, Roei and Song, Congzheng and Tromer, Eran and Shmatikov, Vitaly},
   booktitle={USENIX Security Symposium},
   pages={1559--1575},
@@ -201,7 +204,7 @@
   title={Artemis: Defanging Software Supply Chain Attacks in Multi-repository Update Systems},
   author={Moore, Marina and Kuppusamy, Trishank Karthik and Cappos, Justin},
   booktitle={Annual Computer Security Applications Conference (ACSAC)},
-  pages={1002--1017},
+  pages={83--97},
   year={2023},
   doi={10.1145/3627106.3627129}
 }
@@ -211,7 +214,7 @@
   author={{Auxidus Technologies}},
   howpublished={in-toto/attestation issue \#554, in-toto Attestation Framework (CNCF)},
   year={2026},
-  note={Open RFC proposing an in-toto attachment predicate for AI agent authorization decisions: agent identity, principal, policy evaluations, allow/deny outcomes, hashed tool arguments, timestamps, and trace correlation},
+  note={Open RFC proposing an in-toto attestation predicate type for AI agent authorization decisions: agent identity, principal, policy evaluations, allow/deny outcomes, hashed tool arguments, timestamps, and trace correlation},
   url={https://github.com/in-toto/attestation/issues/554}
 }
 
@@ -234,10 +237,10 @@
 }
 
 @misc{intoto_runtime_trace,
-  title={Runtime Trace Predicate, in-toto Attestation Framework},
-  author={{in-toto Attestation Framework contributors (CNCF)}},
-  howpublished={Predicate specification, \url{https://github.com/in-toto/attestation/blob/main/spec/predicates/runtime-trace.md}},
-  year={2024},
+  title={Runtime Trace Predicate (v0.1), in-toto Attestation Framework},
+  author={Patel, Parth and Nadgowda, Shripad and Yelgundhalli, Aditya Sirish A},
+  howpublished={Predicate specification, in-toto Attestation Framework v1.0 (CNCF), \url{https://github.com/in-toto/attestation/blob/main/spec/predicates/runtime-trace.md}},
+  year={2023},
   url={https://github.com/in-toto/attestation/blob/main/spec/predicates/runtime-trace.md}
 }
 
@@ -261,14 +264,6 @@
   doi={10.1137/0217017}
 }
 
-2026-08-18: author corrected from "Anonymous (preprint)" (which was WRONG --
-the CFP treats an incorrect author as misconduct) to the listed arXiv author,
-checked against the arXiv abstract page. The abstract states the receipts are
-service-signed, encrypted to the owner, and published to a transparency log,
-and that the "suppression attack" (an agent that does not call services
-produces no receipts) is a known, unsolved limitation of v0.1. This entry is
-NOT yet cited in the manuscript; it must be, in Related Work, and the
-characterisation must be checked against the full text before submission.
 
 @misc{notarized2026agents,
   title={Notarized Agents: Receiver-Attested Confidential Receipts for AI Agent Actions},
@@ -279,8 +274,6 @@ characterisation must be checked against the full text before submission.
   doi={10.48550/arXiv.2606.04193}
 }
 
-2026-08-18: page fetched and read; title, publisher, date and mechanism
-(mediator-signed, hash-chained Ed25519 receipts) confirmed against the page.
 
 @misc{pipelab2026receipts,
   title={Agent Action Receipts: Signed {AI} Audit Evidence},
@@ -297,4 +290,107 @@ characterisation must be checked against the full text before submission.
   howpublished={RFC 9943, IETF (Proposed Standard)},
   year={2026},
   doi={10.17487/RFC9943}
+}
+
+@inproceedings{crosby2009tamperevident,
+  title={Efficient Data Structures for Tamper-Evident Logging},
+  author={Crosby, Scott A and Wallach, Dan S},
+  booktitle={USENIX Security Symposium},
+  pages={317--334},
+  year={2009}
+}
+
+@inproceedings{haeberlen2007peerreview,
+  title={{PeerReview}: Practical Accountability for Distributed Systems},
+  author={Haeberlen, Andreas and Kouznetsov, Petr and Druschel, Peter},
+  booktitle={ACM Symposium on Operating Systems Principles (SOSP)},
+  pages={175--188},
+  year={2007},
+  doi={10.1145/1294261.1294279}
+}
+
+@inproceedings{levin2009trinc,
+  title={{TrInc}: Small Trusted Hardware for Large Distributed Systems},
+  author={Levin, Dave and Douceur, John R and Lorch, Jacob R and Moscibroda, Thomas},
+  booktitle={USENIX Symposium on Networked Systems Design and Implementation (NSDI)},
+  pages={1--14},
+  year={2009}
+}
+
+@article{schneier1999secureauditlogs,
+  title={Secure Audit Logs to Support Computer Forensics},
+  author={Schneier, Bruce and Kelsey, John},
+  journal={ACM Transactions on Information and System Security},
+  volume={2},
+  number={2},
+  pages={159--176},
+  year={1999},
+  doi={10.1145/317087.317089}
+}
+
+@inproceedings{debenedetti2024agentdojo,
+  title={{AgentDojo}: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for {LLM} Agents},
+  author={Debenedetti, Edoardo and Zhang, Jie and Balunovi{\'c}, Mislav and Beurer-Kellner, Luca and Fischer, Marc and Tram{\`e}r, Florian},
+  booktitle={Advances in Neural Information Processing Systems 37 (NeurIPS 2024), Datasets and Benchmarks Track},
+  pages={82895--82920},
+  year={2024},
+  doi={10.52202/079017-2636}
+}
+
+@misc{shi2025progent,
+  title={Progent: Securing {AI} Agents with Privilege Control},
+  author={Shi, Tianneng and He, Jingxuan and Wang, Zhun and Li, Hongwei and Wu, Linyu and Guo, Wenbo and Song, Dawn},
+  howpublished={arXiv preprint arXiv:2504.11703},
+  year={2025},
+  note={v1 (April 2025) titled ``Progent: Programmable Privilege Control for LLM Agents''},
+  url={https://arxiv.org/abs/2504.11703}
+}
+
+@inproceedings{wu2025isolategpt,
+  title={{IsolateGPT}: An Execution Isolation Architecture for {LLM}-Based Agentic Systems},
+  author={Wu, Yuhao and Roesner, Franziska and Kohno, Tadayoshi and Zhang, Ning and Iqbal, Umar},
+  booktitle={NDSS Symposium},
+  year={2025},
+  doi={10.14722/ndss.2025.241131}
+}
+
+@misc{costan2016sgxexplained,
+  title={Intel {SGX} Explained},
+  author={Costan, Victor and Devadas, Srinivas},
+  howpublished={Cryptology ePrint Archive, Paper 2016/086},
+  year={2016},
+  url={https://eprint.iacr.org/2016/086}
+}
+
+@inproceedings{paccagnella2020custos,
+  title={Custos: Practical Tamper-Evident Auditing of Operating Systems Using Trusted Execution},
+  author={Paccagnella, Riccardo and Datta, Pubali and Hassan, Wajih Ul and Bates, Adam and Fletcher, Christopher W and Miller, Andrew and Tian, Dave},
+  booktitle={NDSS Symposium},
+  year={2020},
+  doi={10.14722/ndss.2020.24065}
+}
+
+@inproceedings{ahmad2022hardlog,
+  title={{HardLog}: Practical Tamper-Proof System Auditing Using a Novel Audit Device},
+  author={Ahmad, Adil and Lee, Sangho and Peinado, Marcus},
+  booktitle={IEEE Symposium on Security and Privacy (IEEE S\&P)},
+  pages={1791--1807},
+  year={2022},
+  doi={10.1109/SP46214.2022.9833745}
+}
+
+@misc{cve20122459,
+  title={{CVE-2012-2459}},
+  author={{National Vulnerability Database}},
+  howpublished={\url{https://nvd.nist.gov/vuln/detail/CVE-2012-2459}},
+  year={2012},
+  note={Bitcoin: duplicating the final transaction of a block yields an identical Merkle root for an invalid block}
+}
+
+@misc{cve201712842,
+  title={{CVE-2017-12842}},
+  author={{National Vulnerability Database}},
+  howpublished={\url{https://nvd.nist.gov/vuln/detail/CVE-2017-12842}},
+  year={2020},
+  note={Bitcoin Core before 0.14: a 64-byte transaction can be read as two inner-node digests, so an ostensibly valid SPV inclusion proof can be forged for a payment that did not occur}
 }

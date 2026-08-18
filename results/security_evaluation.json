@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-18T11:39:52Z",
+  "timestamp": "2026-08-18T17:35:40Z",
   "python_version": "3.14.7",
   "determinism": "platform-independent: every figure here is a block count or a verdict, not a timing. Regenerate on any machine.",
   "baseline_execution": {
@@ -111,7 +111,7 @@
         "scored": true,
         "eviassure_blocked": true,
         "eviassure_violations": [
-          "POLICY_VIOLATION: Replayed evidence nonce detected (4a84cf91-e999-4912-b634-0073dc2d6fff)."
+          "POLICY_VIOLATION: Replayed evidence nonce detected (7b28fd3d-5811-4589-a881-fc9093af5d60)."
         ],
         "Unauthenticated CI status gate (lower bound)": false,
         "OPA Rego schema policy": false,
@@ -409,8 +409,8 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": false
         },
-        "expected_session_id": "sess-2090a3b0ff76",
-        "declared_session_id": "sess-2090a3b0ff76",
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
         "eviassure_wtc_violation": null
       },
       {
@@ -426,8 +426,8 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
-        "expected_session_id": "sess-2090a3b0ff76",
-        "declared_session_id": "sess-2090a3b0ff76",
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
         "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: witness 'db-gateway' attested 3 served action(s); sequence number(s) [2] are absent from the submitted trace set (omitted action)"
       },
       {
@@ -443,8 +443,8 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
-        "expected_session_id": "sess-2090a3b0ff76",
-        "declared_session_id": "sess-2090a3b0ff76",
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
         "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: witness 'db-gateway' attested 3 served action(s); sequence number(s) [3] are absent from the submitted trace set (omitted action)"
       },
       {
@@ -460,9 +460,9 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
-        "expected_session_id": "sess-2090a3b0ff76",
-        "declared_session_id": "sess-2090a3b0ff76",
-        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: registered witness 'shell-broker' produced no closing statement for session 'sess-2090a3b0ff76'; a session in which a witness served nothing must still carry its final_seq=0 closing, so a missing closing is an omitted witness rather than an unused tool"
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: registered witness 'shell-broker' produced no closing statement for session 'sess-ac2b81192f44'; a session in which a witness served nothing must still carry its final_seq=0 closing, so a missing closing is an omitted witness rather than an unused tool"
       },
       {
         "vector_id": "O4",
@@ -477,8 +477,8 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
-        "expected_session_id": "sess-2090a3b0ff76",
-        "declared_session_id": "sess-2090a3b0ff76",
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
         "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: invalid closing signature from 'db-gateway'"
       },
       {
@@ -494,9 +494,9 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
-        "expected_session_id": "sess-2090a3b0ff76",
-        "declared_session_id": "sess-2090a3b0ff76",
-        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: receipt from foreign session 'sess-5b831814c300' (expected 'sess-2090a3b0ff76')"
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: receipt from foreign session 'sess-bd70b54ec09c' (expected 'sess-ac2b81192f44')"
       },
       {
         "vector_id": "O6",
@@ -511,8 +511,8 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
-        "expected_session_id": "sess-2090a3b0ff76",
-        "declared_session_id": "sess-2090a3b0ff76",
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
         "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: 1 recorded action(s) claim a witness-mediated operation (['execute_read_only_query']) but carry no witness receipt (fabricated action)"
       },
       {
@@ -528,9 +528,9 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
-        "expected_session_id": "sess-2090a3b0ff76",
-        "declared_session_id": "sess-b99e5c5a1c5e",
-        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: bundle declares session 'sess-b99e5c5a1c5e' but the release under evaluation was credentialed as 'sess-2090a3b0ff76' (session substitution)"
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-7d3ebfabf207",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: bundle declares session 'sess-7d3ebfabf207' but the release under evaluation was credentialed as 'sess-ac2b81192f44' (session substitution)"
       }
     ]
   },

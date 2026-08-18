@@ -151,7 +151,7 @@ TAMPER_VECTOR_TAXONOMY = {
         "id": "V15",
         "name": "Internal Merkle Node Presented as Leaf to a Third-Party Auditor",
         "category": "Integrity",
-        "description": ("The CVE-2012-2459-family forgery: an internal node digest is offered as "
+        "description": ("The CVE-2017-12842-family forgery: an internal node digest is offered as "
                         "a trace leaf with a shortened proof path. Targets the sparse-proof "
                         "auditor path (Sec 7 'store proofs on-chain'), not the gate. FAILED "
                         "before 2026-08-15 and only partially fixed until 2026-08-17 (C1/C2)."),

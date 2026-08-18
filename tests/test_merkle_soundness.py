@@ -3,7 +3,7 @@ Regression tests for the soundness gaps found by the 2026-08-15 adversarial
 review (docs/PEER_REVIEW_2026-08-15.md):
 
 M1 - internal Merkle nodes verified as leaves via shortened proof paths
-     (no hash collision needed; CVE-2012-2459 family). Fixed by binding
+     (no hash collision needed; CVE-2017-12842 family). Fixed by binding
      verification to the committed tree depth.
 M2 - the signed execution_traces_count was never compared to len(traces);
      bundles lied about trace counts and passed.

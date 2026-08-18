@@ -481,6 +481,14 @@ def main():
 
     print(f"\n[+] Empirical benchmark summary saved to: {out_file}")
 
+    # 7. Witness-protocol overhead (Section 4.2): receipt issuance, closing and
+    #    gate-side reconciliation, on the same platform as the numbers above so
+    #    that results/witness_overhead.json and benchmark_summary.json agree.
+    print("\n7. Measuring witness-protocol overhead (receipts, closings, reconciliation)...")
+    import subprocess
+    subprocess.run([sys.executable, str(Path(__file__).parent / "run_witness_overhead.py"),
+                    "--repeats", str(repeats)], check=True)
+
 
 if __name__ == "__main__":
     main()

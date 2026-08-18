@@ -1,0 +1,10 @@
+{
+  "release_id": "release-demo",
+  "session_id": "sess-b6ec457e0be1",
+  "credential": {
+    "session_id": "sess-b6ec457e0be1",
+    "release_id": "release-demo",
+    "issued_at": "2026-08-18T17:35:37.318633+00:00",
+    "signature": "D4PdUh6FCnCffXijd1Cx/EBryx17eo6hZmqNV99zVegVHBlW3UDukgcYMAOUBdJfhVnQVMVeyh+aihNSOPVADw=="
+  }
+}
