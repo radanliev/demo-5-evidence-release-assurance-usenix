@@ -66,7 +66,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from assurance.crypto import hash_sha256
 from assurance.evidence import ExecutionTraceRecord
-from assurance.witness import Witness, SessionCredential, issue_session_credential
+from assurance.witness import (Witness, SessionCredential, Receipt, Closing,
+                               issue_session_credential)
 
 # --------------------------------------------------------------------------
 # Providers. Both speak the OpenAI chat-completions shape, so one client works.
@@ -222,6 +223,12 @@ class LiveSession:
     turns: int = 0
     unmediated_actions: List[str] = field(default_factory=list)
     stopped_reason: str = ""
+    # How the witnesses ran, and whether the collector was adversarial. Both
+    # belong in the record: a coverage or reconciliation number means nothing
+    # without knowing which of the two harnesses produced it.
+    witness_mode: str = "out-of-process"
+    adversary: str = "none"
+    attacked_trace_id: str = ""
 
     @property
     def mediated_count(self) -> int:
@@ -304,8 +311,36 @@ def _retry_after(err, payload: str, attempt: int) -> float:
 
 
 def run_live_session(provider: str = "groq", model: Optional[str] = None,
-                     max_turns: int = 8, task: Optional[str] = None) -> LiveSession:
-    """Run one real agent session with witness-mediated tools."""
+                     max_turns: int = 8, task: Optional[str] = None,
+                     witness_mode: str = "out-of-process",
+                     adversary: str = "none") -> LiveSession:
+    """Run one real agent session with witness-mediated tools.
+
+    `witness_mode` selects who executes a mediated tool call:
+
+      "out-of-process"  each witness runs in its own OS process, executes the
+                        tool itself, and signs a digest over the output *it*
+                        produced. The collector never holds a witness key.
+      "in-process"      the legacy harness, retained only so the two can be
+                        compared: the collector executes the tool, builds the
+                        record, and hands it to a Witness object to sign. The
+                        witness attests the collector's claim, not the action.
+
+    `adversary` makes the collector dishonest after the fact, which is how the
+    two modes are told apart:
+
+      "none"   honest collector.
+      "alter"  the collector rewrites output_hash on the first mediated trace.
+      "omit"   the collector drops the first mediated trace from the bundle.
+
+    Under "in-process" both attacks succeed silently, because the collector
+    controls the record before it is signed and controls whether the witness is
+    involved at all. Under "out-of-process" both are caught by reconcile().
+    """
+    if witness_mode not in ("out-of-process", "in-process"):
+        raise ValueError(f"unknown witness_mode {witness_mode!r}")
+    if adversary not in ("none", "alter", "omit"):
+        raise ValueError(f"unknown adversary {adversary!r}")
     if provider not in PROVIDERS:
         raise ValueError(f"unknown provider {provider!r}; choose from {sorted(PROVIDERS)}")
     cfg = PROVIDERS[provider]
@@ -319,11 +354,26 @@ def run_live_session(provider: str = "groq", model: Optional[str] = None,
     # verifies it before serving, so the agent cannot relabel actions into a
     # session the gate never evaluates (Definition WTC, vector O7).
     cred = issue_session_credential(f"live-release-{session_id}", session_id=session_id)
-    witnesses = {wid: Witness(wid, mediates=set(acts)) for wid, acts in TOOL_WITNESSES.items()}
+    pool = None
+    witnesses: Dict[str, Witness] = {}
+    if witness_mode == "out-of-process":
+        # Each witness is a separate OS process holding its own signing key and
+        # its own connection to the resource. The collector below can ask it to
+        # serve an action; it cannot sign one.
+        from specimens.witness_process import ProcessWitnessPool
+        pool = ProcessWitnessPool(TOOL_WITNESSES)
+        registry, mediated = pool.registry, pool.mediated
+    else:
+        witnesses = {wid: Witness(wid, mediates=set(acts))
+                     for wid, acts in TOOL_WITNESSES.items()}
+        registry = {w: x.public_key_b64 for w, x in witnesses.items()}
+        mediated = {w: set(x.mediates) for w, x in witnesses.items()}
+
     sess = LiveSession(session_id=session_id, model=model, provider=provider,
                        credential=cred.to_dict(),
-                       registry={w: x.public_key_b64 for w, x in witnesses.items()},
-                       mediated={w: set(x.mediates) for w, x in witnesses.items()})
+                       registry=registry, mediated=mediated,
+                       witness_mode=witness_mode, adversary=adversary)
+    attacked = False
 
     conn = _audit_db()
     messages: List[Dict[str, Any]] = [
@@ -354,25 +404,60 @@ def run_live_session(provider: str = "groq", model: Optional[str] = None,
             except json.JSONDecodeError:
                 args = {}
 
-            t0 = time.perf_counter()
-            status, result = _run_tool(action, args, conn)
-            dt = (time.perf_counter() - t0) * 1000.0
+            trace_id = f"TR-{session_id[5:11]}-{step:03d}"
+            agent_id = f"live-agent/{model}"
+            w_proc = pool.for_action(action) if pool is not None else None
+            w_inproc = _witness_for(action, witnesses) if witnesses else None
+            is_mediated = (w_proc is not None) or (w_inproc is not None)
+            # Attack the first mediated action only, so the vector is a single
+            # deterministic edit rather than a session-wide rewrite.
+            attack = adversary if (is_mediated and not attacked) else "none"
+
+            if w_proc is not None:
+                # The WITNESS executes the tool. The collector learns the result
+                # only because the witness returned it, and the receipt already
+                # commits to the output the witness produced.
+                served = w_proc.serve(cred.to_dict(), action, args, trace_id, agent_id)
+                status, result = served["status"], served["result"]
+                dt = served["witness_duration_ms"]
+                # The collector hashes what it received. Honest collector =>
+                # identical to the witness's hash; a doctored one diverges and
+                # reconcile() check 5 finds no trace matching the receipt.
+                output_hash = hash_sha256(result)
+                sess.receipts.append(Receipt(**served["receipt"]))
+            else:
+                t0 = time.perf_counter()
+                status, result = _run_tool(action, args, conn)
+                dt = round((time.perf_counter() - t0) * 1000.0, 4)
+                output_hash = hash_sha256(result)
+
+            if attack == "alter":
+                # The collector claims the query returned nothing.
+                output_hash = hash_sha256(json.dumps({"rows": []}))
+                sess.attacked_trace_id = trace_id
+                attacked = True
 
             trace = ExecutionTraceRecord(
-                trace_id=f"TR-{session_id[5:11]}-{step:03d}",
-                agent_id=f"live-agent/{model}",
-                action=action,
-                status=status,
-                duration_ms=round(dt, 4),
-                output_hash=hash_sha256(result),
+                trace_id=trace_id, agent_id=agent_id, action=action,
+                status=status, duration_ms=dt, output_hash=output_hash,
             )
-            sess.traces.append(trace)
+
+            if attack == "omit":
+                # The collector drops the record. Out-of-process the witness
+                # has already served and counted the action, so the receipt
+                # survives and the omission is visible. In-process the
+                # collector simply never involves the witness, and it is not.
+                sess.attacked_trace_id = trace_id
+                attacked = True
+            else:
+                sess.traces.append(trace)
             step += 1
 
-            w = _witness_for(action, witnesses)
-            if w is not None:
-                sess.receipts.append(w.observe(cred, trace))
-            else:
+            if w_inproc is not None:
+                # Legacy path: the witness signs the record the collector built,
+                # including any doctoring done above. This is the defect.
+                sess.receipts.append(w_inproc.observe(cred, trace))
+            elif w_proc is None:
                 sess.unmediated_actions.append(action)
 
             messages.append({"role": "tool", "tool_call_id": call.get("id"),
@@ -389,5 +474,9 @@ def run_live_session(provider: str = "groq", model: Optional[str] = None,
     # Every registered witness closes every session, including with n_j = 0 --
     # without that rule, dropping a witness *and* its closing is
     # indistinguishable from never using the tool (vector O3).
-    sess.closings = [w.close(cred) for w in witnesses.values()]
+    if pool is not None:
+        sess.closings = [Closing(**c) for c in pool.close_all(cred.to_dict())]
+        pool.shutdown()
+    else:
+        sess.closings = [w.close(cred) for w in witnesses.values()]
     return sess

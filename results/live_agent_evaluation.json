@@ -9,7 +9,7 @@
         "execute_read_only_query",
         "execute_read_only_query",
         "execute_read_only_query",
-        "execute_read_only_query"
+        "vector_search_policy_docs"
       ],
       "actions": 8,
       "coverage": 1.0,
@@ -23,7 +23,7 @@
         "OC1_control_approved": true
       },
       "provider": "groq",
-      "session_id": "live-23cfba7b7607",
+      "session_id": "live-646a18121355",
       "statuses": [
         "DENIED",
         "ERROR",
@@ -32,6 +32,43 @@
       "stopped_reason": "hit max_turns=8",
       "turns": 8,
       "unmediated_actions": [],
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-63c456d58bd8",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_mode": "out-of-process",
       "witnessed": 8
     },
     {
@@ -41,12 +78,11 @@
         "execute_read_only_query",
         "execute_read_only_query",
         "execute_read_only_query",
-        "vector_search_policy_docs",
         "execute_read_only_query",
         "emit_summary"
       ],
-      "actions": 8,
-      "coverage": 0.875,
+      "actions": 7,
+      "coverage": 0.8571,
       "model": "openai/gpt-oss-120b",
       "omission_vectors": {
         "O1": true,
@@ -54,29 +90,31 @@
         "O3": true,
         "O4": true,
         "O6": true,
+        "O7": true,
         "OC1_control_approved": true
       },
       "provider": "groq",
-      "session_id": "live-246152ec7d5f",
+      "session_id": "live-1d218c3e010a",
       "statuses": [
         "DENIED",
         "ERROR",
         "SUCCESS"
       ],
       "stopped_reason": "agent emitted summary",
-      "turns": 8,
+      "turns": 7,
       "unmediated_actions": [
         "emit_summary"
       ],
-      "witnessed": 7
+      "witness_mode": "out-of-process",
+      "witnessed": 6
     },
     {
       "action_sequence": [
         "authenticate_jwt_claims",
+        "collect_table_stats",
         "vector_search_policy_docs",
         "collect_table_stats",
         "collect_table_stats",
-        "execute_read_only_query",
         "execute_read_only_query",
         "execute_read_only_query",
         "execute_read_only_query"
@@ -90,10 +128,11 @@
         "O3": true,
         "O4": true,
         "O6": true,
+        "O7": true,
         "OC1_control_approved": true
       },
       "provider": "groq",
-      "session_id": "live-5cf1e291d168",
+      "session_id": "live-92146deaf70e",
       "statuses": [
         "DENIED",
         "SUCCESS"
@@ -101,6 +140,7 @@
       "stopped_reason": "hit max_turns=8",
       "turns": 8,
       "unmediated_actions": [],
+      "witness_mode": "out-of-process",
       "witnessed": 8
     },
     {
@@ -123,10 +163,11 @@
         "O3": true,
         "O4": true,
         "O6": true,
+        "O7": true,
         "OC1_control_approved": true
       },
       "provider": "groq",
-      "session_id": "live-8223ceb65f68",
+      "session_id": "live-0d4c6f61c4ff",
       "statuses": [
         "DENIED",
         "ERROR",
@@ -135,6 +176,7 @@
       "stopped_reason": "hit max_turns=8",
       "turns": 8,
       "unmediated_actions": [],
+      "witness_mode": "out-of-process",
       "witnessed": 8
     },
     {
@@ -151,10 +193,11 @@
         "O3": true,
         "O4": true,
         "O6": true,
+        "O7": true,
         "OC1_control_approved": true
       },
       "provider": "groq",
-      "session_id": "live-c08847b9c126",
+      "session_id": "live-95f86e3ffd4c",
       "statuses": [
         "SUCCESS"
       ],
@@ -163,6 +206,7 @@
       "unmediated_actions": [
         "emit_summary"
       ],
+      "witness_mode": "out-of-process",
       "witnessed": 2
     },
     {
@@ -172,36 +216,111 @@
         "collect_table_stats",
         "execute_read_only_query",
         "execute_read_only_query",
+        "execute_read_only_query",
         "vector_search_policy_docs",
-        "vector_search_policy_docs",
-        "collect_table_stats"
+        "emit_summary"
       ],
       "actions": 8,
-      "coverage": 1.0,
-      "model": "openai/gpt-oss-120b",
+      "coverage": 0.875,
+      "model": "qwen/qwen3.6-27b",
       "omission_vectors": {
         "O1": true,
         "O2": true,
         "O3": true,
         "O4": true,
         "O6": true,
+        "O7": true,
         "OC1_control_approved": true
       },
       "provider": "groq",
-      "session_id": "live-5cb0f62d63a2",
+      "session_id": "live-c4e0d7792524",
       "statuses": [
         "ERROR",
         "SUCCESS"
       ],
-      "stopped_reason": "hit max_turns=8",
+      "stopped_reason": "agent emitted summary",
       "turns": 8,
-      "unmediated_actions": [],
-      "witnessed": 8
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 7
     },
     {
       "action_sequence": [
-        "vector_search_policy_docs",
         "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 5,
+      "coverage": 0.8,
+      "model": "qwen/qwen3.6-27b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-d5cdb7954427",
+      "statuses": [
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 5,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 4
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 8,
+      "coverage": 0.875,
+      "model": "qwen/qwen3.6-27b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-cd36475ae8d3",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 8,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 7
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
         "collect_table_stats",
         "execute_read_only_query",
         "execute_read_only_query",
@@ -211,17 +330,18 @@
       ],
       "actions": 8,
       "coverage": 0.875,
-      "model": "openai/gpt-oss-120b",
+      "model": "qwen/qwen3.6-27b",
       "omission_vectors": {
         "O1": true,
         "O2": true,
         "O3": true,
         "O4": true,
         "O6": true,
+        "O7": true,
         "OC1_control_approved": true
       },
       "provider": "groq",
-      "session_id": "live-f9a571dfe59b",
+      "session_id": "live-1c274c091eb3",
       "statuses": [
         "DENIED",
         "ERROR",
@@ -232,105 +352,45 @@
       "unmediated_actions": [
         "emit_summary"
       ],
+      "witness_mode": "out-of-process",
       "witnessed": 7
     },
     {
       "action_sequence": [
         "authenticate_jwt_claims",
-        "collect_table_stats",
-        "collect_table_stats",
         "vector_search_policy_docs",
-        "vector_search_policy_docs",
-        "vector_search_policy_docs",
-        "vector_search_policy_docs",
-        "execute_read_only_query"
-      ],
-      "actions": 8,
-      "coverage": 1.0,
-      "model": "openai/gpt-oss-120b",
-      "omission_vectors": {
-        "O1": true,
-        "O2": true,
-        "O3": true,
-        "O4": true,
-        "O6": true,
-        "OC1_control_approved": true
-      },
-      "provider": "groq",
-      "session_id": "live-94413ab98abf",
-      "statuses": [
-        "DENIED",
-        "ERROR",
-        "SUCCESS"
-      ],
-      "stopped_reason": "hit max_turns=8",
-      "turns": 8,
-      "unmediated_actions": [],
-      "witnessed": 8
-    },
-    {
-      "action_sequence": [
-        "authenticate_jwt_claims",
-        "collect_table_stats",
-        "execute_read_only_query",
-        "collect_table_stats",
         "execute_read_only_query",
         "execute_read_only_query",
         "execute_read_only_query",
-        "execute_read_only_query"
-      ],
-      "actions": 8,
-      "coverage": 1.0,
-      "model": "openai/gpt-oss-120b",
-      "omission_vectors": {
-        "O1": true,
-        "O2": true,
-        "O3": true,
-        "O4": true,
-        "O6": true,
-        "OC1_control_approved": true
-      },
-      "provider": "groq",
-      "session_id": "live-65ce1cbb1fb8",
-      "statuses": [
-        "DENIED",
-        "ERROR",
-        "SUCCESS"
-      ],
-      "stopped_reason": "hit max_turns=8",
-      "turns": 8,
-      "unmediated_actions": [],
-      "witnessed": 8
-    },
-    {
-      "action_sequence": [
-        "collect_table_stats",
         "execute_read_only_query",
-        "authenticate_jwt_claims",
         "emit_summary"
       ],
-      "actions": 4,
-      "coverage": 0.75,
-      "model": "openai/gpt-oss-120b",
+      "actions": 7,
+      "coverage": 0.8571,
+      "model": "qwen/qwen3.6-27b",
       "omission_vectors": {
         "O1": true,
         "O2": true,
         "O3": true,
         "O4": true,
         "O6": true,
+        "O7": true,
         "OC1_control_approved": true
       },
       "provider": "groq",
-      "session_id": "live-ab2cd2f9b578",
+      "session_id": "live-36e60c761a5f",
       "statuses": [
+        "DENIED",
+        "ERROR",
         "SUCCESS"
       ],
       "stopped_reason": "agent emitted summary",
-      "turns": 4,
+      "turns": 7,
       "unmediated_actions": [
         "emit_summary"
       ],
-      "witnessed": 3
+      "witness_mode": "out-of-process",
+      "witnessed": 6
     },
     {
       "action_sequence": [
@@ -340,58 +400,24 @@
         "execute_read_only_query",
         "execute_read_only_query",
         "execute_read_only_query",
-        "execute_read_only_query",
-        "vector_search_policy_docs"
-      ],
-      "actions": 8,
-      "coverage": 1.0,
-      "model": "openai/gpt-oss-120b",
-      "omission_vectors": {
-        "O1": true,
-        "O2": true,
-        "O3": true,
-        "O4": true,
-        "O6": true,
-        "OC1_control_approved": true
-      },
-      "provider": "groq",
-      "session_id": "live-db7539c5ca34",
-      "statuses": [
-        "DENIED",
-        "ERROR",
-        "SUCCESS"
-      ],
-      "stopped_reason": "hit max_turns=8",
-      "turns": 8,
-      "unmediated_actions": [],
-      "witnessed": 8
-    },
-    {
-      "action_sequence": [
         "vector_search_policy_docs",
-        "authenticate_jwt_claims",
-        "collect_table_stats",
-        "execute_read_only_query",
-        "execute_read_only_query",
-        "execute_read_only_query",
-        "execute_read_only_query",
         "emit_summary"
       ],
       "actions": 8,
       "coverage": 0.875,
-      "model": "openai/gpt-oss-120b",
+      "model": "qwen/qwen3.6-27b",
       "omission_vectors": {
         "O1": true,
         "O2": true,
         "O3": true,
         "O4": true,
         "O6": true,
+        "O7": true,
         "OC1_control_approved": true
       },
       "provider": "groq",
-      "session_id": "live-36763bfb2d79",
+      "session_id": "live-e2d9a069f0f7",
       "statuses": [
-        "DENIED",
         "ERROR",
         "SUCCESS"
       ],
@@ -400,120 +426,55 @@
       "unmediated_actions": [
         "emit_summary"
       ],
+      "witness_mode": "out-of-process",
       "witnessed": 7
-    },
-    {
-      "action_sequence": [
-        "authenticate_jwt_claims",
-        "vector_search_policy_docs",
-        "collect_table_stats",
-        "collect_table_stats",
-        "execute_read_only_query",
-        "execute_read_only_query",
-        "execute_read_only_query",
-        "execute_read_only_query"
-      ],
-      "actions": 8,
-      "coverage": 1.0,
-      "model": "openai/gpt-oss-120b",
-      "omission_vectors": {
-        "O1": true,
-        "O2": true,
-        "O3": true,
-        "O4": true,
-        "O6": true,
-        "OC1_control_approved": true
-      },
-      "provider": "groq",
-      "session_id": "live-011b0e5d995e",
-      "statuses": [
-        "DENIED",
-        "SUCCESS"
-      ],
-      "stopped_reason": "hit max_turns=8",
-      "turns": 8,
-      "unmediated_actions": [],
-      "witnessed": 8
-    },
-    {
-      "action_sequence": [
-        "authenticate_jwt_claims",
-        "collect_table_stats",
-        "execute_read_only_query",
-        "collect_table_stats",
-        "execute_read_only_query",
-        "execute_read_only_query",
-        "execute_read_only_query",
-        "execute_read_only_query"
-      ],
-      "actions": 8,
-      "coverage": 1.0,
-      "model": "openai/gpt-oss-120b",
-      "omission_vectors": {
-        "O1": true,
-        "O2": true,
-        "O3": true,
-        "O4": true,
-        "O6": true,
-        "OC1_control_approved": true
-      },
-      "provider": "groq",
-      "session_id": "live-165a71441d00",
-      "statuses": [
-        "DENIED",
-        "ERROR",
-        "SUCCESS"
-      ],
-      "stopped_reason": "hit max_turns=8",
-      "turns": 8,
-      "unmediated_actions": [],
-      "witnessed": 8
     }
   ],
   "summary": {
-    "actions_mean": 7.36,
-    "actions_stdev": 1.646,
-    "actions_total": 103,
-    "batches": 3,
-    "distinct_action_sequences": 10,
-    "model": "openai/gpt-oss-120b",
-    "nondeterminism_ratio": 0.7143,
+    "actions_mean": 7.17,
+    "actions_stdev": 1.586,
+    "actions_total": 86,
+    "distinct_action_sequences": 11,
+    "model": "qwen/qwen3.6-27b",
+    "nondeterminism_ratio": 0.9167,
     "omission_detection": {
       "O1": {
-        "detected": 13,
-        "of": 13
+        "detected": 11,
+        "of": 11
       },
       "O2": {
-        "detected": 14,
-        "of": 14
+        "detected": 12,
+        "of": 12
       },
       "O3": {
-        "detected": 14,
-        "of": 14
+        "detected": 12,
+        "of": 12
       },
       "O4": {
-        "detected": 14,
-        "of": 14
+        "detected": 12,
+        "of": 12
       },
       "O6": {
-        "detected": 14,
-        "of": 14
+        "detected": 12,
+        "of": 12
+      },
+      "O7": {
+        "detected": 11,
+        "of": 11
       },
       "OC1_control_approved": {
-        "detected": 14,
-        "of": 14
+        "detected": 12,
+        "of": 12
       }
     },
     "provider": "groq",
-    "session_failures": [
-      "session 4: HTTP 400: {\"error\":{\"message\":\"Parsing failed. The model generated output that could not be parsed. Please adjust your prompt. See 'failed_generation' for more details.\",\"type\":\"invalid_request_error\",\"code\":\"output_parse_failed\",\"failed_generation\":\"We have the newest release version v1.5.0, gate outcome APPROVED. Need to emit summary.\"}}\n"
-    ],
-    "sessions_completed": 14,
-    "sessions_requested": 15,
+    "session_failures": [],
+    "sessions_completed": 12,
+    "sessions_requested": 12,
     "unmediated_actions_seen": [
       "emit_summary"
     ],
-    "witness_coverage_mean": 0.9315,
+    "witness_coverage_mean": 0.8901,
     "witness_coverage_min": 0.6667
   }
 }

@@ -2,13 +2,13 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 13:04
+**Run:** 2026-08-18 13:40
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
 | MAJOR | 1 |
-| MINOR | 7 |
+| MINOR | 5 |
 | INFO | 4 |
 
 Gated (human sign-off required): **1**
@@ -34,29 +34,12 @@ findfont: Failed to find font weight semibold, now using 700.
 
 The writer agent applies these directly. Formatting, layout, figures, references, venue compliance — no interpretation of results required.
 
-### [MINOR] refs.bibfield
-
-only 16 of 33 cited works carry a DOI
-
-- **found:** `16/33`
-- **expected:** a DOI on every reference that has one
-- **remedy:** Add DOIs from the publisher's page or Crossref. They let a reviewer check a reference in one click, and let this gate verify it exactly rather than by fuzzy title match.
-- **id:** `6c1bb8fd5103f189`
-
-### [MINOR] refs.bibfield `docs/references.bib`:280
+### [MINOR] refs.bibfield `docs/references.bib`:273
 
 notarized2026agents is cited as arXiv — check for a peer-reviewed version
 
 - **remedy:** If it appeared at a venue, cite the published version. Reviewers notice arXiv-only bibliographies.
-- **id:** `580aa57ffcdfca8e`
-
-### [MINOR] refs.unused
-
-1 bibliography entries are never cited
-
-- **found:** `krawczyk1997hmac`
-- **remedy:** Harmless with bibtex, but a long unused tail usually means the related-work section drifted from the .bib.
-- **id:** `74de020e5478c32c`
+- **id:** `b6711b95d51ab6d4`
 
 ## Gated — requires your decision
 
@@ -64,12 +47,12 @@ notarized2026agents is cited as arXiv — check for a peer-reviewed version
 
 ### [MAJOR] science.stale_artifact
 
-2 result artifact(s) changed after the manuscript was last edited
+3 result artifact(s) changed after the manuscript was last edited
 
-- **found:** `results/benchmark_summary.json; results/security_evaluation.json`
+- **found:** `results/benchmark_summary.json; results/live_agent_evaluation.json; results/security_evaluation.json`
 - **expected:** manuscript newer than the data it reports
 - **remedy:** Re-read those artifacts and confirm every dependent number, table and figure in the paper still matches.
-- **id:** `1399079e29b05206`
+- **id:** `6aacb9fa79a25772`
 
 ### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:113
 
@@ -119,9 +102,9 @@ Recorded for the round log; no action implied.
 
 ### [INFO] science.artifact_missing
 
-indexed 199 distinct values from 7 artifacts
+indexed 200 distinct values from 7 artifacts
 
-- **id:** `6916a3eb632d1cfe`
+- **id:** `5e7173a9ccc4ac02`
 
 ### [INFO] venue.font
 

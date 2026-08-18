@@ -16,14 +16,6 @@
     "container": "https://github.com/agentic-research/signet/blob/main/docs/apas/agent-provenance-standard.md",
     "type": "misc"
   },
-  "bellare1993random|10.1145/168588.168596|random oracles are practical  a paradigm for designing efficient protocols": {
-    "source": "crossref",
-    "doi": "10.1145/168588.168596",
-    "title": "Random oracles are practical: a paradigm for designing efficient protocols",
-    "year": 1993,
-    "container": "Proceedings of the 1st ACM conference on Computer and communications security  - CCS '93",
-    "type": "proceedings-article"
-  },
   "bernstein2012high|10.1007/s13389-012-0027-1|high speed high security signatures": {
     "source": "crossref",
     "doi": "10.1007/s13389-012-0027-1",
@@ -40,13 +32,13 @@
     "container": "Proceedings 2014 Network and Distributed System Security Symposium",
     "type": "proceedings-article"
   },
-  "boneh2001short|10.1007/3-540-45682-1_30|short signatures from the weil pairing": {
+  "brendel2021ed25519|10.1109/SP40001.2021.00042|the provable security of ed25519  theory and practice": {
     "source": "crossref",
-    "doi": "10.1007/3-540-45682-1_30",
-    "title": "Short Signatures from the Weil Pairing",
-    "year": 2001,
-    "container": "Lecture Notes in Computer Science",
-    "type": "book-chapter"
+    "doi": "10.1109/SP40001.2021.00042",
+    "title": "The Provable Security of Ed25519: Theory and Practice",
+    "year": 2021,
+    "container": "2021 IEEE Symposium on Security and Privacy (SP)",
+    "type": "proceedings-article"
   },
   "cappos2008look|10.1145/1455770.1455841|a look in the mirror  attacks on package managers": {
     "source": "crossref",
@@ -72,6 +64,14 @@
     "container": "Proceedings 2021 Network and Distributed System Security Symposium",
     "type": "proceedings-article"
   },
+  "goldwasser1988digital|10.1137/0217017|a digital signature scheme secure against adaptive chosen message attacks": {
+    "source": "crossref",
+    "doi": "10.1137/0217017",
+    "title": "A Digital Signature Scheme Secure Against Adaptive Chosen-Message Attacks",
+    "year": 1988,
+    "container": "SIAM Journal on Computing",
+    "type": "journal-article"
+  },
   "greshake2023not|10.1145/3605764.3623985|not what you ve signed up for  compromising real world llm integrated applicatio": {
     "source": "crossref",
     "doi": "10.1145/3605764.3623985",
@@ -96,13 +96,13 @@
     "container": "https://github.com/in-toto/attestation/blob/main/spec/predicates/runtime-trace.md",
     "type": "misc"
   },
-  "krawczyk1997hmac|10.17487/RFC2104|hmac  keyed hashing for message authentication": {
-    "source": "crossref",
-    "doi": "10.17487/RFC2104",
-    "title": "HMAC: Keyed-Hashing for Message Authentication",
-    "year": 1997,
-    "container": "",
-    "type": "report"
+  "jimenez2024swebench||swe bench  can language models resolve real world github issues": {
+    "source": "dblp",
+    "doi": "",
+    "title": "SWE-bench: Can Language Models Resolve Real-world Github Issues?",
+    "year": 2024,
+    "container": "ICLR",
+    "type": "inproceedings"
   },
   "kuppusamy2016tuf||diplomat  using delegations to protect community repositories": {
     "source": "openalex",
@@ -112,7 +112,7 @@
     "container": "Networked Systems Design and Implementation",
     "type": "article"
   },
-  "kyverno2022policy|10.5281/zenodo.6891024|kyverno  kubernetes native policy management engine": {
+  "kyverno2022policy||kyverno  kubernetes native policy management engine": {
     "source": "web",
     "doi": "",
     "title": "Kyverno: Kubernetes Native Policy Management Engine",
@@ -160,6 +160,14 @@
     "container": "Annual Computer Security Applications Conference",
     "type": "proceedings-article"
   },
+  "notarized2026agents|10.48550/arXiv.2606.04193|notarized agents  receiver attested confidential receipts for ai agent actions": {
+    "source": "openalex",
+    "doi": "10.48550/arxiv.2606.04193",
+    "title": "Notarized Agents: Receiver-Attested Confidential Receipts for AI Agent Actions",
+    "year": 2026,
+    "container": "arXiv (Cornell University)",
+    "type": "preprint"
+  },
   "okafor2022sok|10.1145/3560835.3564556|sok  analysis of software supply chain security by establishing secure design pr": {
     "source": "crossref",
     "doi": "10.1145/3560835.3564556",
@@ -168,21 +176,29 @@
     "container": "Proceedings of the 2022 ACM Workshop on Software Supply Chain Offensive Research and Ecosystem Defenses",
     "type": "proceedings-article"
   },
-  "opa2021openpolicy|10.5281/zenodo.5562141|open policy agent  opa  declarative fine grained policy engine for cloud native ": {
+  "opa2021openpolicy||policy based access control with open policy agent": {
     "source": "web",
     "doi": "",
-    "title": "Open Policy Agent (OPA): Declarative Fine-Grained Policy Engine for Cloud Native Environments",
+    "title": "Policy-based access control with Open Policy Agent",
     "year": null,
-    "container": "https://www.openpolicyagent.org/docs/",
+    "container": "https://www.openpolicyagent.org/",
     "type": "misc"
   },
-  "papernot2016cleverhans|10.48550/arXiv.1610.00768|technical report on the cleverhans v1 0 0 adversarial examples library": {
+  "pipelab2026receipts||agent action receipts  signed ai audit evidence": {
     "source": "web",
     "doi": "",
-    "title": "Technical Report on the CleverHans v1.0.0 Adversarial Examples Library",
+    "title": "Agent Action Receipts: Signed {AI} Audit Evidence",
     "year": null,
-    "container": "https://arxiv.org/abs/1610.00768",
+    "container": "https://pipelab.org/learn/agent-action-receipts/",
     "type": "misc"
+  },
+  "rfc9943scitt|10.17487/RFC9943|an architecture for trustworthy and transparent digital supply chains": {
+    "source": "crossref",
+    "doi": "10.17487/RFC9943",
+    "title": "An Architecture for Trustworthy and Transparent Digital Supply Chains",
+    "year": 2026,
+    "container": "",
+    "type": "report"
   },
   "samuel2010surviving|10.1145/1866307.1866315|survivable key compromise in software update systems": {
     "source": "crossref",
@@ -200,7 +216,7 @@
     "container": "arXiv (Cornell University)",
     "type": "preprint"
   },
-  "shostack2014threat|10.1002/9781118854488|threat modeling  designing for security": {
+  "shostack2014threat||threat modeling  designing for security": {
     "source": "openalex",
     "doi": "",
     "title": "Threat Modeling: Designing for Security",
@@ -215,86 +231,6 @@
     "year": 2022,
     "container": "Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security",
     "type": "proceedings-article"
-  },
-  "slsa2023supply|10.5281/zenodo.7845612|supply chain levels for software artifacts  slsa  framework specification": {
-    "source": "web",
-    "doi": "",
-    "title": "Supply-chain Levels for Software Artifacts (SLSA) Framework Specification",
-    "year": null,
-    "container": "https://slsa.dev/spec/v1.0/",
-    "type": "misc"
-  },
-  "spiffe2020spire|10.5281/zenodo.4312091|spiffe and spire  universal workload identity for cloud native infrastructure": {
-    "source": "web",
-    "doi": "",
-    "title": "SPIFFE and SPIRE: Universal Workload Identity for Cloud Native Infrastructure",
-    "year": null,
-    "container": "https://spiffe.io/docs/latest/",
-    "type": "misc"
-  },
-  "taly2011definitive|10.1109/SP.2011.39|automated analysis of security critical javascript apis": {
-    "source": "crossref",
-    "doi": "10.1109/SP.2011.39",
-    "title": "Automated Analysis of Security-Critical JavaScript APIs",
-    "year": 2011,
-    "container": "2011 IEEE Symposium on Security and Privacy",
-    "type": "proceedings-article"
-  },
-  "torres2019in-toto||in toto  providing farm to table guarantees for bits and bytes": {
-    "source": "openalex",
-    "doi": "",
-    "title": "in-toto: Providing farm-to-table guarantees for bits and bytes",
-    "year": 2019,
-    "container": "USENIX Security Symposium",
-    "type": "conference-paper"
-  },
-  "yang2024swebench||swe bench  can language models resolve real world github issues": {
-    "source": "dblp",
-    "doi": "",
-    "title": "SWE-bench: Can Language Models Resolve Real-world Github Issues?",
-    "year": 2024,
-    "container": "ICLR",
-    "type": "inproceedings"
-  },
-  "yao2023react||react  synergizing reasoning and acting in language models": {
-    "source": "web",
-    "doi": "",
-    "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
-    "year": null,
-    "container": "https://dblp.org/rec/conf/iclr/YaoZYDSN023",
-    "type": "misc"
-  },
-  "zheng2023judging||judging llm as a judge with mt bench and chatbot arena": {
-    "source": "crossref",
-    "doi": "10.52202/075280-2020",
-    "title": "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena",
-    "year": 2023,
-    "container": "Advances in Neural Information Processing Systems 36",
-    "type": "proceedings-article"
-  },
-  "opa2021openpolicy||policy based access control with open policy agent": {
-    "source": "web",
-    "doi": "",
-    "title": "Policy-based access control with Open Policy Agent",
-    "year": null,
-    "container": "https://www.openpolicyagent.org/",
-    "type": "misc"
-  },
-  "kyverno2022policy||kyverno  kubernetes native policy management engine": {
-    "source": "web",
-    "doi": "",
-    "title": "Kyverno: Kubernetes Native Policy Management Engine",
-    "year": null,
-    "container": "https://kyverno.io/docs/",
-    "type": "misc"
-  },
-  "shostack2014threat||threat modeling  designing for security": {
-    "source": "openalex",
-    "doi": "",
-    "title": "Threat Modeling: Designing for Security",
-    "year": 2014,
-    "container": "",
-    "type": "other"
   },
   "slsa2023supply||supply chain levels for software artifacts  slsa  framework specification": {
     "source": "web",
@@ -312,52 +248,20 @@
     "container": "https://spiffe.io/docs/latest/",
     "type": "misc"
   },
-  "brendel2021ed25519|10.1109/SP40001.2021.00042|the provable security of ed25519  theory and practice": {
-    "source": "crossref",
-    "doi": "10.1109/SP40001.2021.00042",
-    "title": "The Provable Security of Ed25519: Theory and Practice",
-    "year": 2021,
-    "container": "2021 IEEE Symposium on Security and Privacy (SP)",
-    "type": "proceedings-article"
+  "torres2019in-toto||in toto  providing farm to table guarantees for bits and bytes": {
+    "source": "openalex",
+    "doi": "",
+    "title": "in-toto: Providing farm-to-table guarantees for bits and bytes",
+    "year": 2019,
+    "container": "USENIX Security Symposium",
+    "type": "conference-paper"
   },
-  "goldwasser1988digital|10.1137/0217017|a digital signature scheme secure against adaptive chosen message attacks": {
-    "source": "crossref",
-    "doi": "10.1137/0217017",
-    "title": "A Digital Signature Scheme Secure Against Adaptive Chosen-Message Attacks",
-    "year": 1988,
-    "container": "SIAM Journal on Computing",
-    "type": "journal-article"
-  },
-  "jimenez2024swebench||swe bench  can language models resolve real world github issues": {
+  "yao2023react||react  synergizing reasoning and acting in language models": {
     "source": "dblp",
     "doi": "",
-    "title": "SWE-bench: Can Language Models Resolve Real-world Github Issues?",
-    "year": 2024,
+    "title": "ReAct: Synergizing Reasoning and Acting in Language Models.",
+    "year": 2023,
     "container": "ICLR",
     "type": "inproceedings"
-  },
-  "notarized2026agents||notarized agents  receiver attested confidential receipts for ai agent actions": {
-    "source": "openalex",
-    "doi": "10.48550/arxiv.2606.04193",
-    "title": "Notarized Agents: Receiver-Attested Confidential Receipts for AI Agent Actions",
-    "year": 2026,
-    "container": "arXiv (Cornell University)",
-    "type": "preprint"
-  },
-  "pipelab2026receipts||agent action receipts  signed ai audit evidence": {
-    "source": "web",
-    "doi": "",
-    "title": "Agent Action Receipts: Signed {AI} Audit Evidence",
-    "year": null,
-    "container": "https://pipelab.org/learn/agent-action-receipts/",
-    "type": "misc"
-  },
-  "rfc9943scitt|10.17487/RFC9943|an architecture for trustworthy and transparent digital supply chains": {
-    "source": "crossref",
-    "doi": "10.17487/RFC9943",
-    "title": "An Architecture for Trustworthy and Transparent Digital Supply Chains",
-    "year": 2026,
-    "container": "",
-    "type": "report"
   }
 }

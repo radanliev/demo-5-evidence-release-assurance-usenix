@@ -139,11 +139,22 @@ if live_path.exists():
     _done = [x for x in _S if x["stopped_reason"].startswith("agent emitted")]
     _trunc = [x for x in _S if not x["stopped_reason"].startswith("agent emitted")]
     _cov = lambda xs: (sum(x["coverage"] for x in xs) / len(xs) * 100.0) if xs else 0.0
+    # The dataset now spans more than one model, and \liveModel is singular by
+    # construction. Emitting the count and the list separately stops the paper
+    # describing a multi-model sample as if one model produced it.
+    _models = sorted({x["model"] for x in _S})
+    _modes = sorted({x.get("witness_mode", "in-process") for x in _S})
     rows += [
         ("liveCompleted", len(_done)),
         ("liveTruncated", len(_trunc)),
         ("liveCoverageCompleted", f"{_cov(_done):.1f}"),
         ("liveCoverageTruncated", f"{_cov(_trunc):.1f}"),
+        ("liveModelCount", len(_models)),
+        ("liveModels", ", ".join(_models).replace("_", r"\_")),
+        # Which harness produced the sample. A coverage figure from the
+        # in-process harness measures the harness, not a deployment, so the
+        # mode belongs in the paper next to the number.
+        ("liveWitnessMode", ", ".join(_modes)),
     ]
     # How many of the six omission vectors the live harness can actually build.
     # O5 (cross-session splice) needs a second concurrent session, which the

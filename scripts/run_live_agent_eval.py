@@ -197,6 +197,15 @@ def main() -> int:
     ap.add_argument("--sessions", type=int, default=10)
     ap.add_argument("--provider", default="groq", choices=sorted(PROVIDERS))
     ap.add_argument("--model", default=None)
+    ap.add_argument("--witness-mode", default="out-of-process",
+                    choices=("out-of-process", "in-process"),
+                    help="'out-of-process' runs each witness in its own process, "
+                         "where it executes the tool and signs a digest over the "
+                         "output IT produced. 'in-process' is the superseded "
+                         "harness in which the collector built the record and the "
+                         "witness signed it; kept only for comparison, and any "
+                         "coverage or reconciliation figure it produces measures "
+                         "the harness, not a deployment.")
     ap.add_argument("--require-live", action="store_true",
                     help="exit non-zero instead of skipping when no key is available")
     ap.add_argument("--append", action="store_true",
@@ -224,7 +233,8 @@ def main() -> int:
     for i in range(args.sessions):
         task = TASKS[i % len(TASKS)]
         try:
-            s = run_live_session(provider=args.provider, model=args.model, task=task)
+            s = run_live_session(provider=args.provider, model=args.model, task=task,
+                                 witness_mode=args.witness_mode)
         except ProviderError as e:
             msg = scrub(str(e))
             failures.append(f"session {i}: {msg}")
@@ -260,6 +270,10 @@ def main() -> int:
             vector_tally.setdefault(k, []).append(v)
         per_session.append({
             "session_id": s.session_id, "model": s.model, "provider": s.provider,
+            # Which harness produced this session. A coverage number is not
+            # comparable across the two, so it is recorded per session rather
+            # than assumed globally.
+            "witness_mode": s.witness_mode,
             "turns": s.turns, "actions": len(s.traces),
             "witnessed": s.mediated_count, "coverage": round(s.coverage, 4),
             "unmediated_actions": sorted(set(s.unmediated_actions)),

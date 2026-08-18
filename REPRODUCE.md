@@ -52,7 +52,7 @@ Every empirical claim, table, and figure in the manuscript maps directly to a de
 | **Figure 3** (Throughput) | Peak 7,152 ± 179 ops/s at 4 workers (three-trace bundles) | `scripts/run_release_benchmark.py` | `results/benchmark_summary.json`, `docs/figures/parallel_throughput.png` | ~15s |
 | **Figure 4** (Block rate) | EviAssure 16/17 vs composed DSSE + TUF + OPA 10/17, Wilson 95% intervals (overlapping) | `scripts/run_security_eval.py`, drawn by `scripts/generate_paper_pdf.py` | `results/security_evaluation.json`, `docs/figures/comparative_block_rate.png` | ~2s |
 | **Sparse proofs** | 20-node, 1.93 KB proof at $N=10^6$; verifies in 0.007 ms | `scripts/run_release_benchmark.py` (`assurance/crypto.py`) | `results/benchmark_summary.json` (`sparse_proof`) | ~0.5s |
-| **Test Suite** (106 tests) | crypto soundness (property-based), registry, tamper/omission regressions, credential refusal, session substitution, CLI end-to-end reconciliation | `pytest tests/ -v` | Console test log | ~3s |
+| **Test Suite** (115 tests) | crypto soundness (property-based), registry, tamper/omission regressions, credential refusal, session substitution, CLI end-to-end reconciliation | `pytest tests/ -v` | Console test log | ~3s |
 
 Timings in `results/benchmark_summary.json` are platform-dependent and were recorded on Apple M4 Max / Python 3.14; block counts and verdicts are platform-independent.
 
@@ -68,7 +68,7 @@ For fine-grained artifact evaluation, individual components can be executed inde
 #    Free-tier accounts are metered per minute; use --append to batch.
 python3 scripts/run_live_agent_eval.py --sessions 5 --provider groq --append
 
-# 1. Run full unit and regression test suite (106 tests)
+# 1. Run full unit and regression test suite (115 tests)
 pytest tests/ -v
 
 # 2. Re-run scaling & multi-core throughput benchmarks (generates benchmark_summary.json)
