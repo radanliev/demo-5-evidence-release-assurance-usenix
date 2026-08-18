@@ -10,7 +10,7 @@ from specimens.web_app_runner import WebBrowserAgentSpecimen, run_web_agent_atte
 
 def test_browser_ui_clean_attestation_pass():
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
 
     _, bundle = run_web_agent_attestation_demo(tampered=False)
     bundle_dict = bundle.to_dict()
@@ -21,7 +21,7 @@ def test_browser_ui_clean_attestation_pass():
 
 def test_browser_ui_tampered_dom_fail_closed_block():
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
 
     specimen = WebBrowserAgentSpecimen()
     specimen.navigate()

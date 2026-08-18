@@ -1,6 +1,7 @@
 """
-Omission attack class (O1-O6): the adversary controls the agent AND the evidence
-collector, but not the witnesses.
+Omission attack class (O1-O7): the adversary controls the agent AND the evidence
+collector (and the collector's signing key), but neither a witness key nor the
+orchestrator's credential-signing key.
 
 This is the attack class that motivates the paper. In every prior system --
 in-toto's runtime-trace predicate, SLSA, TUF, AAS-1, per-action receipt schemes,
@@ -21,8 +22,18 @@ vectors cannot reach.
   O4  count downgrade          forge a lower closing count to match a short trace
   O5  cross-session splice     import receipts from a different, benign session
   O6  fabricated action        record an action no witness ever served
+  O7  session substitution     submit a complete, honestly witnessed bundle for a
+                               DIFFERENT credentialed session than the one the
+                               release request names -- the dangerous action was
+                               performed in the session the gate never looks at
 
 Control: OC1, a fully witnessed honest execution, which must be APPROVED.
+
+Every session below is opened by a credential issued by the (demo) orchestrator;
+witnesses refuse requests without one (tests/test_witness_completeness.py
+exercises the refusal directly, since a refused request produces no bundle to
+score). Each vector's metadata carries `expected_session_id`, the session the
+release request names, which is what the gate reconciles against.
 """
 
 from __future__ import annotations
@@ -33,7 +44,7 @@ from typing import Any, Dict, List, Tuple
 from assurance.crypto import hash_sha256, sign_payload_ed25519, generate_ed25519_keypair
 from assurance.evidence import (ExecutionTraceRecord, create_evidence_pack,
                                 DEMO_PRIV_KEY, DEMO_PUB_KEY_B64)
-from assurance.witness import Witness, Closing
+from assurance.witness import Witness, Closing, issue_session_credential
 
 OMISSION_TAXONOMY = {
     "O1": {"id": "O1", "name": "Interior action omission", "class": "A6 collector omission",
@@ -54,6 +65,13 @@ OMISSION_TAXONOMY = {
     "O6": {"id": "O6", "name": "Fabricated unwitnessed action", "class": "A6 collector omission",
            "description": "A trace records a witness-MEDIATED action that no witness ever "
                           "served, inflating the evidence rather than truncating it."},
+    "O7": {"id": "O7", "name": "Session substitution", "class": "A6 collector omission",
+           "description": "The adversary performs the dangerous action in one credentialed "
+                          "session and submits the complete, honestly witnessed bundle of a "
+                          "second, benign credentialed session for the release. Every "
+                          "attestation verifies; nothing is missing from the bundle presented. "
+                          "Only a gate that binds the release to the session it credentialed "
+                          "can tell."},
     "OC1": {"id": "OC1", "name": "Control: fully witnessed honest execution",
             "class": "control",
             "description": "An honest, completely witnessed execution. MUST be approved; "
@@ -88,18 +106,33 @@ def _witness_of(trace: ExecutionTraceRecord) -> str:
             "spawn_shell_subprocess": "shell-broker"}[trace.action]
 
 
-def witnessed_execution(session_id: str, n: int = 6):
-    """Run an execution through witnesses, returning everything the collector
-    would legitimately hold."""
-    mediates = {
-        "db-gateway": {"execute_read_only_query", "collect_table_stats", "verify_schema_lock"},
-        "payments-api": {"process_ledger_transfer", "fetch_fx_rate"},
-        "shell-broker": {"spawn_shell_subprocess"},
-    }
-    witnesses = {w: Witness(w, mediates=m) for w, m in mediates.items()}
+MEDIATES = {
+    "db-gateway": {"execute_read_only_query", "collect_table_stats", "verify_schema_lock"},
+    "payments-api": {"process_ledger_transfer", "fetch_fx_rate"},
+    "shell-broker": {"spawn_shell_subprocess"},
+}
+
+
+def make_witnesses() -> Dict[str, Witness]:
+    return {w: Witness(w, mediates=m) for w, m in MEDIATES.items()}
+
+
+def witnessed_execution(session_id: str, n: int = 6, witnesses: Dict[str, Witness] | None = None,
+                        release_id: str | None = None):
+    """Run an execution through witnesses inside a credentialed session,
+    returning everything the collector would legitimately hold.
+
+    Returns (witnesses, traces, receipts, closings, registry, mediated). The
+    credential is issued for `session_id` and is retrievable as
+    `witnesses[<any>].last_credential` -- kept off the tuple so existing callers
+    keep working."""
+    witnesses = witnesses or make_witnesses()
+    cred = issue_session_credential(release_id or f"release-for-{session_id}", session_id=session_id)
     traces = _actions(session_id, n)
-    receipts = [witnesses[_witness_of(t)].observe(session_id, t) for t in traces]
-    closings = [w.close(session_id) for w in witnesses.values()]
+    receipts = [witnesses[_witness_of(t)].observe(cred, t) for t in traces]
+    closings = [w.close(cred) for w in witnesses.values()]
+    for w in witnesses.values():
+        w.last_credential = cred          # type: ignore[attr-defined]
     registry = {wid: w.public_key_b64 for wid, w in witnesses.items()}
     mediated = {wid: set(w.mediates) for wid, w in witnesses.items()}
     return witnesses, traces, receipts, closings, registry, mediated
@@ -108,7 +141,7 @@ def witnessed_execution(session_id: str, n: int = 6):
 def _package(traces, receipts, closings, session_id) -> Dict[str, Any]:
     """Sign a bundle over the given trace/attestation set, honestly. The
     adversary in this threat model *can* sign -- they hold the collector's key.
-    What they cannot do is produce witness signatures."""
+    What they cannot do is produce witness or orchestrator signatures."""
     b = create_evidence_pack(traces=list(traces), use_ed25519=True, signed=False)
     b.session_id = session_id
     b.witness_receipts = [r.to_dict() for r in receipts]
@@ -118,29 +151,37 @@ def _package(traces, receipts, closings, session_id) -> Dict[str, Any]:
 
 
 def generate_omission_suite():
-    """Returns (suite, witness_registry, mediated_actions)."""
+    """Returns (suite, witness_registry, mediated_actions).
+
+    Every entry is (vector_id, meta, bundle); meta["expected_session_id"] is
+    the session the release request names, i.e. what the gate must reconcile
+    against."""
     session = f"sess-{uuid.uuid4().hex[:12]}"
-    _, traces, receipts, closings, registry, mediated = witnessed_execution(session)
+    witnesses = make_witnesses()
+    _, traces, receipts, closings, registry, mediated = witnessed_execution(session, witnesses=witnesses)
     suite: List[Tuple[str, Dict[str, Any], Dict[str, Any]]] = []
 
+    def entry(vid, bundle, expected=session):
+        meta = dict(OMISSION_TAXONOMY[vid])
+        meta["expected_session_id"] = expected
+        suite.append((vid, meta, bundle))
+
     # ---- OC1: honest, fully witnessed --------------------------------------
-    suite.append(("OC1", OMISSION_TAXONOMY["OC1"], _package(traces, receipts, closings, session)))
+    entry("OC1", _package(traces, receipts, closings, session))
 
     # ---- O1: drop an interior witnessed action -----------------------------
     drop = 2
     kept_t = [t for i, t in enumerate(traces) if i != drop]
     kept_r = [r for i, r in enumerate(receipts) if i != drop]
-    suite.append(("O1", OMISSION_TAXONOMY["O1"], _package(kept_t, kept_r, closings, session)))
+    entry("O1", _package(kept_t, kept_r, closings, session))
 
     # ---- O2: drop the trailing action --------------------------------------
-    suite.append(("O2", OMISSION_TAXONOMY["O2"],
-                  _package(traces[:-1], receipts[:-1], closings, session)))
+    entry("O2", _package(traces[:-1], receipts[:-1], closings, session))
 
     # ---- O3: drop every action served by shell-broker -----------------------
     keep = [(t, r) for t, r in zip(traces, receipts) if _witness_of(t) != "shell-broker"]
-    suite.append(("O3", OMISSION_TAXONOMY["O3"],
-                  _package([t for t, _ in keep], [r for _, r in keep],
-                           [c for c in closings if c.witness_id != "shell-broker"], session)))
+    entry("O3", _package([t for t, _ in keep], [r for _, r in keep],
+                         [c for c in closings if c.witness_id != "shell-broker"], session))
 
     # ---- O4: forge a lower closing count ------------------------------------
     # The adversary drops the last db-gateway action and mints a closing that
@@ -153,15 +194,16 @@ def generate_omission_suite():
     forged = Closing("db-gateway", session, len(db_idx) - 1)
     forged.signature = sign_payload_ed25519(forged.payload(), att_priv)
     closings4 = [c for c in closings if c.witness_id != "db-gateway"] + [forged]
-    suite.append(("O4", OMISSION_TAXONOMY["O4"], _package(kept_t4, kept_r4, closings4, session)))
+    entry("O4", _package(kept_t4, kept_r4, closings4, session))
 
     # ---- O5: splice receipts from a benign second session -------------------
+    # A second, legitimately credentialed session (the same witnesses serve
+    # many sessions); its receipts verify but name the other session.
     other = f"sess-{uuid.uuid4().hex[:12]}"
-    _, o_traces, o_receipts, _, _, _ = witnessed_execution(other)
+    _, o_traces, o_receipts, _, _, _ = witnessed_execution(other, witnesses=witnesses)
     kept_t5 = [t for i, t in enumerate(traces) if i != drop]
     kept_r5 = [r for i, r in enumerate(receipts) if i != drop] + [o_receipts[drop]]
-    suite.append(("O5", OMISSION_TAXONOMY["O5"],
-                  _package(kept_t5 + [o_traces[drop]], kept_r5, closings, session)))
+    entry("O5", _package(kept_t5 + [o_traces[drop]], kept_r5, closings, session))
 
     # ---- O6: record an action no witness served -----------------------------
     # The meaningful fabrication is claiming a *mediated* operation that no
@@ -170,7 +212,18 @@ def generate_omission_suite():
     # and we say so in the paper rather than testing a strawman.
     ghost = ExecutionTraceRecord("TR-GHOST", "ops-agent-v1", "execute_read_only_query",
                                  "SUCCESS", 1.0, hash_sha256("NEVER_HAPPENED"))
-    suite.append(("O6", OMISSION_TAXONOMY["O6"],
-                  _package(list(traces) + [ghost], receipts, closings, session)))
+    entry("O6", _package(list(traces) + [ghost], receipts, closings, session))
+
+    # ---- O7: session substitution -----------------------------------------
+    # The release request names `session` (where the dangerous action, e.g.
+    # spawn_shell_subprocess, was actually performed). The adversary instead
+    # submits the COMPLETE, honestly witnessed bundle of a second credentialed
+    # session that never touched the shell broker. Every receipt and closing
+    # in the presented bundle verifies and reconciles against ITS session; the
+    # only thing wrong is which session it is.
+    benign = f"sess-{uuid.uuid4().hex[:12]}"
+    _, b_traces, b_receipts, b_closings, _, _ = witnessed_execution(
+        benign, n=3, witnesses=witnesses)      # first three kinds: no shell-broker action
+    entry("O7", _package(b_traces, b_receipts, b_closings, benign), expected=session)
 
     return suite, registry, mediated

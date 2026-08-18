@@ -25,8 +25,9 @@ if [[ "${MODE}" == "quick" ]]; then
     python3 scripts/run_release_benchmark.py --repeats 2
     
     echo ""
-    echo "[Step 3/4] Running comparative baseline evaluation & 13-vector tamper harness..."
-    python3 scripts/run_comparative_eval.py
+    echo "[Step 3/4] Running the deterministic security evaluation (17 tamper + 7 omission vectors, baselines, ablation, fuzzing, inspection)..."
+    python3 scripts/run_security_eval.py --fuzz 300
+    python3 scripts/write_security_macros.py
     
     echo ""
     echo "[Step 4/4] Generating paper figures and compiling PDF..."
@@ -45,8 +46,10 @@ echo "[Step 2/4] Running comprehensive release benchmark (repeats=5, 1M trace sc
 python3 scripts/run_release_benchmark.py --repeats 5
 
 echo ""
-echo "[Step 3/4] Running comparative evaluation and corpus-scale two-layer evaluation..."
-python3 scripts/run_comparative_eval.py
+echo "[Step 3/4] Running the deterministic security evaluation (executed baselines required) and the corpus layered evaluation..."
+python3 scripts/run_security_eval.py --require-executed
+python3 scripts/write_security_macros.py
+python3 scripts/generate_trace_corpus.py
 python3 scripts/run_corpus_eval.py
 
 echo ""

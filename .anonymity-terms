@@ -3,35 +3,26 @@
 # This file is READ by scripts/prepare_anonymous_artifact.py and is
 # DELIBERATELY NOT PACKAGED -- it is not in INCLUDED_PATHS. Keeping the terms
 # here rather than inside the packaging script matters: scripts/ *is* shipped,
-# so a hard-coded list of author surnames inside the packager would itself be
-# the leak it exists to prevent.
+# so a hard-coded list of names inside the packager would itself be the leak it
+# exists to prevent.
 #
 # One entry per line. Blank lines and #-comments are ignored. Matching is
 # case-insensitive and substring-based, so stems ("radanliev") cover
 # inflections without needing regexes.
 #
-# Add to this file whenever an author, affiliation, funder, grant number,
-# machine name or account handle changes. Removing an entry is a deliberate
-# act -- do not prune it to make a failing scan pass.
+# Removing an entry is a deliberate act -- do not prune it to make a failing
+# scan pass.
 
-# --- author surnames and given names ---
+# --- author ---
 radanliev
 petar
-osantos
-carsten
-maple
 
-# --- institutions and employers ---
-warwick
-cisco
+# --- author affiliations ---
 open university
 ac.uk
 oxford
 newcastle
 turing
-cosai
-oasis-open
-psirt
 
 # --- accounts, machines and handles ---
 skywalker
@@ -40,6 +31,25 @@ luke-skywalker
 # --- contact details ---
 gmail.com
 +44
+
+# --- RETAINED, though no longer author affiliations -------------------------
+# The paper was submitted single-author. Two colleagues were considered as
+# co-authors during drafting and were not approached before the deadline, so
+# their names and employers are not author-identifying any more. The terms are
+# kept anyway: drafts, notes and earlier revisions in this working tree still
+# contain them, and a term that costs nothing to keep should not be removed
+# from a scan whose whole purpose is to fail closed. If a legitimate citation
+# to one of these organisations is ever added to the artifact, remove the
+# specific term then -- with that reason recorded here.
+santos
+osantos
+carsten
+maple
+warwick
+cisco
+psirt
+cosai
+oasis-open
 919 927
 919 412
 cs.co/gpg

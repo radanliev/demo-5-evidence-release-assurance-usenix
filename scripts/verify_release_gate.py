@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from assurance.verifier import evaluate_release_gate, DEFAULT_NONCE_STORE
+from assurance.verifier import evaluate_release_gate, load_release_request, DEFAULT_NONCE_STORE
 from assurance.evidence import DEFAULT_SECRET_KEY
 
 
@@ -23,6 +23,15 @@ def main():
         help="Path to policy YAML file"
     )
     parser.add_argument("--evidence", type=str, default=None, help="Path to evidence bundle JSON file")
+    parser.add_argument(
+        "--release-request", type=str, default=None,
+        help="Path to the release request JSON written by the orchestrator when it "
+             "opened the evaluation session ({\"release_id\", \"session_id\"}). The "
+             "gate binds the bundle to THIS session, never to the session the bundle "
+             "declares. Required whenever --evidence is given and the policy requires "
+             "witnessed completeness (the shipped default); with no --evidence a "
+             "witnessed demo pack is created and its own credential is used."
+    )
     parser.add_argument("--secret-key", type=str, default=DEFAULT_SECRET_KEY, help="HMAC secret key")
     parser.add_argument("--output-decision", type=str, default=None, help="Output JSON path for release decision")
     parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
@@ -40,21 +49,35 @@ def main():
         with open(args.evidence, 'r', encoding='utf-8') as f:
             evidence_dict = json.load(f)
 
+    release_request = None
+    if args.release_request:
+        release_request = load_release_request(args.release_request)
+    elif args.evidence:
+        # Convention: package_evidence.py writes <bundle>.release_request.json
+        # beside the bundle. Picked up automatically so the common case needs no
+        # extra flag, but never inferred from the bundle itself.
+        candidate = Path(str(args.evidence) + ".release_request.json")
+        if candidate.exists():
+            release_request = load_release_request(candidate)
+
     res = evaluate_release_gate(
         policy_path=args.policy,
         evidence=evidence_dict,
         secret_key=args.secret_key,
         output_decision_file=args.output_decision,
         nonce_store_path=args.nonce_store,
+        release_request=release_request,
     )
 
     if args.format == "json":
         print(json.dumps(res, indent=2))
     else:
         print("=== USENIX Security Release Gate Evaluation ===")
-        print(f"Policy:      {res['policy_name']}")
+        print(f"Policy:      {res['policy_name']} [{res.get('policy_profile')}]")
         print(f"Evidence ID: {res['evidence_id']} (Signed: {res['signed']})")
         print(f"Replay state: {res.get('replay_state')}")
+        print(f"Witnessed completeness required: {res.get('witnessed_completeness_required')}")
+        print(f"Session binding: {res.get('session_binding')}")
 
         if res["violations"]:
             print("\nPolicy Violations Detected:")

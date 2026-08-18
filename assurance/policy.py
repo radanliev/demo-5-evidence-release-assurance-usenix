@@ -10,7 +10,8 @@ import yaml
 from pathlib import Path
 
 from .evidence import EvidenceBundle, DEFAULT_SECRET_KEY, execution_trace_leaf_string
-from .witness import reconcile, witness_registry_from_yaml, mediated_actions_from_yaml
+from .witness import (reconcile, witness_registry_from_yaml, mediated_actions_from_yaml,
+                      orchestrator_key_from_yaml)
 from .crypto import (detect_duplicate_json_keys, build_merkle_tree, merkle_leaf_digest,
                      canonical_json, hash_sha256,
                      verify_signature_hmac, verify_signature_ed25519)
@@ -89,12 +90,17 @@ class ReleasePolicyEngine:
     def __init__(self, policy_data: Dict[str, Any],
                  trusted_keys: Optional[Dict[str, Dict[str, str]]] = None,
                  witness_registry: Optional[Dict[str, str]] = None,
-                 mediated_actions: Optional[Dict[str, Any]] = None):
+                 mediated_actions: Optional[Dict[str, Any]] = None,
+                 orchestrator_public_key: Optional[str] = None):
         self.policy_data = policy_data
         self.policy_name = policy_data.get("policy_name", "Fail-Closed Security Gate Policy")
         self.version = policy_data.get("version", "1.0.0")
         self.release_conditions = policy_data.get("release_conditions", {})
         self.revoked_key_ids = set(policy_data.get("revoked_key_ids", []))
+        # Pinned orchestrator key: the gate does not verify credentials itself
+        # (witnesses do), but the registry carries the key so the deployment
+        # has one place to pin it. Recorded in the decision for auditability.
+        self.orchestrator_public_key = orchestrator_public_key
         # Trusted key registry: key_id -> pinned public key. Signatures from
         # unregistered keys are rejected, and verification always uses the
         # pinned key — never a public key supplied inside the evidence bundle.
@@ -112,7 +118,20 @@ class ReleasePolicyEngine:
                 self.trusted_keys[kid] = info
 
     @classmethod
-    def from_yaml(cls, yaml_path: Path | str) -> "ReleasePolicyEngine":
+    def from_yaml(cls, yaml_path: Path | str, *,
+                  witnessed: Optional[bool] = None) -> "ReleasePolicyEngine":
+        """Load the policy plus the trusted-key and witness registries beside it.
+
+        ``witnessed`` overrides the policy's ``require_witnessed_completeness``
+        flag for THIS engine only. The shipped policy requires witnessed
+        completeness (fail-closed: an unwitnessed bundle is BLOCKED). The
+        mechanism-level evaluations -- tamper vectors, negative controls, wire
+        fuzzing, the corpus and the timing benchmarks -- evaluate bundles that
+        carry no witness attestations by construction, and load the policy with
+        ``witnessed=False`` so that they measure the gate's other checks. That
+        profile is a declared evaluation choice, recorded in the engine as
+        ``profile``, not the deployment default.
+        """
         yaml_path = Path(yaml_path)
         with open(yaml_path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
@@ -121,32 +140,47 @@ class ReleasePolicyEngine:
         if keys_path.exists():
             with open(keys_path, 'r', encoding='utf-8') as f:
                 trusted = (yaml.safe_load(f) or {}).get("trusted_keys", {})
-        witnesses, mediated = {}, {}
+        witnesses, mediated, orch = {}, {}, None
         w_path = yaml_path.parent / "witness_registry.yaml"
         if w_path.exists():
             with open(w_path, 'r', encoding='utf-8') as f:
                 w_data = yaml.safe_load(f) or {}
             witnesses = witness_registry_from_yaml(w_data)
             mediated = mediated_actions_from_yaml(w_data)
-        return cls(data, trusted_keys=trusted, witness_registry=witnesses,
-                   mediated_actions=mediated)
+            orch = orchestrator_key_from_yaml(w_data)
+        engine = cls(data, trusted_keys=trusted, witness_registry=witnesses,
+                     mediated_actions=mediated, orchestrator_public_key=orch)
+        engine.profile = "policy-default"
+        if witnessed is not None:
+            engine.release_conditions = dict(engine.release_conditions)
+            engine.release_conditions["require_witnessed_completeness"] = bool(witnessed)
+            engine.profile = "witnessed" if witnessed else "unwitnessed-evaluation"
+        return engine
 
     def evaluate(
         self,
         evidence: EvidenceBundle | Dict[str, Any],
         secret_key: str = DEFAULT_SECRET_KEY,
-        seen_nonces: Optional[MutableSet[str]] = None
+        seen_nonces: Optional[MutableSet[str]] = None,
+        expected_session_id: Optional[str] = None,
     ) -> Tuple[bool, List[str], Dict[str, Any]]:
         """
         Evaluate evidence pack against policy rules.
         Returns: (passed: bool, violations: List[str], details: Dict[str, Any])
+
+        ``expected_session_id`` is the session the orchestrator credentialed for
+        the release under evaluation (from the release request). When the
+        policy requires witnessed completeness it is mandatory: the gate binds
+        the bundle to that session rather than to the session the bundle
+        declares (vector O7, session substitution).
 
         Fail-closed: any exception while parsing evidence is itself a
         BLOCKED verdict, never a crash or an approval.
         """
         try:
             return self._evaluate(evidence, secret_key=secret_key,
-                                  seen_nonces=seen_nonces)
+                                  seen_nonces=seen_nonces,
+                                  expected_session_id=expected_session_id)
         except Exception as exc:  # noqa: BLE001 — the gate must fail closed
             return False, [f"POLICY_VIOLATION: Malformed evidence rejected (fail-closed): {type(exc).__name__}"], {
                 "passed": False, "violations_count": 1, "fail_closed_enforced": True,
@@ -157,7 +191,8 @@ class ReleasePolicyEngine:
         self,
         evidence: EvidenceBundle | Dict[str, Any],
         secret_key: str = DEFAULT_SECRET_KEY,
-        seen_nonces: Optional[MutableSet[str]] = None
+        seen_nonces: Optional[MutableSet[str]] = None,
+        expected_session_id: Optional[str] = None,
     ) -> Tuple[bool, List[str], Dict[str, Any]]:
         violations: List[str] = []
         details: Dict[str, Any] = {}
@@ -387,10 +422,14 @@ class ReleasePolicyEngine:
                 session_id=bundle_dict.get("session_id") or "",
                 require_witness=True,
                 mediated_actions=self.mediated_actions,
+                expected_session_id=expected_session_id,
             )
             details["witness"] = w_detail
             if not w_ok:
                 violations.extend(w_violations)
+        else:
+            details["witness"] = {"witnessed": False,
+                                  "note": "witness reconciliation not required by this policy profile"}
 
         # 3. Test Pass Percentage check
         min_pass_pct = rc.get("min_passing_tests_pct", 100.0)

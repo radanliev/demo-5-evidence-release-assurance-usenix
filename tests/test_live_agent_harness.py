@@ -20,7 +20,7 @@ import pytest
 
 from assurance.crypto import hash_sha256
 from assurance.evidence import ExecutionTraceRecord
-from assurance.witness import Witness
+from assurance.witness import Witness, issue_session_credential
 from specimens.live_agent_runner import (TOOL_SCHEMA, TOOL_WITNESSES,
                                          UNMEDIATED_ACTIONS, LiveSession,
                                          ProviderError, _audit_db, _run_tool,
@@ -39,8 +39,9 @@ def session():
     """A session shaped like a real run: several mediated actions and one that
     no witness serves."""
     sid = f"live-{uuid.uuid4().hex[:12]}"
+    cred = issue_session_credential(f"live-release-{sid}", session_id=sid)
     ws = {w: Witness(w, mediates=set(a)) for w, a in TOOL_WITNESSES.items()}
-    s = LiveSession(sid, "test-model", "test",
+    s = LiveSession(sid, "test-model", "test", credential=cred.to_dict(),
                     registry={w: x.public_key_b64 for w, x in ws.items()},
                     mediated={w: set(x.mediates) for w, x in ws.items()})
     for i, action in enumerate(["authenticate_jwt_claims", "vector_search_policy_docs",
@@ -51,10 +52,10 @@ def session():
         s.traces.append(t)
         w = _witness_for(action, ws)
         if w:
-            s.receipts.append(w.observe(sid, t))
+            s.receipts.append(w.observe(cred, t))
         else:
             s.unmediated_actions.append(action)
-    s.closings = [w.close(sid) for w in ws.values()]
+    s.closings = [w.close(cred) for w in ws.values()]
     return s
 
 
@@ -166,15 +167,16 @@ def test_unconstructable_vectors_are_omitted_not_counted_as_passes():
     'detected' would inflate the score with attacks that were never run."""
     from scripts.run_live_agent_eval import omission_vectors_on
     sid = f"live-{uuid.uuid4().hex[:12]}"
+    cred = issue_session_credential(f"live-release-{sid}", session_id=sid)
     ws = {w: Witness(w, mediates=set(a)) for w, a in TOOL_WITNESSES.items()}
-    s = LiveSession(sid, "m", "t",
+    s = LiveSession(sid, "m", "t", credential=cred.to_dict(),
                     registry={w: x.public_key_b64 for w, x in ws.items()},
                     mediated={w: set(x.mediates) for w, x in ws.items()})
     t = ExecutionTraceRecord("TR-000", "t", "authenticate_jwt_claims", "SUCCESS",
                              1.0, hash_sha256("x"))
     s.traces.append(t)
-    s.receipts.append(_witness_for("authenticate_jwt_claims", ws).observe(sid, t))
-    s.closings = [w.close(sid) for w in ws.values()]
+    s.receipts.append(_witness_for("authenticate_jwt_claims", ws).observe(cred, t))
+    s.closings = [w.close(cred) for w in ws.values()]
     result = omission_vectors_on(s)
     assert "O1" not in result, "an unbuildable interior omission must not be scored"
 

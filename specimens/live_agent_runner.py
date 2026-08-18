@@ -30,6 +30,21 @@ proof, or that these tools resemble any particular production stack. The tools
 are local and side-effect-free by design: a paper about release assurance should
 not need to touch a third party to be reproduced.
 
+Nor does it separate the witness from the collector by *process*: the tool runs
+in this process, the trace record is built here, and the `Witness` object is
+handed that record to sign. The separation exercised is by KEY -- the witness
+signs with a key this process could not use to forge a different record's
+receipt without also holding it -- and by CREDENTIAL. The paper says so. An
+out-of-process witness (a proxy in front of the tool that computes the action
+digest from the request it served) is the deployment design; it is not what
+produced these numbers.
+
+Witness coverage is likewise determined by which tools are declared mediated
+above: four of the five tools are witnessed and `emit_summary` is not, so the
+coverage figure is the share of the agent's calls that went to the four
+witnessed tools. It reports the deployment's residue for THIS tool set; it is
+not an empirical discovery about agents.
+
 Determinism note: `temperature=0` is requested but does not make an LLM
 deterministic across runs or providers. Sequences vary; that variation is the
 point, and every result derived from these runs is reported with the session
@@ -51,7 +66,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from assurance.crypto import hash_sha256
 from assurance.evidence import ExecutionTraceRecord
-from assurance.witness import Witness
+from assurance.witness import Witness, SessionCredential, issue_session_credential
 
 # --------------------------------------------------------------------------
 # Providers. Both speak the OpenAI chat-completions shape, so one client works.
@@ -198,6 +213,7 @@ class LiveSession:
     session_id: str
     model: str
     provider: str
+    credential: Optional[Dict[str, Any]] = None      # the orchestrator's session credential
     traces: List[ExecutionTraceRecord] = field(default_factory=list)
     receipts: List[Any] = field(default_factory=list)
     closings: List[Any] = field(default_factory=list)
@@ -299,8 +315,13 @@ def run_live_session(provider: str = "groq", model: Optional[str] = None,
     model = model or cfg["default_model"]
 
     session_id = f"live-{uuid.uuid4().hex[:12]}"
+    # The (demo) orchestrator opens the session with a credential; every witness
+    # verifies it before serving, so the agent cannot relabel actions into a
+    # session the gate never evaluates (Definition WTC, vector O7).
+    cred = issue_session_credential(f"live-release-{session_id}", session_id=session_id)
     witnesses = {wid: Witness(wid, mediates=set(acts)) for wid, acts in TOOL_WITNESSES.items()}
     sess = LiveSession(session_id=session_id, model=model, provider=provider,
+                       credential=cred.to_dict(),
                        registry={w: x.public_key_b64 for w, x in witnesses.items()},
                        mediated={w: set(x.mediates) for w, x in witnesses.items()})
 
@@ -350,7 +371,7 @@ def run_live_session(provider: str = "groq", model: Optional[str] = None,
 
             w = _witness_for(action, witnesses)
             if w is not None:
-                sess.receipts.append(w.observe(session_id, trace))
+                sess.receipts.append(w.observe(cred, trace))
             else:
                 sess.unmediated_actions.append(action)
 
@@ -368,5 +389,5 @@ def run_live_session(provider: str = "groq", model: Optional[str] = None,
     # Every registered witness closes every session, including with n_j = 0 --
     # without that rule, dropping a witness *and* its closing is
     # indistinguishable from never using the tool (vector O3).
-    sess.closings = [w.close(session_id) for w in witnesses.values()]
+    sess.closings = [w.close(cred) for w in witnesses.values()]
     return sess

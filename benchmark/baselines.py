@@ -12,17 +12,24 @@ This module replaces them with baselines that **execute real verification
 libraries** and that are **configured to win** wherever their design genuinely
 covers a vector:
 
-  * ``DSSEInTotoBaseline``   -- real DSSE envelope construction and signature
-    verification via ``securesystemslib`` against a pinned trust root, i.e. what
-    an in-toto/Sigstore-style deployment actually does. It authenticates the
-    signer, so it blocks unsigned payloads, attacker keys, revoked keys, and any
-    mutation of the signed payload -- several vectors the old presence model
-    waved through.
-  * ``TUFBaseline``          -- real ``python-tuf`` Root/Timestamp metadata with
-    ``expires``, signature thresholds and root-driven key revocation. TUF has
-    provided freshness, threshold signing and revocation since 2010, so it is
-    the honest strong baseline for exactly the properties EviAssure claims as
-    deltas. It is *expected* to block the freshness and revocation vectors.
+  * ``DSSEInTotoBaseline``   -- DSSE v1 Pre-Authentication Encoding plus
+    Ed25519 signature verification (``cryptography``) against a pinned trust
+    root, i.e. what an in-toto/Sigstore-style deployment actually does. It
+    authenticates the signer, so it blocks unsigned payloads, attacker keys,
+    revoked keys, and any mutation of the signed payload -- several vectors the
+    old presence model waved through. NOTE (2026-08-18): an earlier docstring
+    and label said "securesystemslib"; that library is not imported anywhere
+    in this module, so the label was false and has been corrected.
+  * ``TUFBaseline``          -- Timestamp-role expiry evaluated with
+    ``python-tuf``'s own ``Metadata``/``Timestamp`` objects when python-tuf is
+    installed, over the DSSE trust-root check for threshold (=1) and
+    revocation. TUF has provided freshness, threshold signing and revocation
+    since 2010, so it is the honest strong baseline for exactly the properties
+    EviAssure claims as deltas. It is *expected* to block the freshness and
+    revocation vectors. NOTE (2026-08-18): the ``execution_mode`` label used
+    to be a static string that read "executed (python-tuf)" even when
+    python-tuf was absent; it now reports what actually ran, and
+    ``--require-executed`` fails when python-tuf is missing.
   * ``OPABaseline``          -- unchanged Rego policy, executed by the real
     ``opa`` binary when present. Falls back to a declared model otherwise, and
     ``--require-executed`` turns that fallback into a hard error so a final
@@ -79,16 +86,20 @@ def _payload_view(bundle: Dict[str, Any]) -> Dict[str, Any]:
 # --------------------------------------------------------------------------
 
 class DSSEInTotoBaseline:
-    """Real DSSE PAE + Ed25519 verification against a pinned trust root.
+    """DSSE v1 PAE + Ed25519 verification against a pinned trust root.
 
     This is what a competently configured Sigstore/in-toto deployment gives you:
     the envelope is authenticated against a key the *verifier* trusts, not one
     the payload carries. Modelling that as "is there a signature field?" -- as
     the previous baseline did -- understated it by four vectors.
+
+    The PAE is implemented inline (it is one format string) and the signature
+    check uses ``cryptography``'s Ed25519; no third-party DSSE library is
+    involved, and the label below says so.
     """
 
     name = "in-toto/DSSE signature verification"
-    execution_mode = "executed (securesystemslib DSSE PAE + Ed25519)"
+    execution_mode = "executed (DSSE v1 PAE + Ed25519 via cryptography, pinned trust root)"
 
     PAYLOAD_TYPE = "application/vnd.in-toto+json"
 
@@ -149,14 +160,29 @@ class TUFBaseline:
     """
 
     name = "TUF metadata verification (expiry + threshold + revocation)"
-    execution_mode = "executed (python-tuf)"
 
     def __init__(self, trusted_keys: Dict[str, str], revoked: Optional[set] = None,
-                 max_age_seconds: int = 3600):
+                 max_age_seconds: int = 3600, require_executed: bool = False):
         self.dsse = DSSEInTotoBaseline(trusted_keys, revoked)
         self.max_age_seconds = max_age_seconds
         self.root_expires = datetime.now(timezone.utc) + timedelta(days=365)
         self._tuf_available = self._probe_tuf()
+        if not self._tuf_available and require_executed:
+            raise RuntimeError(
+                "TUF baseline requested as executed but python-tuf is not "
+                "importable. `pip install tuf` (declared in pyproject.toml) or "
+                "drop --require-executed (the artifact will then record this "
+                "baseline as modeled)."
+            )
+        # Report what actually ran. This used to be a static class attribute
+        # that read "executed (python-tuf)" whether or not python-tuf was
+        # installed -- exactly the silent substitution --require-executed
+        # exists to prevent.
+        self.execution_mode = (
+            "executed (python-tuf Timestamp expiry over a DSSE trust-root check; "
+            "threshold=1, root-driven revocation)"
+            if self._tuf_available else
+            "modeled (python-tuf not installed; expiry compared without python-tuf)")
 
     @staticmethod
     def _probe_tuf() -> bool:
@@ -278,7 +304,7 @@ class ComposedBaseline:
 def build_baselines(trusted_keys: Dict[str, str], revoked: set,
                     require_executed: bool = False) -> List[Any]:
     dsse = DSSEInTotoBaseline(trusted_keys, revoked)
-    tuf = TUFBaseline(trusted_keys, revoked)
+    tuf = TUFBaseline(trusted_keys, revoked, require_executed=require_executed)
     opa = OPABaseline(require_executed=require_executed)
     return [StatusGateBaseline(), opa, dsse, tuf, ComposedBaseline(dsse, tuf, opa)]
 
@@ -290,10 +316,13 @@ def build_baselines(trusted_keys: Dict[str, str], revoked: set,
 class ReceiptsOnlyBaseline:
     """Per-action receipts WITHOUT sequence binding or closing counts.
 
-    This models the 2026 convergence point -- receiver-attested action receipts
-    (Notarized Agents; PipeLab Agent Action Receipts; and comparable proposals).
-    The verifier checks that every recorded action carries a valid receipt from
-    a registered witness, and that no receipt is unmatched.
+    Re-implemented from the published designs -- receiver-attested action
+    receipts (Notarized Agents / Sello, arXiv:2606.04193; PipeLab Agent Action
+    Receipts) -- not their reference code. The verifier checks that every
+    recorded action carries a valid receipt from a registered witness for this
+    session, and that no receipt is unmatched. It ignores the sequence number,
+    the chain link and the closings that EviAssure's receipts additionally
+    carry, because the designs it stands for have none of them.
 
     That is a genuine and useful property. It is also, precisely, not
     completeness: an adversary who drops action a_i drops receipt r_i with it,
@@ -303,7 +332,8 @@ class ReceiptsOnlyBaseline:
     """
 
     name = "Per-action receipts (no sequence binding)"
-    execution_mode = "executed (Ed25519 receipt verification against a pinned witness registry)"
+    execution_mode = ("re-implemented from the published designs; executed "
+                      "(Ed25519 receipt verification against a pinned witness registry)")
 
     def __init__(self, witness_registry: Dict[str, str], mediated: Dict[str, Any]):
         self.registry = dict(witness_registry)
@@ -316,8 +346,7 @@ class ReceiptsOnlyBaseline:
         session = bundle.get("session_id") or ""
         good = []
         for raw in bundle.get("witness_receipts") or []:
-            r = Receipt(**{k: raw.get(k) for k in
-                           ("witness_id", "session_id", "seq", "action_digest", "signature")})
+            r = Receipt.from_dict(raw)
             pk = self.registry.get(r.witness_id)
             if not pk or not r.signature:
                 return False
@@ -339,30 +368,63 @@ class ReceiptsOnlyBaseline:
 class HashChainBaseline:
     """AAS-1-style per-issuer hash chaining.
 
-    Each record carries the digest of its predecessor from the same issuer, so a
-    verifier holding all records detects omission *between* two records it has.
-    A contiguous suffix drop leaves a chain that still verifies end to end,
-    because the end simply moved. Implemented here so the paper's comparison of
+    Re-implemented from the AAS-1 working paper's description (per-issuer hash
+    chains for omission detection), not from a reference implementation. Each
+    receipt carries `prev`, the digest of the same witness's previous receipt
+    in the session (GENESIS for the first). The verifier authenticates every
+    receipt, then walks each issuer's chain from GENESIS following `prev`
+    links; a link that points at a receipt not present breaks the chain. It
+    deliberately ignores sequence numbers and closing statements, which the
+    design it stands for does not have.
+
+    What that buys and what it does not: an interior omission leaves a receipt
+    whose `prev` names a missing one (detected); a spliced foreign receipt
+    carries a `prev` from another chain (detected); a contiguous suffix drop
+    leaves a chain that verifies end to end, because the end simply moved
+    (missed); dropping a whole issuer leaves nothing to check (missed); a
+    forged closing is never consulted (missed); a fabricated trace has no
+    receipt to chain (missed). Implemented so the paper's comparison of
     chaining against sequence-plus-closing is executed rather than asserted.
     """
 
     name = "Per-issuer hash chaining (AAS-1 style)"
-    execution_mode = "executed (chain reconstruction over witness receipts)"
+    execution_mode = ("re-implemented from the AAS-1 description; executed "
+                      "(authenticated prev-link chain walk per issuer)")
 
     def __init__(self, witness_registry: Dict[str, str]):
         self.registry = dict(witness_registry)
 
     def verify(self, bundle: Dict[str, Any]) -> bool:
+        from assurance.witness import Receipt, GENESIS
+        from assurance.crypto import verify_signature_ed25519
+
         per_issuer: Dict[str, list] = {}
         for raw in bundle.get("witness_receipts") or []:
-            per_issuer.setdefault(raw.get("witness_id"), []).append(raw)
-        for wid, rs in per_issuer.items():
-            if wid not in self.registry:
+            r = Receipt.from_dict(raw)
+            pk = self.registry.get(r.witness_id)
+            if not pk or not r.signature:
                 return False
-            seqs = sorted(r.get("seq", 0) for r in rs)
-            # A chain links consecutive PRESENT records: an interior gap breaks
-            # it, a suffix truncation does not.
-            if any(b - a != 1 for a, b in zip(seqs, seqs[1:])):
+            if not verify_signature_ed25519(r.payload(), r.signature, pk):
+                return False
+            per_issuer.setdefault(r.witness_id, []).append(r)
+        for wid, rs in per_issuer.items():
+            by_digest = {r.digest(): r for r in rs}
+            heads = [r for r in rs if r.prev == GENESIS]
+            if len(heads) != 1:
+                return False                        # no genesis, or two chains for one issuer
+            # every non-genesis receipt must link to a PRESENT receipt of this issuer
+            for r in rs:
+                if r.prev != GENESIS and r.prev not in by_digest:
+                    return False
+            # and the walk from genesis must reach every present receipt (no forks)
+            seen, cur = {heads[0].digest()}, heads[0]
+            nxt = {r.prev: r for r in rs if r.prev != GENESIS}
+            while cur.digest() in nxt:
+                cur = nxt[cur.digest()]
+                if cur.digest() in seen:
+                    return False
+                seen.add(cur.digest())
+            if len(seen) != len(rs):
                 return False
         return True
 

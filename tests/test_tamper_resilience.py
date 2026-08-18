@@ -9,7 +9,7 @@ from benchmark.tamper_vectors import generate_tampered_evidence_suite, TAMPER_VE
 
 def test_tamper_resilience_suite():
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
 
     tamper_suite = generate_tampered_evidence_suite()
     from benchmark.tamper_vectors import SCORED_VECTORS
@@ -51,7 +51,7 @@ def test_tamper_resilience_suite():
 def test_property_based_fuzzing_1000_mutations():
     from benchmark.tamper_vectors import generate_fuzzing_mutation_suite
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
 
     fuzz_suite = generate_fuzzing_mutation_suite(count=1000, seed=42)
     assert len(fuzz_suite) == 1000

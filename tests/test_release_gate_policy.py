@@ -10,7 +10,7 @@ from assurance.verifier import evaluate_release_gate
 
 def test_clean_evidence_approval():
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
 
     clean_bundle = create_evidence_pack(signed=True)
     passed, violations, details = policy_engine.evaluate(clean_bundle, seen_nonces=set())
@@ -22,7 +22,7 @@ def test_clean_evidence_approval():
 
 def test_unsigned_evidence_rejection():
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
 
     unsigned_bundle = create_evidence_pack(signed=False)
     passed, violations, details = policy_engine.evaluate(unsigned_bundle, seen_nonces=set())
@@ -47,7 +47,7 @@ def test_verifier_output_file(tmp_path):
 
 def test_naive_timestamp_handling():
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
 
     bundle = create_evidence_pack(signed=True)
     b_dict = bundle.to_dict()
@@ -62,7 +62,7 @@ def test_threshold_signature_policy():
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
     
     # Load and adjust policy data to require 2 signatures
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
     policy_engine.release_conditions["min_required_signatures"] = 2
     
     # 1. Create a bundle signed with only 1 signature
@@ -92,7 +92,7 @@ def test_threshold_signature_policy():
 
 def test_seen_nonces_eviction():
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
     policy_engine.release_conditions["max_evidence_age_seconds"] = 10
     
     from datetime import datetime, timezone, timedelta

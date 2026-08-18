@@ -53,7 +53,7 @@ def test_realworld_swe_agent_workload_attestation():
     assert len(bundle.traces) == 10
     assert bundle.merkle_root is not None
     
-    engine = ReleasePolicyEngine.from_yaml(REPO_ROOT / "governance" / "release_policy.yaml")
+    engine = ReleasePolicyEngine.from_yaml(REPO_ROOT / "governance" / "release_policy.yaml", witnessed=False)
     passed, violations, details = engine.evaluate(bundle, seen_nonces=set())
     
     assert passed is True

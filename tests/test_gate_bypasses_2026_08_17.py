@@ -44,9 +44,15 @@ def test_a1_replay_blocked_through_the_shipped_cli(tmp_path):
     """The exact reproduction from the review: submit one signed bundle three
     times through scripts/verify_release_gate.py. Before the fix all three
     exited 0."""
-    bundle = create_evidence_pack(use_ed25519=True, signed=True).to_dict()
+    # The shipped policy requires witnessed completeness, so the CLI is given a
+    # witnessed demo bundle plus the release request naming its session (the
+    # sibling-file convention package_evidence.py writes).
+    pack = create_evidence_pack(use_ed25519=True, signed=True, witnessed=True)
+    bundle = pack.to_dict()
     ev = tmp_path / "bundle.json"
     ev.write_text(json.dumps(bundle))
+    (tmp_path / "bundle.json.release_request.json").write_text(
+        json.dumps({"release_id": "release-demo", "session_id": pack.session_id}))
     ledger = tmp_path / "nonces.json"
 
     codes = []
@@ -63,7 +69,7 @@ def test_a1_replay_blocked_through_the_shipped_cli(tmp_path):
 
 def test_a1_missing_replay_state_fails_closed():
     """Absent replay state is a violation, not a skipped check."""
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     bundle = create_evidence_pack(use_ed25519=True, signed=True).to_dict()
     passed, violations, _ = engine.evaluate(bundle)          # no seen_nonces
     assert passed is False
@@ -74,7 +80,7 @@ def test_a1_replay_state_survives_process_restart(tmp_path):
     """PersistentNonceStore is what makes the CLI's guarantee real in an
     ephemeral runner: a fresh store object over the same file still remembers."""
     bundle = create_evidence_pack(use_ed25519=True, signed=True).to_dict()
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     path = tmp_path / "ledger.json"
 
     ok, _, _ = engine.evaluate(bundle, seen_nonces=PersistentNonceStore(path))
@@ -89,7 +95,7 @@ def test_a1_replay_state_survives_process_restart(tmp_path):
 def test_a2_attacker_key_rejected_even_with_registry_disabled():
     """The bypass: attacker keypair + a KMS ARN matching the policy regex.
     Before the fix this returned passed=True with zero violations."""
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     engine.release_conditions.update({"require_trusted_key": False})
 
     priv, _, pub_b64, _ = generate_ed25519_keypair()
@@ -111,7 +117,7 @@ def test_a2_empty_registry_collapses_the_gate():
     """The manuscript's ablation sentence is now true of the code: with no
     registry the gate rejects ALL Ed25519 evidence rather than weakening
     selectively."""
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     engine.trusted_keys = {}
     honest = create_evidence_pack(use_ed25519=True, signed=True).to_dict()
     passed, violations, _ = engine.evaluate(honest, seen_nonces=set())
@@ -169,7 +175,7 @@ def test_multi_trace_bundle_with_wire_text_is_approved():
     """The end-to-end consequence of the bug above."""
     from assurance.crypto import canonical_json
 
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     bundle = create_evidence_pack(use_ed25519=True, signed=True).to_dict()
     bundle["raw_wire_json"] = canonical_json(
         {k: v for k, v in bundle.items() if k != "raw_wire_json"})

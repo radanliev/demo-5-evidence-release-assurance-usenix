@@ -11,7 +11,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from scripts.run_release_benchmark import main as run_benchmark
-from scripts.run_comparative_eval import main as run_comparative_eval
 
 
 def generate_benchmark_figures(docs_dir: Path):
@@ -52,17 +51,12 @@ def generate_benchmark_figures(docs_dir: Path):
 
     res_dir = docs_dir.parent / "results"
     b_file = res_dir / "benchmark_summary.json"
-    c_file = res_dir / "comparative_evaluation.json"
 
     if not b_file.exists():
         run_benchmark()
-    if not c_file.exists():
-        run_comparative_eval()
 
     with open(b_file, 'r', encoding='utf-8') as f:
         data_b = json.load(f)
-    with open(c_file, 'r', encoding='utf-8') as f:
-        data_c = json.load(f)
 
     fig_dir = docs_dir / "figures"
     fig_dir.mkdir(parents=True, exist_ok=True)
@@ -105,7 +99,13 @@ def generate_benchmark_figures(docs_dir: Path):
     ax.set_ylabel('Execution Time (ms, log scale)', fontsize=8.5, fontweight='semibold')
     
     # Annotated callout at 1M placed cleanly in the open upper-right space above the curves
-    ax.annotate('383.5 ms\n(1M traces)', xy=(1000000, 383.48), xytext=(120000, 900.0),
+    # Read the callout from the data. It was hard-coded at 383.5 ms while the
+    # benchmark recorded 378.0 -- a figure that silently contradicted the prose
+    # macro \merkleBuildOneMMs. Figures drift exactly like numerals do, and the
+    # frozen-metrics discipline has to cover them too.
+    _n1m = next(r for r in scaling if r['trace_count'] == 1000000)
+    _n1m_ms = _n1m['merkle_tree_build_ms']
+    ax.annotate(f'{_n1m_ms:.1f} ms\n(1M traces)', xy=(1000000, _n1m_ms), xytext=(120000, 900.0),
                 arrowprops=dict(arrowstyle='->', color='#B91C1C', lw=1.0),
                 fontsize=7.0, fontweight='bold', color='#7F1D1D',
                 bbox=dict(boxstyle='round,pad=0.25', facecolor='#FEF2F2', edgecolor='#F87171', lw=0.6))
@@ -144,10 +144,11 @@ def generate_benchmark_figures(docs_dir: Path):
 
     # Bar value labels & peak callout
     for i, (bar, v) in enumerate(zip(bars, ops)):
-        if i == 2:  # Peak at 4 workers
+        if v == max(ops):   # the actual peak, not a hard-coded index
             bar.set_facecolor('#047857')
             bar.set_hatch('\\\\')
-            ax.text(bar.get_x() + bar.get_width()/2.0, v + 250, f'{int(v):,} /s\n(2.0x Peak)',
+            _ratio = v / ops[0]
+            ax.text(bar.get_x() + bar.get_width()/2.0, v + 250, f'{int(v):,} /s\n({_ratio:.1f}x Peak)',
                     ha='center', va='bottom', fontweight='bold', fontsize=7.2, color='#065F46')
         else:
             ax.text(bar.get_x() + bar.get_width()/2.0, v + 120, f'{int(v):,}',
@@ -157,46 +158,75 @@ def generate_benchmark_figures(docs_dir: Path):
     fig.savefig(fig_dir / "parallel_throughput.png", dpi=600)
     plt.close(fig)
 
-    comp_sum = data_c["summary"]
-    systems = ['CI Exit Code', 'Sigstore', 'OPA Schema', 'Composed SOTA', 'EviAssure']
-    block_rates = [
-        comp_sum.get("ci_exit_code_block_rate_pct", 0.0),
-        comp_sum.get("sigstore_cosign_block_rate_pct", 7.7),
-        comp_sum.get("opa_schema_block_rate_pct", 23.1),
-        comp_sum.get("composed_sota_block_rate_pct", 30.8),
-        comp_sum.get("eviassure_block_rate_pct", comp_sum.get("demo5_assurance_block_rate_pct", 100.0))
-    ]
-    colors = ['#EF4444', '#F59E0B', '#EAB308', '#8B5CF6', '#0284C7']
-    hatches = ['///', '\\\\\\', 'xx', '++', '..']
+    # -------------------------------------------------------------
+    # Figure 4: Executed baseline comparison, with Wilson intervals
+    #
+    # This replaces an earlier chart built from results/comparative_evaluation
+    # .json, which plotted 100% for EviAssure against 30.8% for a "composed"
+    # baseline and carried a "Sigstore/Cosign" bar. Section 7.7 withdraws that
+    # comparison: those baselines were strawmen scored against a vector set
+    # derived from our own check list. Plotting withdrawn numbers is worse than
+    # stating them, because a reader takes the picture and never reaches the
+    # retraction.
+    #
+    # The replacement reads the EXECUTED baselines from
+    # results/security_evaluation.json and draws the 95% Wilson interval on
+    # every bar. The intervals overlap, and the figure is supposed to show
+    # that: with 17 vectors the evaluation cannot support a strong
+    # quantitative separation, which is exactly what the text says.
+    # -------------------------------------------------------------
+    sec_path = res_dir / "security_evaluation.json"
+    if sec_path.exists():
+        with open(sec_path, "r", encoding="utf-8") as f:
+            sec = json.load(f)
+        summ = sec["vectors"]["summary"]
 
-    fig, ax = plt.subplots(figsize=(3.35, 2.5))
-    x_pos = list(range(len(systems)))
-    bars = ax.bar(x_pos, block_rates, color=colors, edgecolor='#0F172A',
-                  linewidth=1.0, width=0.55, zorder=3)
-    
-    for bar, hatch in zip(bars, hatches):
-        bar.set_hatch(hatch)
+        def _find(sub, default=None):
+            for k, v in summ.items():
+                if sub.lower() in k.lower():
+                    return v
+            return default
 
-    # 100% Target security goal reference line
-    ax.axhline(y=100.0, color='#0284C7', linestyle='--', linewidth=1.0, alpha=0.7, zorder=2)
-    ax.text(0.0, 102.0, '100% Fail-Closed Target', fontsize=6.8, color='#0369A1', fontweight='bold')
+        rows = [
+            ("Status gate",   _find("status gate")),
+            ("OPA Rego",      _find("OPA")),
+            ("in-toto/DSSE",  _find("DSSE")),
+            ("TUF",           _find("TUF")),
+            ("Composed",      _find("Composed")),
+            ("EviAssure",     summ.get("eviassure")),
+        ]
+        rows = [(n, m) for n, m in rows if m]
 
-    ax.tick_params(labelsize=7.0)
-    ax.set_xticks(x_pos)
-    ax.set_xticklabels(systems, rotation=22, ha='right', fontsize=7.2, fontweight='semibold')
-    ax.set_ylabel('Fail-Closed Block Rate (%)', fontsize=8.5, fontweight='semibold')
-    ax.set_ylim(0, 120)
-    ax.grid(axis='y', ls="--", color='#E2E8F0', alpha=0.7)
+        names = [n for n, _ in rows]
+        vals = [m["rate_pct"] for _, m in rows]
+        lo = [max(0.0, m["rate_pct"] - m["ci95_low_pct"]) for _, m in rows]
+        hi = [max(0.0, m["ci95_high_pct"] - m["rate_pct"]) for _, m in rows]
 
-    for bar, rate in zip(bars, block_rates):
-        font_weight = 'bold' if rate == 100.0 else 'semibold'
-        color = '#0369A1' if rate == 100.0 else '#1E293B'
-        ax.text(bar.get_x() + bar.get_width() / 2.0, rate + 2.5, f"{rate:.1f}%",
-                ha='center', va='bottom', fontweight=font_weight, fontsize=7.2, color=color)
+        fig, ax = plt.subplots(figsize=(3.35, 2.6))
+        xs = list(range(len(names)))
+        colours = ['#94A3B8'] * (len(names) - 1) + ['#0284C7']
+        bars = ax.bar(xs, vals, yerr=[lo, hi], capsize=3, width=0.6,
+                      color=colours, edgecolor='#0F172A', linewidth=0.9, zorder=3)
+        bars[-1].set_hatch('..')
 
-    fig.tight_layout()
-    fig.savefig(fig_dir / "comparative_block_rate.png", dpi=600)
-    plt.close(fig)
+        ax.set_xticks(xs)
+        ax.set_xticklabels(names, rotation=30, ha='right', fontsize=7.2)
+        ax.set_ylabel('Vectors blocked (%)', fontsize=8.5, fontweight='semibold')
+        ax.set_ylim(0, 112)
+        ax.tick_params(labelsize=7.5)
+        ax.grid(axis='y', ls='--', color='#E2E8F0', alpha=0.7)
+
+        for x, (n, m) in zip(xs, rows):
+            ax.text(x, m["ci95_high_pct"] + 2.5, f'{m["k"]}/{m["n"]}',
+                    ha='center', va='bottom', fontsize=6.8,
+                    fontweight='bold' if n == 'EviAssure' else 'normal',
+                    color='#0C4A6E' if n == 'EviAssure' else '#334155')
+
+        fig.tight_layout()
+        fig.savefig(fig_dir / "comparative_block_rate.png", dpi=600)
+        plt.close(fig)
+    else:
+        print("[i] results/security_evaluation.json absent -- comparison figure skipped")
 
     print(f"[+] High-resolution 600 DPI benchmark figures saved to: {fig_dir}")
 

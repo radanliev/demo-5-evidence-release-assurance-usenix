@@ -333,9 +333,29 @@ def create_evidence_pack(
     use_ed25519: bool = True,
     blind_privacy: bool = False,
     privacy_salt: str = "usenix-privacy-salt-2027",
-    signed: bool = True
+    signed: bool = True,
+    witnessed: bool = False,
+    release_id: str = "release-demo",
+    session_credential: Optional[Any] = None,
 ) -> EvidenceBundle:
-    """Create a fully signed, Merkle-backed EvidenceBundle."""
+    """Create a fully signed, Merkle-backed EvidenceBundle.
+
+    ``witnessed=True`` runs every trace through the demo witnesses (static keys
+    pinned in governance/witness_registry.yaml) inside a session credentialed by
+    the demo orchestrator, so the bundle carries receipts, closings and a
+    session_id and reconciles under the shipped (witnessed) policy. The default
+    is unwitnessed because the mechanism-level evaluations -- tamper vectors,
+    corpus, timing benchmarks -- deliberately exercise the gate's other checks on
+    bundles that carry no witness attestations, and because witnessing a
+    million-trace scaling bundle would time a million signatures, not a Merkle
+    build. The shipped CLI and the packaging script use ``witnessed=True``.
+
+    ``session_credential`` lets a caller supply the credential the orchestrator
+    issued (e.g. the live agent harness); otherwise one is issued for
+    ``release_id``. In this demo the packager therefore also plays the
+    orchestrator; in a deployment the credential is issued by the trusted CI
+    controller before the run and the gate is given the session out of band.
+    """
     if traces is None:
         traces = [
             ExecutionTraceRecord(
@@ -406,6 +426,23 @@ def create_evidence_pack(
     )
 
     bundle.generate_slsa_envelope()
+
+    if witnessed:
+        # Local import: witness.py imports crypto only, so there is no cycle,
+        # but keeping it here makes the dependency direction explicit.
+        from .witness import (demo_witnesses, issue_session_credential, witness_for)
+        cred = session_credential or issue_session_credential(release_id)
+        ws = demo_witnesses()
+        receipts = []
+        for t in traces:
+            w = witness_for(t.action, ws)
+            if w is not None:
+                receipts.append(w.observe(cred, t))
+        closings = [w.close(cred) for w in ws.values()]
+        bundle.session_id = (cred.session_id if hasattr(cred, "session_id")
+                             else cred["session_id"])
+        bundle.witness_receipts = [r.to_dict() for r in receipts]
+        bundle.witness_closings = [c.to_dict() for c in closings]
 
     if signed:
         if use_ed25519:

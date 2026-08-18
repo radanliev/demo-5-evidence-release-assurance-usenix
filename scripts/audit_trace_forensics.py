@@ -29,7 +29,7 @@ def main():
     parser.add_argument("--output", "-o", type=str, default=None, help="Output path for forensic audit report JSON")
     args = parser.parse_args()
 
-    policy_engine = ReleasePolicyEngine.from_yaml(args.policy)
+    policy_engine = ReleasePolicyEngine.from_yaml(args.policy, witnessed=False)
     audit_engine = ForensicAuditEngine(policy_engine=policy_engine)
 
     if args.evidence:

@@ -50,7 +50,8 @@
 @inproceedings{sigstore2022cosign,
   title={Sigstore: Software Signing for Everybody},
   author={Newman, Zachary and Meyers, John Speed and Torres-Arias, Santiago},
-  booktitle={ACM Conference on Computer and Communications Security (ACM CCS), Demo Track},
+  booktitle={ACM Conference on Computer and Communications Security (ACM CCS)},
+  pages={2353--2367},
   year={2022},
   doi={10.1145/3548606.3560596}
 }
@@ -180,8 +181,8 @@
 @inproceedings{okafor2022sok,
   title={SoK: Analysis of Software Supply Chain Security by Establishing Secure Design Properties},
   author={Okafor, Chinenye and Schorlemmer, Taylor R and Torres-Arias, Santiago and Davis, James C},
-  booktitle={ACM Conference on Computer and Communications Security (ACM CCS)},
-  pages={1811--1825},
+  booktitle={ACM Workshop on Software Supply Chain Offensive Research and Ecosystem Defenses (SCORED, co-located with ACM CCS)},
+  pages={15--24},
   year={2022},
   doi={10.1145/3560835.3564556}
 }
@@ -256,10 +257,10 @@
   doi={10.1109/SP40001.2021.00042}
 }
 
-@inproceedings{goldwasser1988digital,
+@article{goldwasser1988digital,
   title={A Digital Signature Scheme Secure Against Adaptive Chosen-Message Attacks},
   author={Goldwasser, Shafi and Micali, Silvio and Rivest, Ronald L},
-  booktitle={SIAM Journal on Computing},
+  journal={SIAM Journal on Computing},
   volume={17},
   number={2},
   pages={281--308},
@@ -267,28 +268,39 @@
   doi={10.1137/0217017}
 }
 
-AUTHOR ACTION before submitting: title and arXiv identifier were confirmed
-against the arXiv listing, but the full text was not read when this entry was
-added. Verify the characterisation in the related-work section against the
-paper itself. (BibTeX ignores text between entries, so this cannot render in
-the bibliography -- an earlier revision put it in a note= field, which DID
-print in the paper.)
+2026-08-18: author corrected from "Anonymous (preprint)" (which was WRONG --
+the CFP treats an incorrect author as misconduct) to the listed arXiv author,
+checked against the arXiv abstract page. The abstract states the receipts are
+service-signed, encrypted to the owner, and published to a transparency log,
+and that the "suppression attack" (an agent that does not call services
+produces no receipts) is a known, unsolved limitation of v0.1. This entry is
+NOT yet cited in the manuscript; it must be, in Related Work, and the
+characterisation must be checked against the full text before submission.
 
 @misc{notarized2026agents,
   title={Notarized Agents: Receiver-Attested Confidential Receipts for AI Agent Actions},
-  author={{Anonymous (preprint)}},
+  author={Figuera, Juan},
   howpublished={arXiv preprint arXiv:2606.04193},
   year={2026},
   url={https://arxiv.org/abs/2606.04193}
 }
 
-AUTHOR ACTION before submitting: located via search; content not read in
-full. Verify the characterisation before relying on it.
+2026-08-18: page fetched and read; title, publisher, date and mechanism
+(mediator-signed, hash-chained Ed25519 receipts) confirmed against the page.
 
 @misc{pipelab2026receipts,
-  title={Agent Action Receipts: Signed Evidence for What an AI Agent Did},
+  title={Agent Action Receipts: Signed {AI} Audit Evidence},
   author={{PipeLab}},
-  howpublished={PipeLab technical note},
+  howpublished={Technical note, 21 May 2026},
   year={2026},
+  note={Ed25519 receipts signed by a mediator outside the agent process, hash-chained to the previous receipt, verifiable offline},
   url={https://pipelab.org/learn/agent-action-receipts/}
+}
+
+@misc{rfc9943scitt,
+  title={An Architecture for Trustworthy and Transparent Digital Supply Chains},
+  author={Birkholz, Henk and Delignat-Lavaud, Antoine and Fournet, C{\'e}dric and Deshpande, Yogesh and Lasker, Steve},
+  howpublished={RFC 9943, IETF (Proposed Standard)},
+  year={2026},
+  doi={10.17487/RFC9943}
 }

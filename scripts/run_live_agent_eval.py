@@ -14,7 +14,7 @@ about:
 
   1. Reconciliation soundness on real traces. An honest, fully witnessed live
      session must reconcile. If it does not, the protocol is broken.
-  2. Omission detection on real traces. The O1-O6 vectors are re-derived
+  2. Omission detection on real traces. The O1-O7 vectors are re-derived
      against each live session rather than against generated templates.
   3. Witness coverage -- the fraction of executed actions a witness served.
      Definition (WTC) states the guarantee relative to the witness set and
@@ -118,11 +118,12 @@ def _package(traces, receipts, closings, session_id) -> Dict[str, Any]:
     return b.to_dict()
 
 
-def _check(bundle: Dict[str, Any], sess: LiveSession) -> bool:
+def _check(bundle: Dict[str, Any], sess: LiveSession, expected: str | None = None) -> bool:
     ok, _viol, _d = reconcile(
         bundle["traces"], bundle["witness_receipts"], bundle["witness_closings"],
-        sess.registry, sess.session_id, require_witness=True,
-        mediated_actions=sess.mediated)
+        sess.registry, bundle.get("session_id") or sess.session_id, require_witness=True,
+        mediated_actions=sess.mediated,
+        expected_session_id=expected or sess.session_id)
     return ok
 
 
@@ -243,8 +244,18 @@ def main() -> int:
     # ---- aggregate -------------------------------------------------------
     per_session = []
     vector_tally: Dict[str, List[bool]] = {}
-    for s in sessions:
+    for idx, s in enumerate(sessions):
         vec = omission_vectors_on(s)
+        # O7 session substitution needs a SECOND credentialed session: present
+        # another real session's complete, honest bundle for THIS session's
+        # release. Constructible whenever at least two sessions ran; each
+        # session is paired with the next one (cyclically).
+        if len(sessions) >= 2:
+            other = sessions[(idx + 1) % len(sessions)]
+            foreign = _package(other.traces, other.receipts, other.closings, other.session_id)
+            # reconcile the foreign bundle against ITS OWN registry/mediation set
+            # but with THIS session as the expected one
+            vec["O7"] = not _check(foreign, other, expected=s.session_id)
         for k, v in vec.items():
             vector_tally.setdefault(k, []).append(v)
         per_session.append({

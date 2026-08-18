@@ -55,7 +55,7 @@ def main():
     profiles = corpus["profiles"]
     assert len(profiles) == corpus["total_profiles"]
 
-    policy_engine = ReleasePolicyEngine.from_yaml(_POLICY)
+    policy_engine = ReleasePolicyEngine.from_yaml(_POLICY, witnessed=False)
     audit_engine = ForensicAuditEngine(policy_engine=policy_engine)
 
     clean = [p for p in profiles if p["label"] == "CLEAN"]

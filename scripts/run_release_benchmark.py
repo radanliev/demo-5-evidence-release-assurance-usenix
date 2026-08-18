@@ -54,7 +54,7 @@ def _cpu_model() -> str:
 
 def _get_engine(policy_path: str) -> ReleasePolicyEngine:
     if policy_path not in _ENGINE_CACHE:
-        _ENGINE_CACHE[policy_path] = ReleasePolicyEngine.from_yaml(policy_path)
+        _ENGINE_CACHE[policy_path] = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
     return _ENGINE_CACHE[policy_path]
 
 
@@ -323,7 +323,7 @@ def evaluate_ablation() -> Dict[str, Any]:
     rows = []
     for label, conds, attr in variants:
         # from_yaml so every variant carries the real trusted-key registry
-        engine = ReleasePolicyEngine.from_yaml(policy_path)
+        engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
         engine.release_conditions.update(conds)
         if attr == "empty_registry":
             engine.trusted_keys = {}
@@ -351,7 +351,7 @@ def evaluate_ablation() -> Dict[str, Any]:
 
 def evaluate_tamper_resilience() -> Dict[str, Any]:
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
     suite = generate_tampered_evidence_suite()
 
     vector_results = []

@@ -33,7 +33,7 @@ def test_expanded_corpus_loading():
 def test_corpus_anomaly_detection_and_merkle_hashing():
     corpus_path = Path(__file__).parent.parent / "corpus" / "agent_trace_corpus.json"
     policy_path = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
-    policy_engine = ReleasePolicyEngine.from_yaml(policy_path)
+    policy_engine = ReleasePolicyEngine.from_yaml(policy_path, witnessed=False)
 
     with open(corpus_path, "r", encoding="utf-8") as f:
         data = json.load(f)

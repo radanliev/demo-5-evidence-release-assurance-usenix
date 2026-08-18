@@ -124,6 +124,12 @@ INCLUDED_PATHS = [
     "docs/security_metrics.tex",
     "docs/frozen_metrics.tex",
     "docs/references.bib",
+    # The GitHub Action the paper describes (Sec. CI/CD Integration) and the
+    # workflow that runs the suite. CODEOWNERS and the PR template are NOT
+    # shipped: they are repository process files, not artifact, and one of
+    # them names accounts.
+    ".github/actions/evidence-release-gate/action.yml",
+    ".github/workflows/ci.yml",
     # DELIBERATELY NOT SHIPPED: docs/artifact_digest.tex.
     # That file holds the SHA-256 of this very archive. Including it makes the
     # build non-idempotent -- each run embeds the previous run's digest, which
@@ -174,9 +180,39 @@ def collect_files():
     return collected, missing
 
 
-def create_anonymous_archive():
+def refuse_modeled_baselines(allow_modeled: bool) -> None:
+    """The paper's comparison text describes the DSSE and TUF baselines as
+    executed and the OPA baseline as executed when the binary is present. The
+    results file records what actually ran. Refuse to package a results file in
+    which a baseline the paper calls executed recorded itself as modeled --
+    that is exactly the silent substitution `run_security_eval.py
+    --require-executed` exists to prevent, and packaging is the last place it
+    can be caught. Override only for a local dry run, never for the upload."""
+    sec = REPO_ROOT / "results" / "security_evaluation.json"
+    if not sec.exists():
+        print("[FATAL] results/security_evaluation.json is missing; run scripts/run_security_eval.py")
+        sys.exit(3)
+    import json
+    modes = json.loads(sec.read_text()).get("baseline_execution", {})
+    bad = {k: v for k, v in modes.items()
+           if ("TUF" in k or "DSSE" in k or "OPA" in k or "Composed" in k) and "modeled" in v}
+    if bad and not allow_modeled:
+        print("[FATAL] results/security_evaluation.json records a modeled baseline that the")
+        print("        manuscript describes as executed. Install python-tuf and the opa binary,")
+        print("        re-run  python3 scripts/run_security_eval.py --require-executed  and")
+        print("        python3 scripts/write_security_macros.py, then package again.")
+        for k, v in bad.items():
+            print(f"          - {k}: {v}")
+        print("        (--allow-modeled packages anyway, for a local dry run only.)")
+        sys.exit(4)
+    if bad:
+        print(f"[!] --allow-modeled: packaging with {len(bad)} modeled baseline label(s); DO NOT upload this zip.")
+
+
+def create_anonymous_archive(allow_modeled: bool = False):
     print("=== USENIX Security 2027 Anonymous Artifact Packager ===")
 
+    refuse_modeled_baselines(allow_modeled)
     files, missing = collect_files()
 
     # A silently-missing path is how the previous build shipped an artifact
@@ -247,4 +283,10 @@ def create_anonymous_archive():
 
 
 if __name__ == "__main__":
-    create_anonymous_archive()
+    import argparse
+    ap = argparse.ArgumentParser(description="Package the anonymous review artifact.")
+    ap.add_argument("--allow-modeled", action="store_true",
+                    help="package even if results/ records a modeled DSSE/TUF/OPA baseline "
+                         "(local dry run only; never for the upload)")
+    args = ap.parse_args()
+    create_anonymous_archive(allow_modeled=args.allow_modeled)

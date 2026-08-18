@@ -35,19 +35,19 @@ def _attacker_signed_bundle(key_id="KEY-ATTACKER-UNTRUSTED"):
 
 
 def test_registry_loads_demo_key():
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     assert compute_key_id(DEMO_PUB_KEY_B64) in engine.trusted_keys
 
 
 def test_attacker_ed25519_key_rejected():
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     passed, violations, _ = engine.evaluate(_attacker_signed_bundle(), seen_nonces=set())
     assert not passed, "Bundle signed by an unregistered attacker key was APPROVED"
     assert any("not in trusted key registry" in v for v in violations)
 
 
 def test_spoofed_trusted_key_id_rejected():
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     d = _attacker_signed_bundle(key_id=compute_key_id(DEMO_PUB_KEY_B64))
     passed, violations, _ = engine.evaluate(d, seen_nonces=set())
     assert not passed, "Attacker key spoofing a trusted key_id was APPROVED"
@@ -55,7 +55,7 @@ def test_spoofed_trusted_key_id_rejected():
 
 
 def test_demo_signed_bundle_still_passes():
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     bundle = create_evidence_pack(use_ed25519=True, signed=True)
     passed, violations, _ = engine.evaluate(bundle.to_dict(), seen_nonces=set())
     assert passed, f"Registry broke legitimate demo-signed bundles: {violations}"
@@ -69,7 +69,7 @@ def test_engine_without_registry_rejects_ed25519():
 
 
 def test_malformed_evidence_fails_closed():
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     d = create_evidence_pack(use_ed25519=True, signed=True).to_dict()
     d["test_pass_pct"] = "not-a-number"   # raises TypeError mid-evaluation
     passed, violations, _ = engine.evaluate(d, seen_nonces=set())
@@ -80,7 +80,7 @@ def test_malformed_evidence_fails_closed():
 def test_forensic_audit_uses_registry_not_bundle_keys():
     from assurance.forensics import ForensicAuditEngine
     from benchmark.tamper_vectors import generate_tampered_evidence_suite
-    engine = ForensicAuditEngine(policy_engine=ReleasePolicyEngine.from_yaml(POLICY))
+    engine = ForensicAuditEngine(policy_engine=ReleasePolicyEngine.from_yaml(POLICY, witnessed=False))
     suite = {vid: ev for vid, _, ev in generate_tampered_evidence_suite()}
     res = engine.audit_bundle(suite["V3_FORGED_SIGNATURE"], seen_nonces=set())
     assert res["signature_key_status"] == "unregistered"

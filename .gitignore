@@ -33,3 +33,4 @@ build/
 .eviassure/
 _to_delete/
 COMMIT_MSG.txt
+governance/witness_keys.local.json

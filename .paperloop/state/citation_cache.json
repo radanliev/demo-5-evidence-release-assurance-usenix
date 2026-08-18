@@ -311,5 +311,53 @@
     "year": null,
     "container": "https://spiffe.io/docs/latest/",
     "type": "misc"
+  },
+  "brendel2021ed25519|10.1109/SP40001.2021.00042|the provable security of ed25519  theory and practice": {
+    "source": "crossref",
+    "doi": "10.1109/SP40001.2021.00042",
+    "title": "The Provable Security of Ed25519: Theory and Practice",
+    "year": 2021,
+    "container": "2021 IEEE Symposium on Security and Privacy (SP)",
+    "type": "proceedings-article"
+  },
+  "goldwasser1988digital|10.1137/0217017|a digital signature scheme secure against adaptive chosen message attacks": {
+    "source": "crossref",
+    "doi": "10.1137/0217017",
+    "title": "A Digital Signature Scheme Secure Against Adaptive Chosen-Message Attacks",
+    "year": 1988,
+    "container": "SIAM Journal on Computing",
+    "type": "journal-article"
+  },
+  "jimenez2024swebench||swe bench  can language models resolve real world github issues": {
+    "source": "dblp",
+    "doi": "",
+    "title": "SWE-bench: Can Language Models Resolve Real-world Github Issues?",
+    "year": 2024,
+    "container": "ICLR",
+    "type": "inproceedings"
+  },
+  "notarized2026agents||notarized agents  receiver attested confidential receipts for ai agent actions": {
+    "source": "openalex",
+    "doi": "10.48550/arxiv.2606.04193",
+    "title": "Notarized Agents: Receiver-Attested Confidential Receipts for AI Agent Actions",
+    "year": 2026,
+    "container": "arXiv (Cornell University)",
+    "type": "preprint"
+  },
+  "pipelab2026receipts||agent action receipts  signed ai audit evidence": {
+    "source": "web",
+    "doi": "",
+    "title": "Agent Action Receipts: Signed {AI} Audit Evidence",
+    "year": null,
+    "container": "https://pipelab.org/learn/agent-action-receipts/",
+    "type": "misc"
+  },
+  "rfc9943scitt|10.17487/RFC9943|an architecture for trustworthy and transparent digital supply chains": {
+    "source": "crossref",
+    "doi": "10.17487/RFC9943",
+    "title": "An Architecture for Trustworthy and Transparent Digital Supply Chains",
+    "year": 2026,
+    "container": "",
+    "type": "report"
   }
 }

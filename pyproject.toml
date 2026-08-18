@@ -11,11 +11,19 @@ requires-python = ">=3.10"
 dependencies = [
     "pyyaml>=6.0",
     "matplotlib>=3.5.0",
-    "cryptography>=42.0.0"
+    "cryptography>=42.0.0",
+    # 2026-08-18: previously undeclared. scripts/run_security_eval.py imports
+    # statsmodels (Wilson intervals) and crashed on a clean `pip install -e .`;
+    # benchmark/baselines.py needs python-tuf for the executed TUF baseline.
+    "statsmodels>=0.14",
+    "tuf>=5.0"
 ]
 
 [project.optional-dependencies]
 dev = [
+    # The paper's reproduction workflow runs `pytest tests/`, and
+    # tests/test_crypto_properties.py imports hypothesis, so install with
+    # `pip install -e ".[dev]"`, not `pip install -e .`.
     "pytest>=8.0.0",
     "hypothesis>=6.0",
     "mutmut>=3.0",

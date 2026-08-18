@@ -84,7 +84,7 @@ def test_blinding_structure_and_variance(payload, salt):
 def test_policy_fails_closed_on_arbitrary_json(node):
     """The gate must return a BLOCKED verdict for ANY malformed payload —
     never raise, never approve."""
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     passed, violations, details = engine.evaluate(node)
     assert passed is False
     assert details.get("fail_closed_enforced") is True

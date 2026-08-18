@@ -95,13 +95,15 @@ def _eviassure_verdict(vector_id: str, payload: Dict[str, Any],
         except ValueError:
             return True, ["MERKLE: 64-char non-digest leaf rejected (explicit digest typing)"]
 
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    # Tamper axis: bundles carry no witness attestations by construction, so the
+    # gate is evaluated on its other checks (unwitnessed evaluation profile).
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     if "__gate_override__" in payload:
         engine.release_conditions.update(payload["__gate_override__"])
 
     # V16 models a SECOND gate replica that does not share replay state.
     if payload.get("__fresh_replica__"):
-        first = ReleasePolicyEngine.from_yaml(POLICY)
+        first = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
         first.evaluate(deepcopy(clean), seen_nonces=set())      # approved on replica A
         passed, violations, _ = engine.evaluate(clean, seen_nonces=set())  # replica B
         return (not passed), violations
@@ -147,8 +149,10 @@ def evaluate_vectors(baselines) -> Dict[str, Any]:
         "n_retired_checks": len(rows) - n,
         "note": ("V1-V12 map close to 1:1 onto EviAssure's enforcement checks and are "
                  "reported as mechanism coverage, not as evidence of resilience to novel "
-                 "attacks. V14-V18 were written independently of the check list; two of "
-                 "them (V14, V17) broke the implementation before 2026-08-17. V13 is "
+                 "attacks. V14-V18 were written independently of the check list; three of "
+                 "them (V14, V15, V17) found real defects during development (V15 the "
+                 "internal-node-as-leaf proof, V14 the disabled-registry key fallback, V17 "
+                 "the 64-character leaf heuristic). V13 is "
                  "retired from the score: the KMS ARN is self-declared metadata inside the "
                  "signed payload and constrains misconfiguration, not an adversary."),
         "summary": summary,
@@ -169,12 +173,12 @@ def evaluate_omission(tamper_baselines) -> Dict[str, Any]:
     dsse = next(b for b in tamper_baselines if "DSSE" in b.name)
     tuf = next(b for b in tamper_baselines if "TUF" in b.name)
 
-    def evi(witnessed: bool, bundle):
-        e = ReleasePolicyEngine.from_yaml(POLICY)
+    def evi(witnessed: bool, bundle, expected_session_id):
+        e = ReleasePolicyEngine.from_yaml(POLICY, witnessed=witnessed)
         e.witness_registry = dict(registry)
         e.mediated_actions = dict(mediated)
-        e.release_conditions.update({"require_witnessed_completeness": witnessed})
-        passed, violations, _ = e.evaluate(deepcopy(bundle), seen_nonces=set())
+        passed, violations, _ = e.evaluate(deepcopy(bundle), seen_nonces=set(),
+                                           expected_session_id=expected_session_id)
         return (not passed), violations
 
     systems = [dsse.name, tuf.name, comp[0].name, comp[1].name,
@@ -183,13 +187,14 @@ def evaluate_omission(tamper_baselines) -> Dict[str, Any]:
     control_ok = {}
 
     for vid, meta, bundle in suite:
+        expected = meta.get("expected_session_id")
         blocked = {
             dsse.name: not dsse.verify(bundle),
             tuf.name: not tuf.verify(bundle),
             comp[0].name: not comp[0].verify(bundle),
             comp[1].name: not comp[1].verify(bundle),
-            "EviAssure without witness reconciliation": evi(False, bundle)[0],
-            "EviAssure + WTC": evi(True, bundle)[0],
+            "EviAssure without witness reconciliation": evi(False, bundle, expected)[0],
+            "EviAssure + WTC": evi(True, bundle, expected)[0],
         }
         if vid == "OC1":
             control_ok = {k: (not v) for k, v in blocked.items()}
@@ -199,14 +204,22 @@ def evaluate_omission(tamper_baselines) -> Dict[str, Any]:
         rows.append({"vector_id": vid, "name": meta["name"], "class": meta["class"],
                      "description": meta["description"],
                      "blocked_by": {k: bool(v) for k, v in blocked.items()},
-                     "eviassure_wtc_violation": (evi(True, bundle)[1] or [None])[0]})
+                     "expected_session_id": expected,
+                     "declared_session_id": bundle.get("session_id"),
+                     "eviassure_wtc_violation": (evi(True, bundle, expected)[1] or [None])[0]})
 
     n = len(suite) - 1
     return {
-        "note": ("Omission attacks: the adversary controls the agent and the evidence "
-                 "collector but not the witnesses, and performs actions without recording "
-                 "them. No tampering occurs, so no integrity check can fire. OC1 is an "
-                 "honest fully-witnessed execution that every system must APPROVE."),
+        "note": ("Omission attacks: the adversary controls the agent, the evidence "
+                 "collector and the collector's key, but neither a witness key nor the "
+                 "orchestrator's credential key, and performs actions without recording "
+                 "them (O1-O6) or presents a complete bundle for a different credentialed "
+                 "session (O7). No tampering occurs, so no integrity check can fire. OC1 is "
+                 "an honest fully-witnessed execution that every system must APPROVE. "
+                 "DSSE and TUF are executed library-style verifiers; the receipt and "
+                 "hash-chain baselines are re-implemented from the published designs "
+                 "(see benchmark/baselines.py) and their execution_mode says so."),
+        "completeness_baseline_execution": {b.name: b.execution_mode for b in comp},
         "n_omission_vectors": n,
         "control_approved_by": control_ok,
         "summary": {k: wilson(v, n) for k, v in tally.items()},
@@ -218,7 +231,7 @@ def evaluate_negative_controls(baselines) -> Dict[str, Any]:
     controls = generate_negative_controls()
     rows = []
     for label, meta, payload in controls:
-        engine = ReleasePolicyEngine.from_yaml(POLICY)
+        engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
         passed, violations, _ = engine.evaluate(payload, seen_nonces=set())
         rows.append({"control": label, "approved": passed, "violations": violations[:2]})
     k = sum(1 for r in rows if not r["approved"])
@@ -231,7 +244,7 @@ def evaluate_negative_controls(baselines) -> Dict[str, Any]:
 
 def evaluate_wire_fuzzing(count: int = 1000, seed: int = 42) -> Dict[str, Any]:
     suite = generate_wire_fuzzing_suite(count=count, seed=seed)
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
 
     tp = fp = fn = tn = 0
     disagreements = []
@@ -286,7 +299,7 @@ def evaluate_ablation() -> Dict[str, Any]:
     for label, conds, attr in variants:
         blocked, escaped = 0, []
         for vid, meta, payload in suite:
-            engine = ReleasePolicyEngine.from_yaml(POLICY)
+            engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
             engine.release_conditions.update(conds)
             if attr == "empty_registry":
                 engine.trusted_keys = {}
@@ -322,7 +335,7 @@ def main():
     ap.add_argument("--fuzz", type=int, default=1000)
     args = ap.parse_args()
 
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     baselines = build_baselines(engine.trusted_keys, engine.revoked_key_ids,
                                 require_executed=args.require_executed)
 

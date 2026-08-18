@@ -1,6 +1,6 @@
 # EviAssure: Reproducibility & Artifact Evaluation Guide
 
-This artifact package provides full reproduction materials for the paper **"Evidence-Backed Release Assurance for Autonomous Agent Deployments"** (USENIX Security 2027 Submission ID: `EVI-227`).
+This artifact package provides full reproduction materials for the paper **"Evidence-Backed Release Assurance for Autonomous Agent Deployments"** (USENIX Security 2027 submission).
 
 ---
 
@@ -9,7 +9,7 @@ This artifact package provides full reproduction materials for the paper **"Evid
 - **Hardware**: Tested on multi-core workstations (x86_64 or Apple Silicon; 14 logical cores recommended for 16-worker concurrency tests).
 - **Python**: Python $\ge 3.10$ (tested on Python 3.14).
 - **LaTeX Distribution**: `pdflatex` & `bibtex` (TeX Live / MacTeX) for manuscript recompilation.
-- **Dependencies**: `pytest`, `pyyaml`, `matplotlib`, `cryptography` (listed in `pyproject.toml`).
+- **Dependencies**: `pyyaml`, `matplotlib`, `cryptography`, `statsmodels`, `tuf` (python-tuf) — all declared in `pyproject.toml`; the `dev` extra adds `pytest` and `hypothesis`, which the test suite imports. The `opa` binary must be on `PATH` for the OPA baseline to run as *executed* rather than *modeled*.
 
 ### Installation
 
@@ -17,8 +17,8 @@ This artifact package provides full reproduction materials for the paper **"Evid
 # Clone or extract the artifact
 cd eviassure
 
-# Install the package in editable mode with dependencies
-pip install -e .
+# Install the package in editable mode with all dependencies, including the test extras
+pip install -e ".[dev]"
 ```
 
 ---
@@ -43,16 +43,18 @@ Every empirical claim, table, and figure in the manuscript maps directly to a de
 
 | Paper Item | Claim / Metric | Generation Script | Output Artifact | Expected Runtime |
 |---|---|---|---|:---:|
-| **Table 1** (Vector suite) | 16/17 blocked (94.1%, CI [73.0,99.0]); V16 not blocked | `scripts/run_security_eval.py` | `results/security_evaluation.json` | ~10s |
-| **Table 2** (Corpus Eval) | 1,050 profiles (100% L1 integrity, 100% L2 gate, 100% L3 recall) | `scripts/run_corpus_eval.py` | `results/corpus_evaluation.json` | ~6s |
-| **Table 3** (Capability Map) | Complete $\mathcal{A}_1$--$\mathcal{A}_5$ threat model coverage | `tests/test_tamper_resilience.py` | `tests/test_tamper_resilience.py` | ~1.5s |
-| **Table 4** (Comparative Matrix) | Feature comparison across 12 frameworks | Qualitative Analysis | `docs/usenix_paper_manuscript.tex` | N/A |
-| **Figure 1** (Architecture) | 4-Zone zero-trust attestation plane | TikZ Vector Model | `docs/usenix_paper_manuscript.pdf` (p. 3) | ~2s |
-| **Figure 2** (Scaling) | $O(\log N)$ Merkle build to $N=10^6$ traces | `scripts/run_release_benchmark.py` | `docs/figures/merkle_scaling.png` | ~25s |
-| **Figure 3** (Throughput) | Peak parallel throughput at \peakWorkers{} workers | `scripts/run_release_benchmark.py` | `docs/figures/parallel_throughput.png` | ~15s |
-| **Figure 4** (Block Rate) | EviAssure (100%) vs Baselines (0%--30.8%) | `scripts/run_comparative_eval.py` | `docs/figures/comparative_block_rate.png` | ~2s |
-| **Section 7.1** (Compression) | 99.999% bandwidth reduction (<5 KB proof) | `assurance/merkle_tree.py` | `results/benchmark_summary.json` | ~0.5s |
-| **Test Suite** (100 tests) | Cryptographic soundness, registry, tamper resilience | `pytest tests/ -v` | Console test log | ~1.5s |
+| **Table 1** (Tamper vectors) | 16/17 blocked (94.1%, CI [73.0, 99.0]); V16 not blocked; 0/4 clean controls falsely blocked | `scripts/run_security_eval.py` | `results/security_evaluation.json` (`vectors`, `negative_controls`, `ablation`, `wire_fuzzing`) | ~10s |
+| **Table 2** (Omission attacks, O1–O7) | EviAssure + WTC 7/7; without reconciliation 0/7; receipts 2/7; per-issuer chaining 2/7; DSSE 0/7; TUF 0/7; honest control OC1 approved by all | `scripts/run_security_eval.py` | `results/security_evaluation.json` (`omission`) | ~10s |
+| **Table 3** (Corpus, layered) | 1,075 profiles / 5,450 records; L1 1075/1075; L2 clean 1000/1000 and anomalous 75/75 APPROVED; L3 held-out recall 50/50 overt, 0/25 stealth, 0/1000 false positives | `scripts/generate_trace_corpus.py`, `scripts/run_corpus_eval.py` | `corpus/agent_trace_corpus.json`, `results/corpus_evaluation.json` | ~6s |
+| **Table 4** (Live agent sessions) | 14 of 15 requested sessions; 5 ran to completion; witness coverage 80.8% over completed sessions (93.2% pooled) — a property of the 4-of-5 witnessed tool set; 69/69 re-derived omission attacks detected over 5 of the 7 vectors (O5, O7 need a second session and were not constructed for the recorded runs; the current harness derives O7 pairwise on re-run) | `scripts/run_live_agent_eval.py` (needs a provider API key; never simulated) | `results/live_agent_evaluation.json` | minutes, provider-bound |
+| **Figure 1** (Architecture) | System model and trust boundaries | TikZ in the manuscript source | `docs/usenix_paper_manuscript.pdf` | — |
+| **Figure 2** (Scaling) | Merkle build to $N=10^6$ traces (378.00 ms mean of 5 on Apple M4 Max) | `scripts/run_release_benchmark.py` | `results/benchmark_summary.json`, `docs/figures/merkle_scaling.png` | ~25s |
+| **Figure 3** (Throughput) | Peak 7,152 ± 179 ops/s at 4 workers (three-trace bundles) | `scripts/run_release_benchmark.py` | `results/benchmark_summary.json`, `docs/figures/parallel_throughput.png` | ~15s |
+| **Figure 4** (Block rate) | EviAssure 16/17 vs composed DSSE + TUF + OPA 10/17, Wilson 95% intervals (overlapping) | `scripts/run_security_eval.py`, drawn by `scripts/generate_paper_pdf.py` | `results/security_evaluation.json`, `docs/figures/comparative_block_rate.png` | ~2s |
+| **Sparse proofs** | 20-node, 1.93 KB proof at $N=10^6$; verifies in 0.007 ms | `scripts/run_release_benchmark.py` (`assurance/crypto.py`) | `results/benchmark_summary.json` (`sparse_proof`) | ~0.5s |
+| **Test Suite** (106 tests) | crypto soundness (property-based), registry, tamper/omission regressions, credential refusal, session substitution, CLI end-to-end reconciliation | `pytest tests/ -v` | Console test log | ~3s |
+
+Timings in `results/benchmark_summary.json` are platform-dependent and were recorded on Apple M4 Max / Python 3.14; block counts and verdicts are platform-independent.
 
 ---
 
@@ -66,23 +68,38 @@ For fine-grained artifact evaluation, individual components can be executed inde
 #    Free-tier accounts are metered per minute; use --append to batch.
 python3 scripts/run_live_agent_eval.py --sessions 5 --provider groq --append
 
-# 1. Run full unit and regression test suite (100 tests)
+# 1. Run full unit and regression test suite (106 tests)
 pytest tests/ -v
 
 # 2. Re-run scaling & multi-core throughput benchmarks (generates benchmark_summary.json)
 python3 scripts/run_release_benchmark.py --repeats 5
 
-# 3. Re-run comparative baseline evaluations (generates comparative_evaluation.json)
-python3 scripts/run_comparative_eval.py
+# 3. Re-run the deterministic security evaluation: 17 tamper vectors + clean
+#    controls, 7 omission vectors + honest control, executed DSSE/TUF/OPA
+#    baselines, ablation, wire fuzzing, held-out inspection
+#    (generates security_evaluation.json; then regenerate the LaTeX macros)
+python3 scripts/run_security_eval.py --require-executed
+python3 scripts/write_security_macros.py
 
-# 4. Re-run corpus two-layer evaluation across 1,050 agent profiles (generates corpus_evaluation.json)
+# 4. Re-run the corpus layered evaluation across 1,075 agent profiles (generates corpus_evaluation.json)
+python3 scripts/generate_trace_corpus.py
 python3 scripts/run_corpus_eval.py
 
 # 5. Regenerate 600 DPI figures and recompile LaTeX manuscript
 python3 scripts/generate_paper_pdf.py
 
 # 6. Package clean anonymous artifact archive and compute SHA-256 digest
+#    (refuses to package if results/ records a modeled DSSE/TUF/OPA baseline)
 python3 scripts/prepare_anonymous_artifact.py
+
+# 7. Exercise the shipped, witnessed release gate end to end: package a
+#    witnessed bundle plus the release request that names its credentialed
+#    session, then evaluate it (APPROVED); an unwitnessed bundle is BLOCKED.
+python3 scripts/provision_witnesses.py                    # (re)writes governance/witness_registry.yaml (demo profile)
+python3 scripts/package_evidence.py -o evidence_pack.json --format text
+python3 scripts/verify_release_gate.py --evidence evidence_pack.json   # picks up evidence_pack.json.release_request.json
+python3 scripts/package_evidence.py -o unwitnessed.json --unwitnessed --format text
+python3 scripts/verify_release_gate.py --evidence unwitnessed.json     # exit 1: COMPLETENESS_VIOLATION
 ```
 
 ---
@@ -95,11 +112,11 @@ To satisfy USENIX Security 2027 Open Science requirements while preserving doubl
    - The archive is generated via `python3 scripts/prepare_anonymous_artifact.py`.
    - All Git commit metadata, personal author identifiers, proprietary paths, and local build artifacts (`.pyc`, `.DS_Store`, `.paperloop`, `.git`) are stripped.
 2. **SHA-256 Integrity Verification**:
-   - The computed SHA-256 digest is embedded directly in Appendix B of the manuscript (`docs/artifact_digest.tex`).
+   - The computed SHA-256 digest is embedded directly in the Open Science Appendix of the manuscript (`docs/artifact_digest.tex`).
    - Reviewers can verify artifact integrity with:
      ```bash
      shasum -a 256 eviassure_usenix27_artifact.zip
      ```
 3. **Anonymous Online Repository**:
    - Anonymized online repository mirror hosted at:
-     [https://anonymous.4open.science/r/eviassure-release-assurance/](https://anonymous.4open.science/r/eviassure-release-assurance/)
+     [https://anonymous.4open.science/r/eviassure-artifact-781D/](https://anonymous.4open.science/r/eviassure-artifact-781D/) (the URL cited in the manuscript)

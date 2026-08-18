@@ -1,18 +1,18 @@
 {
-  "timestamp": "2026-08-17T18:03:43Z",
-  "python_version": "3.11.15",
+  "timestamp": "2026-08-18T11:39:52Z",
+  "python_version": "3.14.7",
   "determinism": "platform-independent: every figure here is a block count or a verdict, not a timing. Regenerate on any machine.",
   "baseline_execution": {
     "Unauthenticated CI status gate (lower bound)": "modeled (exit-code semantics; reported as a floor, not a competitor)",
-    "OPA Rego schema policy": "modeled (no opa binary on PATH)",
-    "in-toto/DSSE signature verification": "executed (securesystemslib DSSE PAE + Ed25519)",
-    "TUF metadata verification (expiry + threshold + revocation)": "executed (python-tuf)",
-    "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": "composed execution (executed (securesystemslib DSSE PAE + Ed25519); executed (python-tuf); modeled (no opa binary on PATH))"
+    "OPA Rego schema policy": "executed: OPA 1.19.0",
+    "in-toto/DSSE signature verification": "executed (DSSE v1 PAE + Ed25519 via cryptography, pinned trust root)",
+    "TUF metadata verification (expiry + threshold + revocation)": "executed (python-tuf Timestamp expiry over a DSSE trust-root check; threshold=1, root-driven revocation)",
+    "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": "composed execution (executed (DSSE v1 PAE + Ed25519 via cryptography, pinned trust root); executed (python-tuf Timestamp expiry over a DSSE trust-root check; threshold=1, root-driven revocation); executed: OPA 1.19.0)"
   },
   "vectors": {
     "n_scored_vectors": 17,
     "n_retired_checks": 1,
-    "note": "V1-V12 map close to 1:1 onto EviAssure's enforcement checks and are reported as mechanism coverage, not as evidence of resilience to novel attacks. V14-V18 were written independently of the check list; two of them (V14, V17) broke the implementation before 2026-08-17. V13 is retired from the score: the KMS ARN is self-declared metadata inside the signed payload and constrains misconfiguration, not an adversary.",
+    "note": "V1-V12 map close to 1:1 onto EviAssure's enforcement checks and are reported as mechanism coverage, not as evidence of resilience to novel attacks. V14-V18 were written independently of the check list; three of them (V14, V15, V17) found real defects during development (V15 the internal-node-as-leaf proof, V14 the disabled-registry key fallback, V17 the 64-character leaf heuristic). V13 is retired from the score: the KMS ARN is self-declared metadata inside the signed payload and constrains misconfiguration, not an adversary.",
     "summary": {
       "eviassure": {
         "rate_pct": 94.1,
@@ -111,7 +111,7 @@
         "scored": true,
         "eviassure_blocked": true,
         "eviassure_violations": [
-          "POLICY_VIOLATION: Replayed evidence nonce detected (11e536a1-e7cd-4c8e-b1f9-719d783b7030)."
+          "POLICY_VIOLATION: Replayed evidence nonce detected (4a84cf91-e999-4912-b634-0073dc2d6fff)."
         ],
         "Unauthenticated CI status gate (lower bound)": false,
         "OPA Rego schema policy": false,
@@ -337,8 +337,12 @@
     ]
   },
   "omission": {
-    "note": "Omission attacks: the adversary controls the agent and the evidence collector but not the witnesses, and performs actions without recording them. No tampering occurs, so no integrity check can fire. OC1 is an honest fully-witnessed execution that every system must APPROVE.",
-    "n_omission_vectors": 6,
+    "note": "Omission attacks: the adversary controls the agent, the evidence collector and the collector's key, but neither a witness key nor the orchestrator's credential key, and performs actions without recording them (O1-O6) or presents a complete bundle for a different credentialed session (O7). No tampering occurs, so no integrity check can fire. OC1 is an honest fully-witnessed execution that every system must APPROVE. DSSE and TUF are executed library-style verifiers; the receipt and hash-chain baselines are re-implemented from the published designs (see benchmark/baselines.py) and their execution_mode says so.",
+    "completeness_baseline_execution": {
+      "Per-action receipts (no sequence binding)": "re-implemented from the published designs; executed (Ed25519 receipt verification against a pinned witness registry)",
+      "Per-issuer hash chaining (AAS-1 style)": "re-implemented from the AAS-1 description; executed (authenticated prev-link chain walk per issuer)"
+    },
+    "n_omission_vectors": 7,
     "control_approved_by": {
       "in-toto/DSSE signature verification": true,
       "TUF metadata verification (expiry + threshold + revocation)": true,
@@ -351,44 +355,44 @@
       "in-toto/DSSE signature verification": {
         "rate_pct": 0.0,
         "ci95_low_pct": 0.0,
-        "ci95_high_pct": 39.0,
+        "ci95_high_pct": 35.4,
         "k": 0,
-        "n": 6
+        "n": 7
       },
       "TUF metadata verification (expiry + threshold + revocation)": {
         "rate_pct": 0.0,
         "ci95_low_pct": 0.0,
-        "ci95_high_pct": 39.0,
+        "ci95_high_pct": 35.4,
         "k": 0,
-        "n": 6
+        "n": 7
       },
       "Per-action receipts (no sequence binding)": {
-        "rate_pct": 33.3,
-        "ci95_low_pct": 9.7,
-        "ci95_high_pct": 70.0,
+        "rate_pct": 28.6,
+        "ci95_low_pct": 8.2,
+        "ci95_high_pct": 64.1,
         "k": 2,
-        "n": 6
+        "n": 7
       },
       "Per-issuer hash chaining (AAS-1 style)": {
-        "rate_pct": 16.7,
-        "ci95_low_pct": 3.0,
-        "ci95_high_pct": 56.4,
-        "k": 1,
-        "n": 6
+        "rate_pct": 28.6,
+        "ci95_low_pct": 8.2,
+        "ci95_high_pct": 64.1,
+        "k": 2,
+        "n": 7
       },
       "EviAssure without witness reconciliation": {
         "rate_pct": 0.0,
         "ci95_low_pct": 0.0,
-        "ci95_high_pct": 39.0,
+        "ci95_high_pct": 35.4,
         "k": 0,
-        "n": 6
+        "n": 7
       },
       "EviAssure + WTC": {
         "rate_pct": 100.0,
-        "ci95_low_pct": 61.0,
+        "ci95_low_pct": 64.6,
         "ci95_high_pct": 100.0,
-        "k": 6,
-        "n": 6
+        "k": 7,
+        "n": 7
       }
     },
     "per_vector": [
@@ -405,6 +409,8 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": false
         },
+        "expected_session_id": "sess-2090a3b0ff76",
+        "declared_session_id": "sess-2090a3b0ff76",
         "eviassure_wtc_violation": null
       },
       {
@@ -420,6 +426,8 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
+        "expected_session_id": "sess-2090a3b0ff76",
+        "declared_session_id": "sess-2090a3b0ff76",
         "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: witness 'db-gateway' attested 3 served action(s); sequence number(s) [2] are absent from the submitted trace set (omitted action)"
       },
       {
@@ -435,6 +443,8 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
+        "expected_session_id": "sess-2090a3b0ff76",
+        "declared_session_id": "sess-2090a3b0ff76",
         "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: witness 'db-gateway' attested 3 served action(s); sequence number(s) [3] are absent from the submitted trace set (omitted action)"
       },
       {
@@ -450,7 +460,9 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
-        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: registered witness 'shell-broker' produced no closing statement for session 'sess-68ac929a8b19'; a session in which a witness served nothing must still carry its final_seq=0 closing, so a missing closing is an omitted witness rather than an unused tool"
+        "expected_session_id": "sess-2090a3b0ff76",
+        "declared_session_id": "sess-2090a3b0ff76",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: registered witness 'shell-broker' produced no closing statement for session 'sess-2090a3b0ff76'; a session in which a witness served nothing must still carry its final_seq=0 closing, so a missing closing is an omitted witness rather than an unused tool"
       },
       {
         "vector_id": "O4",
@@ -465,6 +477,8 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
+        "expected_session_id": "sess-2090a3b0ff76",
+        "declared_session_id": "sess-2090a3b0ff76",
         "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: invalid closing signature from 'db-gateway'"
       },
       {
@@ -476,11 +490,13 @@
           "in-toto/DSSE signature verification": false,
           "TUF metadata verification (expiry + threshold + revocation)": false,
           "Per-action receipts (no sequence binding)": true,
-          "Per-issuer hash chaining (AAS-1 style)": false,
+          "Per-issuer hash chaining (AAS-1 style)": true,
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
-        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: invalid receipt signature from 'db-gateway' seq 2"
+        "expected_session_id": "sess-2090a3b0ff76",
+        "declared_session_id": "sess-2090a3b0ff76",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: receipt from foreign session 'sess-5b831814c300' (expected 'sess-2090a3b0ff76')"
       },
       {
         "vector_id": "O6",
@@ -495,7 +511,26 @@
           "EviAssure without witness reconciliation": false,
           "EviAssure + WTC": true
         },
+        "expected_session_id": "sess-2090a3b0ff76",
+        "declared_session_id": "sess-2090a3b0ff76",
         "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: 1 recorded action(s) claim a witness-mediated operation (['execute_read_only_query']) but carry no witness receipt (fabricated action)"
+      },
+      {
+        "vector_id": "O7",
+        "name": "Session substitution",
+        "class": "A6 collector omission",
+        "description": "The adversary performs the dangerous action in one credentialed session and submits the complete, honestly witnessed bundle of a second, benign credentialed session for the release. Every attestation verifies; nothing is missing from the bundle presented. Only a gate that binds the release to the session it credentialed can tell.",
+        "blocked_by": {
+          "in-toto/DSSE signature verification": false,
+          "TUF metadata verification (expiry + threshold + revocation)": false,
+          "Per-action receipts (no sequence binding)": false,
+          "Per-issuer hash chaining (AAS-1 style)": false,
+          "EviAssure without witness reconciliation": false,
+          "EviAssure + WTC": true
+        },
+        "expected_session_id": "sess-2090a3b0ff76",
+        "declared_session_id": "sess-b99e5c5a1c5e",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: bundle declares session 'sess-b99e5c5a1c5e' but the release under evaluation was credentialed as 'sess-2090a3b0ff76' (session substitution)"
       }
     ]
   },
@@ -533,20 +568,20 @@
   },
   "wire_fuzzing": {
     "note": "differential wire-encoding fuzzing: mutations perturb the SERIALIZATION of a validly signed bundle (key order, whitespace, unicode escaping, number formatting, duplicate keys, BOM) rather than signed fields, so a passing outcome is reachable and the experiment can fail. 20% of cases are clean controls. Replaces the campaign whose 1000/1000 result was an identity.",
-    "n_cases": 300,
+    "n_cases": 1000,
     "semantics_changing_blocked": {
       "rate_pct": 100.0,
-      "ci95_low_pct": 93.1,
+      "ci95_low_pct": 98.3,
       "ci95_high_pct": 100.0,
-      "k": 52,
-      "n": 52
+      "k": 217,
+      "n": 217
     },
     "semantics_preserving_approved": {
       "rate_pct": 100.0,
-      "ci95_low_pct": 98.5,
+      "ci95_low_pct": 99.5,
       "ci95_high_pct": 100.0,
-      "k": 248,
-      "n": 248
+      "k": 783,
+      "n": 783
     },
     "disagreements": []
   },

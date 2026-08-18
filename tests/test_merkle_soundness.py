@@ -99,7 +99,7 @@ def test_depth_helper_matches_built_trees():
 
 def test_signed_trace_count_is_enforced():
     """M2: lying about execution_traces_count must block, not pass."""
-    engine = ReleasePolicyEngine.from_yaml(POLICY)
+    engine = ReleasePolicyEngine.from_yaml(POLICY, witnessed=False)
     bundle = create_evidence_pack(use_ed25519=True, signed=True)
     d = bundle.to_dict()
     d["execution_traces_count"] = 999

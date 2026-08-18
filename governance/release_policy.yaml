@@ -22,6 +22,14 @@ release_conditions:
   max_future_clock_skew_seconds: 30
   require_slsa_envelope: false
   fail_closed_default: true
+  # Witnessed Trace Completeness (paper Sec. Witness Protocol). The gate
+  # reconciles the submitted trace set against witness receipts and closing
+  # counts from governance/witness_registry.yaml, bound to the session the
+  # release request names. ON by default: an unwitnessed bundle, or one whose
+  # session is not the credentialed one, is BLOCKED. Mechanism-level
+  # evaluations that use unwitnessed bundles load the policy with
+  # ReleasePolicyEngine.from_yaml(path, witnessed=False) and say so.
+  require_witnessed_completeness: true
   # Signing keys must live inside this KMS boundary (paper Sec 4.1 A_KMS)
   kms_key_arn_pattern: '^kms://aws/arn:aws:kms:us-east-1:[0-9]{12}:key/[A-Za-z0-9-]+$'
 

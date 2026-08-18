@@ -26,7 +26,7 @@ _POLICY = Path(__file__).parent.parent / "governance" / "release_policy.yaml"
 
 
 def _engine(**overrides) -> ReleasePolicyEngine:
-    engine = ReleasePolicyEngine.from_yaml(_POLICY)
+    engine = ReleasePolicyEngine.from_yaml(_POLICY, witnessed=False)
     for k, v in overrides.items():
         engine.release_conditions[k] = v
     return engine
