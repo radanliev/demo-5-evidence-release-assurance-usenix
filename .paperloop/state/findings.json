@@ -2,7 +2,7 @@
   "meta": {
     "venue": "USENIX Security 2027",
     "manuscript": "docs/usenix_paper_manuscript.tex",
-    "generated": "2026-08-18T15:12:59"
+    "generated": "2026-08-18T16:54:40"
   },
   "summary": {
     "total": 9,
@@ -70,7 +70,7 @@
       "file": "docs/usenix_paper_manuscript.tex",
       "line": 470,
       "page": null,
-      "evidence": "\\textbf{Differential wire fuzzing.} A fuzzing campaign whose every mutation perturbs a field inside the signed payload cannot fail --- a verifying bundle is unreachable and no clea",
+      "evidence": "\\textbf{Differential wire fuzzing.} A fuzzing campaign whose every mutation perturbs a field inside the signed payload cannot fail  (a verifying bundle is unreachable and no clean ",
       "expected": "rule: rate_without_denominator",
       "remedy": "Give the numerator/denominator (e.g. '62% (31/50)').",
       "fingerprint": "847f07f332bc6f23",
