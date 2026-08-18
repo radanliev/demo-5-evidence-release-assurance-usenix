@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 12:56
+**Run:** 2026-08-18 13:04
 
 | Severity | Count |
 |---|---|
@@ -12,6 +12,23 @@
 | INFO | 4 |
 
 Gated (human sign-off required): **1**
+
+<details><summary>Build output (tail)</summary>
+
+```
+=== USENIX Security Paper PDF Builder & Figure Generator ===
+[+] High-resolution 600 DPI benchmark figures saved to: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/figures
+[*] Froze headline metrics -> frozen_metrics.tex (throughput=7,025, overhead=0.000%)
+[*] Compiling LaTeX manuscript: usenix_paper_manuscript.tex using pdflatex...
+[SUCCESS] Compiled USENIX Security paper PDF: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
+
+[+] PDF generation complete: /Users/skywalker/Projects/demo-5-evidence-release-assurance-usenix/docs/usenix_paper_manuscript.pdf
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+findfont: Failed to find font weight semibold, now using 700.
+```
+</details>
 
 ## Auto-fix mandate
 
