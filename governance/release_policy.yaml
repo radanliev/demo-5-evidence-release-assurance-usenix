@@ -1,20 +1,37 @@
 # USENIX Security 2027 Fail-Closed Release Gate Policy
 policy_name: USENIX Security Fail-Closed Release Gate Policy
 version: 1.0.0
-author: Oxford / Newcastle Security Research Group
+author: Anonymous Reviewers
 
 release_conditions:
   require_signed_evidence: true
+  # Ed25519 is the default and only signature algorithm the shipped policy
+  # accepts. HMAC-SHA256 is supported by the engine but deliberately NOT
+  # enabled here: the prototype's shared secret is a source-code constant, and
+  # an HMAC mode verified against a public constant would let anyone forge a
+  # passing bundle (2026-08 adversarial review). Deployments that need HMAC
+  # must re-enable it AND set an operator-held 'hmac_secret_key' below.
   allowed_sig_algs:
     - ed25519
-    - hmac-sha256
+  # hmac_secret_key: "<operator-held secret, never the source constant>"
   min_passing_tests_pct: 100.0
   allowed_drift_findings: 0
   verify_merkle_root: true
+  enforce_trace_count: true
   max_evidence_age_seconds: 3600
   max_future_clock_skew_seconds: 30
   require_slsa_envelope: false
   fail_closed_default: true
+  # Witnessed Trace Completeness (paper Sec. Witness Protocol). The gate
+  # reconciles the submitted trace set against witness receipts and closing
+  # counts from governance/witness_registry.yaml, bound to the session the
+  # release request names. ON by default: an unwitnessed bundle, or one whose
+  # session is not the credentialed one, is BLOCKED. Mechanism-level
+  # evaluations that use unwitnessed bundles load the policy with
+  # ReleasePolicyEngine.from_yaml(path, witnessed=False) and say so.
+  require_witnessed_completeness: true
+  # Signing keys must live inside this KMS boundary (paper Sec 4.1 A_KMS)
+  kms_key_arn_pattern: '^kms://aws/arn:aws:kms:us-east-1:[0-9]{12}:key/[A-Za-z0-9-]+$'
 
 revoked_key_ids:
   - KEY-REVOKED-9999

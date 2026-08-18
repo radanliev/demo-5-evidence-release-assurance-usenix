@@ -2,14 +2,14 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-12 20:38
+**Run:** 2026-08-19 00:34
 
 | Severity | Count |
 |---|---|
 | BLOCKER | 0 |
-| MAJOR | 1 |
-| MINOR | 0 |
-| INFO | 3 |
+| MAJOR | 0 |
+| MINOR | 4 |
+| INFO | 4 |
 
 Gated (human sign-off required): **0**
 
@@ -17,14 +17,41 @@ Gated (human sign-off required): **0**
 
 The writer agent applies these directly. Formatting, layout, figures, references, venue compliance — no interpretation of results required.
 
-### [MAJOR] venue.pagecount
+### [MINOR] refs.bibfield `docs/references.bib`:268
 
-paper is well under the 13-page budget
+notarized2026agents is cited as arXiv — check for a peer-reviewed version
 
-- **found:** `8 body pages`
-- **expected:** competitive submissions use 11-13 pages
-- **remedy:** Expand evaluation, threat model, or related work; reviewers read a short paper as an underdeveloped one.
-- **id:** `6cfb9be7880c8171`
+- **remedy:** If it appeared at a venue, cite the published version. Reviewers notice arXiv-only bibliographies.
+- **id:** `0773e9972633d214`
+
+### [MINOR] refs.bibfield `docs/references.bib`:340
+
+shi2025progent is cited as arXiv — check for a peer-reviewed version
+
+- **remedy:** If it appeared at a venue, cite the published version. Reviewers notice arXiv-only bibliographies.
+- **id:** `79316e3ed4543120`
+
+## Gated — requires your decision
+
+**The writer agent must not touch these.** Changing a number to make a gate pass converts a data error into a published claim. Each one gets a proposed diff in `.paperloop/state/proposals/`, and the loop halts.
+
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:518
+
+percentage without an explicit denominator
+
+- **found:** `EviAssure blocks \eviBlocked{} of \eviTotal{} scored vectors (\eviPct\%, 95\% CI [\eviCIlo, \eviCIhi]), and falsely blocks \falseBlockK{} of \falseBlockN{} clean negative controls.`
+- **expected:** rule: rate_without_denominator
+- **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
+- **id:** `48dd7d0fe41d5226`
+
+### [MINOR] science.stat_reporting `docs/usenix_paper_manuscript.tex`:526
+
+percentage without an explicit denominator
+
+- **found:** `\textbf{Differential wire fuzzing.} A campaign whose every mutation perturbs a field inside the signed payload cannot fail (a verifying bundle is unreachable), so it carries no inf`
+- **expected:** rule: rate_without_denominator
+- **remedy:** Give the numerator/denominator (e.g. '62% (31/50)').
+- **id:** `4cf2748735cd4fe5`
 
 ## Measurements
 
@@ -32,17 +59,15 @@ Recorded for the round log; no action implied.
 
 ### [INFO] refs.unverified
 
-Crossref and OpenAlex are unreachable — citations not verified
+45 citation(s) verified against Crossref/OpenAlex/SemanticScholar
 
-- **expected:** network access to api.crossref.org and api.openalex.org
-- **remedy:** Add both to the network allowlist, then re-run. Offline, citation existence cannot be checked at all.
-- **id:** `7b862c54c1971489`
+- **id:** `30abfb8ca6869b49`
 
 ### [INFO] science.artifact_missing
 
-indexed 66 distinct values from 5 artifacts
+indexed 235 distinct values from 8 artifacts
 
-- **id:** `2df7050383de2842`
+- **id:** `e91d590adae99747`
 
 ### [INFO] venue.font
 
@@ -51,4 +76,12 @@ body font size correct
 - **found:** `9.96pt`
 - **expected:** 10.0pt
 - **id:** `4c59ff54d5e8d91e`
+
+### [INFO] venue.pagecount
+
+page count within limit
+
+- **found:** `13 body pages / 19 total`
+- **expected:** <= 13
+- **id:** `1f0cf72111de700b`
 

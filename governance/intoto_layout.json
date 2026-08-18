@@ -1,11 +1,11 @@
 {
   "_type": "layout",
   "keys": {
-    "KEY-DEMO-ED25519": {
+    "KEY-6d1f9bcd0679": {
       "keytype": "ed25519",
       "scheme": "ed25519",
       "keyval": {
-        "public": "DEMO_PUB_KEY_BASE64_PLACEHOLDER"
+        "public": "62FM4fJtlgjFi7h4FgZID3mUUz0D1roow0hNFFfFU6o="
       }
     }
   },
@@ -16,7 +16,7 @@
       "expected_products": [
         ["CREATE", "execution_traces.json"]
       ],
-      "pubkeys": ["KEY-DEMO-ED25519"],
+      "pubkeys": ["KEY-6d1f9bcd0679"],
       "expected_command": ["python3", "specimens/agent_runner.py"],
       "threshold": 1
     },
@@ -28,7 +28,7 @@
       "expected_products": [
         ["CREATE", "evidence_pack.json"]
       ],
-      "pubkeys": ["KEY-DEMO-ED25519"],
+      "pubkeys": ["KEY-6d1f9bcd0679"],
       "expected_command": ["python3", "scripts/package_evidence.py"],
       "threshold": 1
     }

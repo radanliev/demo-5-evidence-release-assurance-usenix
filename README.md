@@ -1,4 +1,4 @@
-# Demo 5: Evidence-Backed Release Assurance for Agentic Systems
+# EviAssure: Evidence-Backed Release Assurance for Agentic Systems
 
 [![USENIX Security Target](https://img.shields.io/badge/Research--Target-USENIX%20Security%202027-blue.svg)](https://www.usenix.org/conference/usenixsecurity27)
 [![Paper PDF](https://img.shields.io/badge/Paper-USENIX%20Security%20PDF-red.svg)](docs/usenix_paper_manuscript.pdf)
@@ -6,9 +6,10 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 
-> **Blind-Verification Research & Teaching Portfolio**  
+> **Double-Blind Review Artifact**  
 > *Target Venue:* USENIX Security Symposium (USENIX Security 2027)  
-> *Primary Focus:* Cryptographic trace attestation (SHA-256 Merkle trees), Ed25519/HMAC digital evidence packaging, fail-closed zero-trust policy gate verification, and tamper resilience audit infrastructure.
+> *Anonymous Repository Mirror:* [https://anonymous.4open.science/r/eviassure-artifact-781D/](https://anonymous.4open.science/r/eviassure-artifact-781D/) (the URL the manuscript cites; an earlier mirror name was `eviassure-release-assurance`)  
+> *Primary Focus:* Witnessed Trace Completeness (sequence-bound witness receipts + signed closing counts, reconciled at the gate), SHA-256 Merkle trace attestation with RFC 6962 domain separation, Ed25519 evidence packaging, and a fail-closed, stateful release gate.
 
 ---
 
@@ -16,59 +17,35 @@
 
 Autonomous agentic deployments require reproducible, cryptographically verifiable evidence before releasing model updates, expanding tool execution privileges, or authorizing automated workflow triggers in production. Relying on unauthenticated CI build logs or self-reported status labels exposes release pipelines to runner tampering, trace forgery, and evidence replay attacks.
 
-**Demo 5** delivers a complete **USENIX Security 2027 Systems Security Framework**:
+**EviAssure** delivers a complete **USENIX Security 2027 Systems Security Framework**:
 - **Cryptographic Attestation Engine** (`assurance/crypto.py`): Condenses $N$ agent execution traces into a SHA-256 Merkle tree root with $O(\log N)$ audit inclusion proof verification.
 - **Sealed Evidence Bundler** (`assurance/evidence.py`, `scripts/package_evidence.py`): Generates Ed25519/HMAC-signed `EvidenceBundle` instances with nonces and timestamps for replay protection.
 - **Fail-Closed Policy Engine** (`assurance/policy.py`, `scripts/verify_release_gate.py`): Enforces multi-factor release conditions against `governance/release_policy.yaml`.
-- **Adversarial Release Tamper Suite** (`benchmark/tamper_vectors.py`, `tests/test_tamper_resilience.py`): Evaluates 8 distinct release tamper attack vectors.
-- **Empirical Benchmark & Paper Generator** (`scripts/run_release_benchmark.py`, `scripts/generate_paper_pdf.py`): Measures packaging latency, verifier throughput, and compiles the official USENIX Security 2027 paper manuscript to PDF (`docs/usenix_paper_manuscript.pdf`).
+- **Witness Protocol** (`assurance/witness.py`, `benchmark/omission_vectors.py`): orchestrator-issued session credentials, sequence-bound receipts with prev-links, signed closing counts; the gate reconciles them against the trace set for the credentialed session (Witnessed Trace Completeness). ON by default in `governance/release_policy.yaml`; the shipped registry (`scripts/provision_witnesses.py`) carries demo witnesses.
+- **Adversarial Suites** (`benchmark/tamper_vectors.py`, `benchmark/omission_vectors.py`, `benchmark/baselines.py`): 17 scored tamper vectors plus clean negative controls, 7 omission vectors plus an honest control, executed DSSE/TUF/OPA baselines, and re-implemented receipt and hash-chain baselines.
+- **Empirical Benchmark & Paper Generator** (`scripts/run_release_benchmark.py`, `scripts/run_security_eval.py`, `scripts/generate_paper_pdf.py`): Merkle scaling, verifier throughput, the deterministic security evaluation, and the manuscript figures/PDF (`docs/usenix_paper_manuscript.pdf`).
 
 ---
 
-## 📊 Measured Benchmark Results
+## 📊 Measured Results (must match `results/*.json`; every number in the paper is a macro generated from those files)
 
-| Metric / Experiment | Result | Benchmark Details |
+| Metric / Experiment | Result | Where it comes from |
 | :--- | :---: | :--- |
-| **Fail-Closed Block Rate** | **100.0%** | **8 / 8** adversarial tamper vectors blocked (`V1` to `V8`) |
-| **Verifier Throughput** | **79,546 ops/sec** | Mean evaluation latency **0.0126 ms** (P95: 0.0156 ms) |
-| **Merkle Tree Packaging ($N=10,000$)** | **3.94 ms** | Scalable trace attestation for enterprise agent workloads |
-| **Test Suite Coverage** | **10/10 PASS** | 100% pass rate across cryptographic, policy, and tamper tests |
+| **Tamper vectors blocked** | **16 / 17 (94.1%, 95% CI [73.0, 99.0])** | `results/security_evaluation.json`; V16 (cross-replica nonce replay) is not blocked and is reported as such |
+| **Composed DSSE + TUF + OPA baseline** | **10 / 17 (58.8%)** | same file; intervals overlap with EviAssure's, and the paper says so |
+| **Omission attacks detected (with witness reconciliation)** | **7 / 7** (O1–O7, incl. session substitution); honest control approved | same file; per-action receipts 2/7, per-issuer chaining 2/7, EviAssure without reconciliation 0/7 |
+| **Held-out inspection recall** | **50/50 overt, 0/25 stealth (66.7% overall), 0/1000 false positives** | `results/corpus_evaluation.json` |
+| **Live agent sessions** | **31 of 42 requested** (5 model families, 4 providers, out-of-process witnesses); 15 ran to completion; witness coverage 82.7% over completed sessions; honest control 31/31; **177/177** re-derived omission attacks detected over 6 of 7 vectors (O5 needs a concurrent session) | `results/live_agent_evaluation.json` |
+| **Merkle build, $N=10^6$** | **1,815.13 ms** (mean of 5, Apple M4 Max, domain-separated tree) | `results/benchmark_summary.json` (regenerated by `scripts/run_release_benchmark.py`; the paper's macros track this file) |
+| **Peak verifier throughput** | **6,963 ± 89 ops/s at 4 workers** (three-trace bundles) | `results/benchmark_summary.json` |
+| **Test suite** | **121 tests** (`pytest tests/`; needs `pip install -e ".[dev]"`) | `tests/` |
 
----
-
-## 🎓 Course Integration Runbooks
-
-### Newcastle University — Practical 5
-- **Practical Title:** Evidence-Backed Release Assurance & Deployment Gates
-- **Learning Outcome:** Package evidence bundles, evaluate policy gates, and enforce fail-closed release controls.
-- **Runbook Command:**
-  ```bash
-  python3 scripts/verify_release_gate.py --policy governance/release_policy.yaml --format text
-  ```
-
-### O'Reilly Bootcamp — Session 5
-- **Session Title:** Release Gates & Cryptographic Evidence Bundling for AI Agents
-- **Bootcamp Goal:** Generate sealed evidence packs, execute release policy validation, and verify audit compliance.
-- **Live Specimen:**
-  ```bash
-  python3 scripts/package_evidence.py --output evidence_pack.json
-  ```
-
-### Pearson Video Course — Module 5
-- **Module Title:** Module 5 — End-to-End Release Assurance & Policy Gates
-- **Lab Exercise:** Execute the USENIX Security release gate suite and confirm release gate passes.
-- **On-Screen Command:**
-  ```bash
-  pytest tests/ -v
-  ```
-
----
 
 ## 🚀 Quickstart & Reproduction
 
-1. **Install Dependencies:**
+1. **Install Dependencies** (`pip install -r pyproject.toml` is not a valid pip invocation and was a documentation error):
    ```bash
-   pip install -r pyproject.toml
+   pip install -e ".[dev]"
    ```
 
 2. **Run Test Suite:**
@@ -76,14 +53,17 @@ Autonomous agentic deployments require reproducible, cryptographically verifiabl
    pytest tests/ -v
    ```
 
-3. **Run Empirical Benchmark Suite:**
+3. **Run the deterministic security evaluation and the timed benchmarks:**
    ```bash
-   python3 scripts/run_release_benchmark.py
+   python3 scripts/run_security_eval.py --require-executed   # needs python-tuf and the opa binary
+   python3 scripts/run_release_benchmark.py --repeats 5
    ```
 
-4. **Verify Release Gate (Fail-Closed Default):**
+4. **Verify Release Gate (fail-closed, witnessed by default):**
    ```bash
-   python3 scripts/verify_release_gate.py
+   python3 scripts/verify_release_gate.py                          # witnessed demo pack -> APPROVED
+   python3 scripts/package_evidence.py -o evidence_pack.json       # writes the bundle + evidence_pack.json.release_request.json
+   python3 scripts/verify_release_gate.py --evidence evidence_pack.json
    ```
 
 5. **Generate Benchmark Figures & Paper PDF:**
@@ -106,9 +86,9 @@ criteria are in [`docs/AGENT_WORKFLOW.md`](docs/AGENT_WORKFLOW.md).
 Manuscript PDF: [`docs/usenix_paper_manuscript.pdf`](docs/usenix_paper_manuscript.pdf)
 
 ```bibtex
-@inproceedings{radanliev2027usenix,
+@inproceedings{anonymous2027usenix,
   title={Evidence-Backed Release Assurance for Autonomous Agent Deployments: Cryptographic Attestation, Fail-Closed Gates, and Tamper-Resilient Audit Infrastructure},
-  author={Radanliev, Petar and Gross, Thomas and Hossain, Md Jakir},
+  author={Anonymous Authors},
   booktitle={USENIX Security Symposium (USENIX Security 2027)},
   year={2027}
 }

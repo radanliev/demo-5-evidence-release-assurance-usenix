@@ -1,4 +1,4 @@
-# demo-5-evidence-release-assurance-usenix — self-correcting review loop
+# EviAssure — Evidence-Backed Release Assurance (USENIX Security 2027)
 
 Target venue: **USENIX Security 2027**
 Manuscript: `docs/usenix_paper_manuscript.tex`
@@ -97,6 +97,15 @@ Copy/paste prompts and the full handoff contract are in
 - `benchmark-contamination-audit`
 - `reproducibility-artifact`
 - `usenix-sec-2027-compliance`
+- `paperloop-operator` — running the loop, the gates, and the rule that
+  science is never edited to make a check go green
+- `adversarial-science-audit` — verify papers by re-derivation and active
+  attack, not by reading; how the 2026-08 audit found the fabricated
+  statistics, fake references, and the auth bypass
+- `bibtex-forensics` — Crossref/OpenAlex/DBLP verification quirks and
+  fabrication tells
+- `local-tex-environment` — TeX Live basic + multi-Python pitfalls, silent
+  build failures, package install workarounds
 
 The venue skill records what the official CFP said and when it was checked.
 Conference rules move between years — when they do, correct the skill and

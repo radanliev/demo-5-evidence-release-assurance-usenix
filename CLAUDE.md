@@ -1,4 +1,4 @@
-# demo-5-evidence-release-assurance-usenix
+# EviAssure — Evidence-Backed Release Assurance
 
 See `AGENTS.md` for the self-correcting review loop — it is the single source of truth and every tool reads the same one.
 

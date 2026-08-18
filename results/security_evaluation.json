@@ -1,0 +1,853 @@
+{
+  "timestamp": "2026-08-18T17:35:40Z",
+  "python_version": "3.14.7",
+  "determinism": "platform-independent: every figure here is a block count or a verdict, not a timing. Regenerate on any machine.",
+  "baseline_execution": {
+    "Unauthenticated CI status gate (lower bound)": "modeled (exit-code semantics; reported as a floor, not a competitor)",
+    "OPA Rego schema policy": "executed: OPA 1.19.0",
+    "in-toto/DSSE signature verification": "executed (DSSE v1 PAE + Ed25519 via cryptography, pinned trust root)",
+    "TUF metadata verification (expiry + threshold + revocation)": "executed (python-tuf Timestamp expiry over a DSSE trust-root check; threshold=1, root-driven revocation)",
+    "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": "composed execution (executed (DSSE v1 PAE + Ed25519 via cryptography, pinned trust root); executed (python-tuf Timestamp expiry over a DSSE trust-root check; threshold=1, root-driven revocation); executed: OPA 1.19.0)"
+  },
+  "vectors": {
+    "n_scored_vectors": 17,
+    "n_retired_checks": 1,
+    "note": "V1-V12 map close to 1:1 onto EviAssure's enforcement checks and are reported as mechanism coverage, not as evidence of resilience to novel attacks. V14-V18 were written independently of the check list; three of them (V14, V15, V17) found real defects during development (V15 the internal-node-as-leaf proof, V14 the disabled-registry key fallback, V17 the 64-character leaf heuristic). V13 is retired from the score: the KMS ARN is self-declared metadata inside the signed payload and constrains misconfiguration, not an adversary.",
+    "summary": {
+      "eviassure": {
+        "rate_pct": 94.1,
+        "ci95_low_pct": 73.0,
+        "ci95_high_pct": 99.0,
+        "k": 16,
+        "n": 17
+      },
+      "Unauthenticated CI status gate (lower bound)": {
+        "rate_pct": 0.0,
+        "ci95_low_pct": 0.0,
+        "ci95_high_pct": 18.4,
+        "k": 0,
+        "n": 17
+      },
+      "OPA Rego schema policy": {
+        "rate_pct": 17.6,
+        "ci95_low_pct": 6.2,
+        "ci95_high_pct": 41.0,
+        "k": 3,
+        "n": 17
+      },
+      "in-toto/DSSE signature verification": {
+        "rate_pct": 35.3,
+        "ci95_low_pct": 17.3,
+        "ci95_high_pct": 58.7,
+        "k": 6,
+        "n": 17
+      },
+      "TUF metadata verification (expiry + threshold + revocation)": {
+        "rate_pct": 47.1,
+        "ci95_low_pct": 26.2,
+        "ci95_high_pct": 69.0,
+        "k": 8,
+        "n": 17
+      },
+      "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": {
+        "rate_pct": 58.8,
+        "ci95_low_pct": 36.0,
+        "ci95_high_pct": 78.4,
+        "k": 10,
+        "n": 17
+      }
+    },
+    "per_vector": [
+      {
+        "vector_id": "V1",
+        "name": "Unsigned Evidence Payload",
+        "category": "Authentication",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Unsigned evidence bundle rejected."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": true,
+        "TUF metadata verification (expiry + threshold + revocation)": true,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      },
+      {
+        "vector_id": "V2",
+        "name": "Tampered Trace Digest (Merkle Root Mismatch)",
+        "category": "Integrity",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Merkle root mismatch! Claimed: 876eed8d770c..., Recalculated: 1ab8923d5ece..."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": false
+      },
+      {
+        "vector_id": "V3",
+        "name": "Forged Signature",
+        "category": "Authenticity",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Key ID 'KEY-ATTACKER-UNTRUSTED' not in trusted key registry.",
+          "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": true,
+        "TUF metadata verification (expiry + threshold + revocation)": true,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      },
+      {
+        "vector_id": "V4",
+        "name": "Replayed Evidence Nonce",
+        "category": "Replay",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Replayed evidence nonce detected (7b28fd3d-5811-4589-a881-fc9093af5d60)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": false
+      },
+      {
+        "vector_id": "V5",
+        "name": "Expired Evidence Timestamp",
+        "category": "Freshness",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Evidence timestamp expired (7200s > max 3600s)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": true,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      },
+      {
+        "vector_id": "V6",
+        "name": "Unresolved Security Drift",
+        "category": "Policy Violation",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Unresolved drift findings present (3 > allowed 0)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": true,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      },
+      {
+        "vector_id": "V7",
+        "name": "Sub-threshold Test Pass Rate",
+        "category": "Quality Gate",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Sub-threshold test pass rate (85.5% < min required 100.0%)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": true,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      },
+      {
+        "vector_id": "V8",
+        "name": "Forged Merkle Root Digest",
+        "category": "Integrity",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Merkle root mismatch! Claimed: b6427a237933..., Recalculated: 876eed8d770c..."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": false
+      },
+      {
+        "vector_id": "V9",
+        "name": "Revoked Key ID Usage",
+        "category": "Key Governance",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Key ID 'KEY-REVOKED-9999' has been revoked!",
+          "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": true,
+        "TUF metadata verification (expiry + threshold + revocation)": true,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      },
+      {
+        "vector_id": "V10",
+        "name": "JSON Key Malleability Payload Injection",
+        "category": "Serialization",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "SERIALIZATION_VIOLATION: non-canonical wire document with duplicate JSON keys (test_pass_pct); parser-dependent values rejected.",
+          "POLICY_VIOLATION: Invalid or forged Ed25519 signature.",
+          "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": true,
+        "in-toto/DSSE signature verification": true,
+        "TUF metadata verification (expiry + threshold + revocation)": true,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      },
+      {
+        "vector_id": "V11",
+        "name": "Post-Dated Future Clock Skew",
+        "category": "Freshness",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Timestamp post-dated in the future (skew: 3599s > max 30s)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": true,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      },
+      {
+        "vector_id": "V12",
+        "name": "Truncated Partial Merkle Proof Path",
+        "category": "Integrity",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Merkle root mismatch! Claimed: 876eed8d770c..., Recalculated: 413982ae783d...",
+          "POLICY_VIOLATION: Execution trace count mismatch (3 claimed, 1 present)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": false
+      },
+      {
+        "vector_id": "V13",
+        "name": "Out of Bounds KMS Key ARN (configuration check, not scored)",
+        "category": "Configuration",
+        "scored": false,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Signing key KMS ARN missing or outside the required boundary.",
+          "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": false
+      },
+      {
+        "vector_id": "V14",
+        "name": "Attacker Key Accepted Under Disabled Registry",
+        "category": "Authenticity",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Key ID 'KEY-ATTACKER-NOT-IN-REGISTRY' not in trusted key registry.",
+          "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": true,
+        "TUF metadata verification (expiry + threshold + revocation)": true,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      },
+      {
+        "vector_id": "V15",
+        "name": "Internal Merkle Node Presented as Leaf to a Third-Party Auditor",
+        "category": "Integrity",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "AUDITOR: internal-node-as-leaf proof rejected (committed depth + 0x00/0x01 domain separation)"
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": false
+      },
+      {
+        "vector_id": "V16",
+        "name": "Cross-Replica Nonce Replay",
+        "category": "Replay",
+        "scored": true,
+        "eviassure_blocked": false,
+        "eviassure_violations": [],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": false
+      },
+      {
+        "vector_id": "V17",
+        "name": "64-Character Leaf Type Confusion",
+        "category": "Integrity",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "MERKLE: 64-char non-digest leaf rejected (explicit digest typing)"
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": false,
+        "TUF metadata verification (expiry + threshold + revocation)": false,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": false
+      },
+      {
+        "vector_id": "V18",
+        "name": "Post-Signing DOM Mutation with Recomputed Root",
+        "category": "Integrity",
+        "scored": true,
+        "eviassure_blocked": true,
+        "eviassure_violations": [
+          "POLICY_VIOLATION: Public key for 'KEY-6d1f9bcd0679' does not match the trusted key registry.",
+          "POLICY_VIOLATION: Insufficient valid signatures (0 < required 1)."
+        ],
+        "Unauthenticated CI status gate (lower bound)": false,
+        "OPA Rego schema policy": false,
+        "in-toto/DSSE signature verification": true,
+        "TUF metadata verification (expiry + threshold + revocation)": true,
+        "Composed SOTA pipeline (DSSE/in-toto + TUF freshness + OPA policy)": true
+      }
+    ]
+  },
+  "omission": {
+    "note": "Omission attacks: the adversary controls the agent, the evidence collector and the collector's key, but neither a witness key nor the orchestrator's credential key, and performs actions without recording them (O1-O6) or presents a complete bundle for a different credentialed session (O7). No tampering occurs, so no integrity check can fire. OC1 is an honest fully-witnessed execution that every system must APPROVE. DSSE and TUF are executed library-style verifiers; the receipt and hash-chain baselines are re-implemented from the published designs (see benchmark/baselines.py) and their execution_mode says so.",
+    "completeness_baseline_execution": {
+      "Per-action receipts (no sequence binding)": "re-implemented from the published designs; executed (Ed25519 receipt verification against a pinned witness registry)",
+      "Per-issuer hash chaining (AAS-1 style)": "re-implemented from the AAS-1 description; executed (authenticated prev-link chain walk per issuer)"
+    },
+    "n_omission_vectors": 7,
+    "control_approved_by": {
+      "in-toto/DSSE signature verification": true,
+      "TUF metadata verification (expiry + threshold + revocation)": true,
+      "Per-action receipts (no sequence binding)": true,
+      "Per-issuer hash chaining (AAS-1 style)": true,
+      "EviAssure without witness reconciliation": true,
+      "EviAssure + WTC": true
+    },
+    "summary": {
+      "in-toto/DSSE signature verification": {
+        "rate_pct": 0.0,
+        "ci95_low_pct": 0.0,
+        "ci95_high_pct": 35.4,
+        "k": 0,
+        "n": 7
+      },
+      "TUF metadata verification (expiry + threshold + revocation)": {
+        "rate_pct": 0.0,
+        "ci95_low_pct": 0.0,
+        "ci95_high_pct": 35.4,
+        "k": 0,
+        "n": 7
+      },
+      "Per-action receipts (no sequence binding)": {
+        "rate_pct": 28.6,
+        "ci95_low_pct": 8.2,
+        "ci95_high_pct": 64.1,
+        "k": 2,
+        "n": 7
+      },
+      "Per-issuer hash chaining (AAS-1 style)": {
+        "rate_pct": 28.6,
+        "ci95_low_pct": 8.2,
+        "ci95_high_pct": 64.1,
+        "k": 2,
+        "n": 7
+      },
+      "EviAssure without witness reconciliation": {
+        "rate_pct": 0.0,
+        "ci95_low_pct": 0.0,
+        "ci95_high_pct": 35.4,
+        "k": 0,
+        "n": 7
+      },
+      "EviAssure + WTC": {
+        "rate_pct": 100.0,
+        "ci95_low_pct": 64.6,
+        "ci95_high_pct": 100.0,
+        "k": 7,
+        "n": 7
+      }
+    },
+    "per_vector": [
+      {
+        "vector_id": "OC1",
+        "name": "Control: fully witnessed honest execution",
+        "class": "control",
+        "description": "An honest, completely witnessed execution. MUST be approved; without this the omission suite could not distinguish a working reconciler from one that rejects everything.",
+        "blocked_by": {
+          "in-toto/DSSE signature verification": false,
+          "TUF metadata verification (expiry + threshold + revocation)": false,
+          "Per-action receipts (no sequence binding)": false,
+          "Per-issuer hash chaining (AAS-1 style)": false,
+          "EviAssure without witness reconciliation": false,
+          "EviAssure + WTC": false
+        },
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
+        "eviassure_wtc_violation": null
+      },
+      {
+        "vector_id": "O1",
+        "name": "Interior action omission",
+        "class": "A6 collector omission",
+        "description": "A witnessed action is performed and then not recorded. The bundle is internally consistent: every recorded action has a receipt.",
+        "blocked_by": {
+          "in-toto/DSSE signature verification": false,
+          "TUF metadata verification (expiry + threshold + revocation)": false,
+          "Per-action receipts (no sequence binding)": false,
+          "Per-issuer hash chaining (AAS-1 style)": true,
+          "EviAssure without witness reconciliation": false,
+          "EviAssure + WTC": true
+        },
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: witness 'db-gateway' attested 3 served action(s); sequence number(s) [2] are absent from the submitted trace set (omitted action)"
+      },
+      {
+        "vector_id": "O2",
+        "name": "Suffix (trailing) omission",
+        "class": "A6 collector omission",
+        "description": "The final witnessed action(s) are dropped. Defeats inter-record hash chaining, which only links records that are present.",
+        "blocked_by": {
+          "in-toto/DSSE signature verification": false,
+          "TUF metadata verification (expiry + threshold + revocation)": false,
+          "Per-action receipts (no sequence binding)": false,
+          "Per-issuer hash chaining (AAS-1 style)": false,
+          "EviAssure without witness reconciliation": false,
+          "EviAssure + WTC": true
+        },
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: witness 'db-gateway' attested 3 served action(s); sequence number(s) [3] are absent from the submitted trace set (omitted action)"
+      },
+      {
+        "vector_id": "O3",
+        "name": "Whole-witness omission",
+        "class": "A6 collector omission",
+        "description": "Every action served by one witness is dropped, along with that witness's receipts -- the trace looks like the tool was never used.",
+        "blocked_by": {
+          "in-toto/DSSE signature verification": false,
+          "TUF metadata verification (expiry + threshold + revocation)": false,
+          "Per-action receipts (no sequence binding)": false,
+          "Per-issuer hash chaining (AAS-1 style)": false,
+          "EviAssure without witness reconciliation": false,
+          "EviAssure + WTC": true
+        },
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: registered witness 'shell-broker' produced no closing statement for session 'sess-ac2b81192f44'; a session in which a witness served nothing must still carry its final_seq=0 closing, so a missing closing is an omitted witness rather than an unused tool"
+      },
+      {
+        "vector_id": "O4",
+        "name": "Closing count downgrade",
+        "class": "A6 collector omission",
+        "description": "The adversary forges a closing statement with a lower final sequence so the truncated receipt set reconciles.",
+        "blocked_by": {
+          "in-toto/DSSE signature verification": false,
+          "TUF metadata verification (expiry + threshold + revocation)": false,
+          "Per-action receipts (no sequence binding)": false,
+          "Per-issuer hash chaining (AAS-1 style)": false,
+          "EviAssure without witness reconciliation": false,
+          "EviAssure + WTC": true
+        },
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: invalid closing signature from 'db-gateway'"
+      },
+      {
+        "vector_id": "O5",
+        "name": "Cross-session receipt splice",
+        "class": "A6 collector omission",
+        "description": "Receipts from a different, benign session are spliced in to fill the gap left by an omitted action.",
+        "blocked_by": {
+          "in-toto/DSSE signature verification": false,
+          "TUF metadata verification (expiry + threshold + revocation)": false,
+          "Per-action receipts (no sequence binding)": true,
+          "Per-issuer hash chaining (AAS-1 style)": true,
+          "EviAssure without witness reconciliation": false,
+          "EviAssure + WTC": true
+        },
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: receipt from foreign session 'sess-bd70b54ec09c' (expected 'sess-ac2b81192f44')"
+      },
+      {
+        "vector_id": "O6",
+        "name": "Fabricated unwitnessed action",
+        "class": "A6 collector omission",
+        "description": "A trace records a witness-MEDIATED action that no witness ever served, inflating the evidence rather than truncating it.",
+        "blocked_by": {
+          "in-toto/DSSE signature verification": false,
+          "TUF metadata verification (expiry + threshold + revocation)": false,
+          "Per-action receipts (no sequence binding)": true,
+          "Per-issuer hash chaining (AAS-1 style)": false,
+          "EviAssure without witness reconciliation": false,
+          "EviAssure + WTC": true
+        },
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-ac2b81192f44",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: 1 recorded action(s) claim a witness-mediated operation (['execute_read_only_query']) but carry no witness receipt (fabricated action)"
+      },
+      {
+        "vector_id": "O7",
+        "name": "Session substitution",
+        "class": "A6 collector omission",
+        "description": "The adversary performs the dangerous action in one credentialed session and submits the complete, honestly witnessed bundle of a second, benign credentialed session for the release. Every attestation verifies; nothing is missing from the bundle presented. Only a gate that binds the release to the session it credentialed can tell.",
+        "blocked_by": {
+          "in-toto/DSSE signature verification": false,
+          "TUF metadata verification (expiry + threshold + revocation)": false,
+          "Per-action receipts (no sequence binding)": false,
+          "Per-issuer hash chaining (AAS-1 style)": false,
+          "EviAssure without witness reconciliation": false,
+          "EviAssure + WTC": true
+        },
+        "expected_session_id": "sess-ac2b81192f44",
+        "declared_session_id": "sess-7d3ebfabf207",
+        "eviassure_wtc_violation": "COMPLETENESS_VIOLATION: bundle declares session 'sess-7d3ebfabf207' but the release under evaluation was credentialed as 'sess-ac2b81192f44' (session substitution)"
+      }
+    ]
+  },
+  "negative_controls": {
+    "note": "clean, well-formed bundles that MUST be approved; measures the false-block rate",
+    "false_block": {
+      "rate_pct": 0.0,
+      "ci95_low_pct": 0.0,
+      "ci95_high_pct": 49.0,
+      "k": 0,
+      "n": 4
+    },
+    "per_control": [
+      {
+        "control": "C1_MINIMAL",
+        "approved": true,
+        "violations": []
+      },
+      {
+        "control": "C2_DEFAULT",
+        "approved": true,
+        "violations": []
+      },
+      {
+        "control": "C3_WIDE",
+        "approved": true,
+        "violations": []
+      },
+      {
+        "control": "C4_ODD_COUNT",
+        "approved": true,
+        "violations": []
+      }
+    ]
+  },
+  "wire_fuzzing": {
+    "note": "differential wire-encoding fuzzing: mutations perturb the SERIALIZATION of a validly signed bundle (key order, whitespace, unicode escaping, number formatting, duplicate keys, BOM) rather than signed fields, so a passing outcome is reachable and the experiment can fail. 20% of cases are clean controls. Replaces the campaign whose 1000/1000 result was an identity.",
+    "n_cases": 1000,
+    "semantics_changing_blocked": {
+      "rate_pct": 100.0,
+      "ci95_low_pct": 98.3,
+      "ci95_high_pct": 100.0,
+      "k": 217,
+      "n": 217
+    },
+    "semantics_preserving_approved": {
+      "rate_pct": 100.0,
+      "ci95_low_pct": 99.5,
+      "ci95_high_pct": 100.0,
+      "k": 783,
+      "n": 783
+    },
+    "disagreements": []
+  },
+  "semantic_inspection": {
+    "protocol": "leave-one-class-out; the detector is fitted on CLEAN profiles only and never observes any anomaly action, status or duration, so every anomaly class is held out (2026-08-17 review, B3)",
+    "sigma": 6.0,
+    "model": {
+      "n_traces_fitted": 4999,
+      "n_actions_learned": 25,
+      "n_statuses_learned": 1,
+      "actions": [
+        "assemble_context",
+        "check_index_health",
+        "collect_table_stats",
+        "embed_query",
+        "emit_receipt",
+        "execute_read_only_query",
+        "extract_clean_text",
+        "fetch_fx_rate",
+        "fetch_page",
+        "format_source",
+        "normalize_links",
+        "parse_ast",
+        "parse_html_dom",
+        "process_ledger_transfer",
+        "rerank_candidates",
+        "resolve_imports",
+        "respect_robots_txt",
+        "run_linter",
+        "run_unit_tests",
+        "summarize_answer",
+        "validate_counterparty",
+        "vector_similarity_search",
+        "verify_api_signature",
+        "verify_backup",
+        "verify_schema_lock"
+      ],
+      "statuses": [
+        "SUCCESS"
+      ]
+    },
+    "n_clean": 1000,
+    "n_anomalous": 75,
+    "n_classes": 15,
+    "recall_overall": 50,
+    "recall_overall_pct": 66.7,
+    "clean_flagged": 0,
+    "false_positive_rate_pct": 0.0,
+    "per_class": [
+      {
+        "anomaly_class": "ANOMALY_JSON_MALLEABILITY",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'inject_duplicate_json_key'"
+      },
+      {
+        "anomaly_class": "ANOMALY_MEMORY_TAMPERING",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'patch_trace_memory'"
+      },
+      {
+        "anomaly_class": "ANOMALY_PRIVILEGE_ESCALATION",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'escalate_role'"
+      },
+      {
+        "anomaly_class": "ANOMALY_PROMPT_INJECTION",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'override_system_prompt'"
+      },
+      {
+        "anomaly_class": "ANOMALY_SECRET_EXFILTRATION",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'exfiltrate_private_key'"
+      },
+      {
+        "anomaly_class": "ANOMALY_SSRF_LOCAL_NETWORK",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'access_localhost_metadata'"
+      },
+      {
+        "anomaly_class": "ANOMALY_UNAUTHORIZED_DB_DROP",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'drop_production_table'"
+      },
+      {
+        "anomaly_class": "ANOMALY_UNSAFE_CMD",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'spawn_shell_subprocess'"
+      },
+      {
+        "anomaly_class": "ANOMALY_UNSANDBOXED_PROCESS",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'spawn_unsandboxed_process'"
+      },
+      {
+        "anomaly_class": "ANOMALY_VECTOR_POISONING",
+        "n": 5,
+        "detected": 5,
+        "recall_pct": 100.0,
+        "example_reason": "out-of-vocabulary action 'poison_vector_store'"
+      },
+      {
+        "anomaly_class": "STEALTH_LEDGER_TRANSFER_REDIRECT",
+        "n": 5,
+        "detected": 0,
+        "recall_pct": 0.0,
+        "example_reason": null
+      },
+      {
+        "anomaly_class": "STEALTH_LINTER_SUPPRESSION",
+        "n": 5,
+        "detected": 0,
+        "recall_pct": 0.0,
+        "example_reason": null
+      },
+      {
+        "anomaly_class": "STEALTH_MUTATING_QUERY_AS_READ",
+        "n": 5,
+        "detected": 0,
+        "recall_pct": 0.0,
+        "example_reason": null
+      },
+      {
+        "anomaly_class": "STEALTH_RAG_CONTEXT_SUBSTITUTION",
+        "n": 5,
+        "detected": 0,
+        "recall_pct": 0.0,
+        "example_reason": null
+      },
+      {
+        "anomaly_class": "STEALTH_SCRAPE_EXFIL_CHANNEL",
+        "n": 5,
+        "detected": 0,
+        "recall_pct": 0.0,
+        "example_reason": null
+      }
+    ]
+  },
+  "ablation": {
+    "note": "one enforcement disabled per row; full_gate is the shipped configuration",
+    "rows": [
+      {
+        "variant": "full_gate",
+        "blocked": 16,
+        "of": 17,
+        "escaped_vectors": [
+          "V16"
+        ]
+      },
+      {
+        "variant": "no_signature_check",
+        "blocked": 11,
+        "of": 17,
+        "escaped_vectors": [
+          "V1",
+          "V3",
+          "V9",
+          "V14",
+          "V16",
+          "V18"
+        ]
+      },
+      {
+        "variant": "empty_key_registry",
+        "blocked": 17,
+        "of": 17,
+        "escaped_vectors": []
+      },
+      {
+        "variant": "no_crl",
+        "blocked": 15,
+        "of": 17,
+        "escaped_vectors": [
+          "V9",
+          "V16"
+        ]
+      },
+      {
+        "variant": "no_kms_arn_bound",
+        "blocked": 16,
+        "of": 17,
+        "escaped_vectors": [
+          "V16"
+        ]
+      },
+      {
+        "variant": "no_merkle_check",
+        "blocked": 14,
+        "of": 17,
+        "escaped_vectors": [
+          "V2",
+          "V8",
+          "V16"
+        ]
+      },
+      {
+        "variant": "no_count_binding",
+        "blocked": 16,
+        "of": 17,
+        "escaped_vectors": [
+          "V16"
+        ]
+      },
+      {
+        "variant": "no_quality_gate",
+        "blocked": 15,
+        "of": 17,
+        "escaped_vectors": [
+          "V7",
+          "V16"
+        ]
+      },
+      {
+        "variant": "no_drift_gate",
+        "blocked": 15,
+        "of": 17,
+        "escaped_vectors": [
+          "V6",
+          "V16"
+        ]
+      },
+      {
+        "variant": "no_freshness",
+        "blocked": 14,
+        "of": 17,
+        "escaped_vectors": [
+          "V5",
+          "V11",
+          "V16"
+        ]
+      },
+      {
+        "variant": "no_replay_state",
+        "blocked": 15,
+        "of": 17,
+        "escaped_vectors": [
+          "V4",
+          "V16"
+        ]
+      }
+    ]
+  },
+  "corpus": {
+    "total_profiles": 1075,
+    "clean_profiles": 1000,
+    "overt_anomalies": 50,
+    "stealth_anomalies": 25,
+    "total_trace_records": 5450,
+    "provenance": "SYNTHETIC. Generated by scripts/generate_trace_corpus.py; no LLM agent was executed. Trace content is templated per architecture. Stated explicitly per the 2026-08-17 review (B3/limitations)."
+  }
+}

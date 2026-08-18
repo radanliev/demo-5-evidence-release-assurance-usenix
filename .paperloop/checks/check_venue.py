@@ -67,6 +67,56 @@ IDENTITY_PATTERNS = [
 ]
 
 
+def dead_conditional_lines(text: str) -> set[int]:
+    """Line numbers inside a LaTeX conditional branch that is NOT compiled.
+
+    The manuscript carries an anonymity switch:
+
+        \\newif\\ifanonymous
+        \\anonymoustrue          % submission
+        \\ifanonymous  <anonymous author block>
+        \\else         <real author block>
+        \\fi
+
+    Scanning the source without honouring that switch reports the camera-ready
+    author block as a double-blind violation on every run, even though it never
+    reaches the PDF. A check that is always red is a check nobody reads, and
+    this one guards the single failure the CFP says may cause rejection without
+    review -- so it has to be precise enough to be believed.
+
+    Returns the set of 1-based line numbers whose content is discarded by the
+    current switch setting.
+    """
+    dead: set[int] = set()
+    lines = text.splitlines()
+
+    truth: dict[str, bool] = {}
+    for ln in lines:
+        m = re.search(r"\\(\w+)(true|false)\b", ln)
+        if m and not ln.lstrip().startswith("%"):
+            truth[m.group(1)] = (m.group(2) == "true")
+
+    stack: list[tuple[str, bool]] = []   # (flag, currently-in-live-branch)
+    for i, ln in enumerate(lines, 1):
+        stripped = ln.lstrip()
+        m_if = re.match(r"\\if(\w+)\b", stripped)
+        if m_if and m_if.group(1) in truth:
+            flag = m_if.group(1)
+            stack.append((flag, truth[flag]))
+            continue
+        if stack:
+            if re.match(r"\\else\b", stripped):
+                flag, live = stack[-1]
+                stack[-1] = (flag, not live)
+                continue
+            if re.match(r"\\fi\b", stripped):
+                stack.pop()
+                continue
+            if not stack[-1][1]:
+                dead.add(i)
+    return dead
+
+
 FURNITURE_RE = re.compile(r"^[\divxlcIVXLC.\-–—]{1,6}$")
 
 
@@ -246,7 +296,37 @@ def check(cfg: Config) -> list[Finding]:
     # anonymity
     if v.get("review", {}).get("double_blind", False):
         allow = v.get("review", {}).get("anonymity_allowlist", []) or []
+
+        # Per-file map of lines the current \if... switches discard.
+        dead_by_file: dict = {}
+        for f, _n, _t in lines:
+            if f not in dead_by_file:
+                try:
+                    dead_by_file[f] = dead_conditional_lines(Path(f).read_text(
+                        encoding="utf-8", errors="replace"))
+                except OSError:
+                    dead_by_file[f] = set()
+
+        # A switch flipped to camera-ready IS the violation, and it is one the
+        # per-line scan can no longer see once dead branches are skipped.
+        for f in dead_by_file:
+            try:
+                src = Path(f).read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            for m in re.finditer(r"^\s*\\anonymousfalse\b", src, re.M):
+                out.append(Finding(
+                    "venue", "venue.anonymity", "BLOCKER",
+                    "anonymity switch is set to camera-ready (\\anonymousfalse); "
+                    "this build carries the real author block",
+                    file=rel(f), line=src[:m.start()].count("\n") + 1,
+                    evidence=m.group(0).strip(),
+                    expected="\\anonymoustrue for a double-blind submission",
+                    remedy="Set \\anonymoustrue and rebuild before uploading."))
+
         for f, n, t in lines:
+            if n in dead_by_file.get(f, ()):
+                continue            # branch is not compiled into the PDF
             if any(a in t for a in allow):
                 continue
             for pat, why in IDENTITY_PATTERNS:
@@ -305,21 +385,42 @@ def check(cfg: Config) -> list[Finding]:
     if limit:
         ref_page = None
         appendix_page = None
-        ref_head = re.compile(r"^\s*(references|bibliography)\s*$", re.IGNORECASE | re.MULTILINE)
-        app_head = re.compile(r"^\s*(appendix|appendices|a\s+appendix)\b", re.IGNORECASE | re.MULTILINE)
+        # Two-column extraction merges columns per line, so a heading often
+        # shares its line with the other column's body text.
+        ref_head = re.compile(r"^[ \t]*References\b|References[ \t]*$",
+                              re.MULTILINE)
+        app_head = re.compile(r"^[ \t]*[A-Z](?:[ \t]+Open[ \t]+Science)?[ \t]+Appendix\b|"
+                              r"Appendix[ \t]*$|"
+                              r"^[ \t]*Appendices\b|"
+                              r"^[ \t]*[A-Z]\s+[A-Za-z\s]+Appendix", re.MULTILINE)
         for p in pages:
-            head = "\n".join(p["text"].splitlines()[:6])
-            if ref_page is None and ref_head.search(head):
+            # headings can sit mid-column in two-column layouts, so scan the whole page
+            if ref_page is None and ref_head.search(p["text"]):
                 ref_page = p["page"]
-            if appendix_page is None and app_head.search(head):
+            if appendix_page is None and app_head.search(p["text"]):
                 appendix_page = p["page"]
         cut = npages
         basis = "whole document"
         cands = [x for x in (ref_page if excl_refs else None,
                              appendix_page if excl_appendix else None) if x]
         if cands:
-            cut = min(cands) - 1
-            basis = f"body ends p.{cut} (references/appendix start p.{min(cands)})"
+            first = min(cands)
+            cut = first - 1
+            basis = f"body ends p.{cut} (references/appendix start p.{first})"
+            # A heading that starts partway down its page leaves body text
+            # above it, and that page counts toward the limit. Subtracting one
+            # unconditionally under-reported by a page whenever the References
+            # heading shared a page with trailing body text -- the paper read
+            # as 13 pages while most of p.14 was still body.
+            head_re = ref_head if first == ref_page else app_head
+            pg = next((x for x in pages if x["page"] == first), None)
+            if pg is not None:
+                m = head_re.search(pg["text"])
+                before = pg["text"][:m.start()].strip() if m else ""
+                if len(before) > 200:
+                    cut = first
+                    basis = (f"body runs onto p.{first}: {len(before)} chars of body "
+                             f"text precede the heading")
         if cut > limit:
             out.append(Finding("venue", "venue.pagecount", "BLOCKER",
                                f"over the {v.get('name')} page limit by {cut - limit} page(s)",

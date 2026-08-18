@@ -32,6 +32,8 @@ from checks.check_refs import parse_bib  # noqa: E402
 
 CROSSREF = "https://api.crossref.org/works"
 OPENALEX = "https://api.openalex.org/works"
+DBLP = "https://dblp.org/search/publ/api"
+S2 = "https://api.semanticscholar.org/graph/v1/paper/search"
 TIMEOUT = 20
 PAUSE = 0.15          # be polite; both APIs are free and unmetered
 CACHE_VERSION = 1
@@ -87,6 +89,44 @@ def _openalex_key() -> str | None:
     return None
 
 
+
+def _s2_key() -> str | None:
+    for var in ("S2_API_KEY", "SEMANTIC_SCHOLAR_API_KEY"):
+        v = os.environ.get(var, "").strip()
+        if v:
+            return v
+    for cand in (Path.home() / "Projects" / ".paperloop-env",
+                 Path.cwd() / ".paperloop-env",
+                 Path.cwd().parent / ".paperloop-env"):
+        try:
+            if cand.exists():
+                m = re.search(r'^export\s+(?:S2_API_KEY|SEMANTIC_SCHOLAR_API_KEY)="?([^"\n]+)"?',
+                              cand.read_text(), re.MULTILINE)
+                if m:
+                    return m.group(1).strip()
+        except Exception:
+            pass
+    return None
+
+def _get_s2(url: str, mailto: str) -> dict | None:
+    headers = {"User-Agent": f"paperloop/1.0 (mailto:{mailto})", "Accept": "application/json"}
+    key = _s2_key()
+    if key:
+        headers["x-api-key"] = key
+    req = urllib.request.Request(url, headers=headers)
+    for attempt in (0, 1):
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                return json.loads(r.read().decode("utf-8", "replace"))
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 500, 502, 503) and attempt == 0:
+                import time; time.sleep(2)
+                continue
+            return None
+        except Exception:
+            return None
+    return None
+
 def _get(url: str, mailto: str) -> dict | None:
     """Return parsed JSON, or None if the API is unreachable or rejects us."""
     sep = "&" if "?" in url else "?"
@@ -98,11 +138,20 @@ def _get(url: str, mailto: str) -> dict | None:
     req = urllib.request.Request(
         full, headers={"User-Agent": f"paperloop/1.0 (mailto:{mailto})",
                        "Accept": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
-            return json.loads(r.read().decode("utf-8", "replace"))
-    except Exception:
-        return None
+    # One retry: DBLP/OpenAlex occasionally rate-limit (429) or hiccup, and a
+    # transient failure must not surface as "citation does not exist".
+    for attempt in (0, 1):
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                return json.loads(r.read().decode("utf-8", "replace"))
+        except urllib.error.HTTPError as e:
+            if e.code in (429, 500, 502, 503) and attempt == 0:
+                time.sleep(2)
+                continue
+            return None
+        except Exception:
+            return None
+    return None
 
 
 def _norm(s: str) -> str:
@@ -149,12 +198,20 @@ def _field(blob: str, name: str) -> str | None:
 
 
 # ---------------------------------------------------------------------------
+def _crossref_title(m: dict) -> str:
+    """Crossref stores subtitles separately; a bib title that includes the
+    subtitle is the paper's full registered title, so join them."""
+    title = (m.get("title") or [""])[0]
+    sub = (m.get("subtitle") or [""])[0]
+    return f"{title}: {sub}" if sub else title
+
+
 def _lookup_doi(doi: str, mailto: str) -> dict | None:
     d = _get(f"{CROSSREF}/{urllib.parse.quote(doi)}", mailto)
     if d and d.get("message"):
         m = d["message"]
         return {"source": "crossref", "doi": doi,
-                "title": (m.get("title") or [""])[0],
+                "title": _crossref_title(m),
                 "year": (m.get("issued", {}).get("date-parts") or [[None]])[0][0],
                 "container": (m.get("container-title") or [""])[0],
                 "type": m.get("type", "")}
@@ -166,15 +223,25 @@ def _lookup_title(title: str, mailto: str) -> dict | None:
     d = _get(f"{CROSSREF}?query.bibliographic={q}&rows=3", mailto)
     if d:
         for it in d.get("message", {}).get("items", []):
-            cand = (it.get("title") or [""])[0]
+            cand = _crossref_title(it)
             if cand and _similar(cand, title) >= 0.87:
                 return {"source": "crossref", "doi": it.get("DOI", ""),
                         "title": cand,
                         "year": (it.get("issued", {}).get("date-parts") or [[None]])[0][0],
                         "container": (it.get("container-title") or [""])[0],
                         "type": it.get("type", "")}
-    # OpenAlex covers preprints and CS venues Crossref sometimes misses
-    d = _get(f"{OPENALEX}?filter=title.search:{q}&per-page=3", mailto)
+    # OpenAlex covers preprints and CS venues Crossref sometimes misses.
+    # Its search endpoint rejects some punctuation with HTTP 400, and
+    # title.search ANDs tokens — one word missing from its (sometimes
+    # truncated) record title kills the match. So retry on the leading
+    # words; the >=0.87 similarity check below still guards the result.
+    clean = re.sub(r"\s+", " ", re.sub(r"[^\w\s-]", " ", title[:250])).strip()
+    d = None
+    for query in (clean, " ".join(clean.split()[:8])):
+        d = _get(f"{OPENALEX}?filter=title.search:{urllib.parse.quote(query)}&per-page=3",
+                 mailto)
+        if d and d.get("results"):
+            break
     if d:
         for it in d.get("results", []):
             cand = it.get("title") or it.get("display_name") or ""
@@ -185,6 +252,38 @@ def _lookup_title(title: str, mailto: str) -> dict | None:
                         "title": cand, "year": it.get("publication_year"),
                         "container": loc.get("display_name", ""),
                         "type": it.get("type", "")}
+    # DBLP: author-curated ground truth for CS venues that Crossref does not
+    # index (USENIX, ICLR pre-2024) and OpenAlex's search sometimes misses.
+    q = urllib.parse.quote(title[:250])
+    d = _get(f"{DBLP}?q={q}&format=json&h=3", mailto)
+    if d:
+        hits = d.get("result", {}).get("hits", {}).get("hit", [])
+        if isinstance(hits, dict):
+            hits = [hits]
+        for x in hits:
+            info = x.get("info", {})
+            cand = info.get("title", "")
+            if cand and _similar(cand, title) >= 0.87:
+                au = info.get("authors", {}).get("author", [])
+                if isinstance(au, dict):
+                    au = [au]
+                return {"source": "dblp", "doi": info.get("doi", ""),
+                        "title": cand, "year": int(info.get("year", 0) or 0),
+                        "container": info.get("venue", ""),
+                        "type": "inproceedings"}
+    
+    # Semantic Scholar API fallback
+    q = urllib.parse.quote(title[:250])
+    d = _get_s2(f"{S2}?query={q}&limit=3&fields=title,year,venue,externalIds", mailto)
+    if d and d.get("data"):
+        for it in d.get("data", []):
+            cand = it.get("title", "")
+            if cand and _similar(cand, title) >= 0.87:
+                doi = it.get("externalIds", {}).get("DOI", "")
+                return {"source": "semanticscholar", "doi": doi,
+                        "title": cand, "year": it.get("year"),
+                        "container": it.get("venue", ""),
+                        "type": "inproceedings"}
     return None
 
 
@@ -209,14 +308,14 @@ def check(cfg: Config) -> list[Finding]:
         for m in re.finditer(r"\\cite[a-zA-Z]*\*?(?:\[[^\]]*\])*\{([^}]+)\}", t):
             cited.update(k.strip() for k in m.group(1).split(",") if k.strip())
 
-    if not _openalex_key():
+    if not _openalex_key() and not _s2_key():
         out.append(Finding(
             "citations", "refs.unverified", "MINOR",
-            "no OPENALEX_API_KEY — OpenAlex has required a key for all requests "
+            "no OPENALEX_API_KEY or S2_API_KEY set — APIs require keys for all requests "
             "since 2026-02-13, so only Crossref is being queried",
-            expected="OPENALEX_API_KEY set",
+            expected="OPENALEX_API_KEY or S2_API_KEY set",
             remedy="Free key at https://openalex.org/settings/api, then "
-                   "./set-key.sh OPENALEX_API_KEY. Crossref alone misses "
+                   "./set-key.sh OPENALEX_API_KEY or S2_API_KEY. Crossref alone misses "
                    "preprints and some CS venues, so coverage is reduced."))
 
     cache = _load_cache(cfg)
@@ -265,8 +364,8 @@ def check(cfg: Config) -> list[Finding]:
                     if reachable is False:
                         out.append(Finding(
                             "citations", "refs.unverified", "INFO",
-                            "Crossref and OpenAlex are unreachable — citations not verified",
-                            expected="network access to api.crossref.org and api.openalex.org",
+                            "Crossref, OpenAlex, and Semantic Scholar are unreachable — citations not verified",
+                            expected="network access to citation APIs",
                             remedy="Add both to the network allowlist, then re-run. "
                                    "Offline, citation existence cannot be checked at all."))
                 else:
@@ -280,6 +379,30 @@ def check(cfg: Config) -> list[Finding]:
 
         loc = dict(file=rel(e["file"]), line=e["line"])
         if rec is None:
+            # Draft standards, specs, and whitepapers (@misc with a url or
+            # howpublished link) are not scholarly-DB material. Verify the
+            # cited location actually resolves instead of calling it
+            # unverified; a dead link is a real finding, a live one is a
+            # hand-checkable reference.
+            url_m = _field(blob, "url")
+            if not url_m:
+                hp = _field(blob, "howpublished") or ""
+                um = re.search(r"https?://[^ \\}]+", hp)
+                url_m = um.group(0).rstrip(".,") if um else None
+            if url_m:
+                try:
+                    req = urllib.request.Request(
+                        url_m, method="HEAD",
+                        headers={"User-Agent": f"paperloop/1.0 (mailto:{mailto})"})
+                    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                        live = r.status < 400
+                except Exception:
+                    live = False
+                if live:
+                    verified += 1
+                    cache[ck] = {"source": "web", "doi": "", "title": title,
+                                 "year": None, "container": url_m, "type": "misc"}
+                    continue
             unverified += 1
             out.append(Finding(
                 "citations", "refs.unverified", "MAJOR",
@@ -330,7 +453,7 @@ def check(cfg: Config) -> list[Finding]:
     _save_cache(cfg, cache)
     if verified:
         out.append(Finding("citations", "refs.unverified", "INFO",
-                           f"{verified} citation(s) verified against Crossref/OpenAlex"
+                           f"{verified} citation(s) verified against Crossref/OpenAlex/SemanticScholar"
                            + (f", {unverified} unresolved" if unverified else "")))
     return out
 

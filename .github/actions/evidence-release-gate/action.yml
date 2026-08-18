@@ -9,6 +9,15 @@ inputs:
     description: 'Path to sealed evidence_pack.json file'
     required: false
     default: 'evidence_pack.json'
+  release_request_path:
+    description: >-
+      Path to the release request JSON written by the orchestrator when it opened
+      the evaluation session ({"release_id", "session_id"}). The gate binds the
+      bundle to THIS session, never to the session the bundle declares. Defaults
+      to <evidence_path>.release_request.json, the sibling file
+      scripts/package_evidence.py writes.
+    required: false
+    default: ''
   secret_key:
     description: 'HMAC secret key or Ed25519 public key identifier'
     required: false
@@ -35,8 +44,11 @@ runs:
     - name: Evaluate Release Gate Policy
       shell: bash
       run: |
+        RR="${{ inputs.release_request_path }}"
+        if [ -z "$RR" ]; then RR="${{ inputs.evidence_path }}.release_request.json"; fi
         python scripts/verify_release_gate.py \
           --policy "${{ inputs.policy_path }}" \
           --evidence "${{ inputs.evidence_path }}" \
+          --release-request "$RR" \
           --secret-key "${{ inputs.secret_key }}" \
           --format "${{ inputs.format }}"

@@ -4,19 +4,22 @@ Evidence Bundle Schema, Ed25519/HMAC Attestations, Privacy Blinding, and Sparse 
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
+import base64
 import uuid
 import hmac
 import hashlib
 from typing import List, Dict, Any, Optional
 
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
 from .crypto import (
     hash_sha256,
+    canonical_json,
+    merkle_leaf_digest,
     build_merkle_tree,
     generate_merkle_proof,
-    verify_merkle_proof,
     sign_payload_hmac,
     verify_signature_hmac,
-    generate_ed25519_keypair,
     sign_payload_ed25519,
     verify_signature_ed25519,
     format_intoto_statement,
@@ -26,8 +29,15 @@ from .crypto import (
 
 DEFAULT_SECRET_KEY = "usenix-security-2027-release-assurance-key"
 
-# Global demo Ed25519 keypair for seamless testing
-DEMO_PRIV_KEY, DEMO_PUB_KEY, DEMO_PUB_KEY_B64, DEMO_KEY_ID = generate_ed25519_keypair()
+# Static demo Ed25519 keypair (DEMO/TEST ONLY — never use in production).
+# Fixed so packager and verifier processes derive the same key; its public
+# half is pinned in governance/trusted_keys.yaml and nothing else is trusted.
+DEMO_PRIV_SEED = bytes.fromhex(
+    "d842fd18d672140d2cb1f725f5b72e79574461dbae1c80f16a986264fea4407e")
+DEMO_PRIV_KEY = Ed25519PrivateKey.from_private_bytes(DEMO_PRIV_SEED)
+DEMO_PUB_KEY = DEMO_PRIV_KEY.public_key()
+DEMO_PUB_KEY_B64 = base64.b64encode(DEMO_PUB_KEY.public_bytes_raw()).decode("utf-8")
+DEMO_KEY_ID = compute_key_id(DEMO_PUB_KEY_B64)
 
 
 @dataclass
@@ -53,13 +63,66 @@ class ExecutionTraceRecord:
             action=self.action,
             status=self.status,
             duration_ms=self.duration_ms,
-            output_hash=f"BLINDED-{blinded_hash[:16]}",
+            output_hash=blinded_hash,
             raw_payload=None
         )
 
     def to_hash(self) -> str:
-        raw = f"{self.trace_id}:{self.agent_id}:{self.action}:{self.status}:{self.output_hash}"
-        return hash_sha256(raw)
+        return merkle_leaf_digest(execution_trace_leaf_string(self))
+
+
+
+def execution_trace_leaf_string(trace: Any) -> str:
+    """Canonical leaf content for one execution trace record.
+
+    Single source of truth for the Merkle leaf string, shared by the packager
+    (to_hash), the verifier's root re-derivation (policy.py), the forensic
+    audit engine (forensics.py), and sparse-proof generation. Every field the
+    trace schema declares -- including duration_ms -- is committed; changing
+    any of them invalidates the root (2026-08 adversarial review, N2)."""
+    if hasattr(trace, "duration_ms"):
+        return f"{trace.trace_id}:{trace.agent_id}:{trace.action}:{trace.status}:{trace.duration_ms}:{trace.output_hash}"
+    return f"{trace['trace_id']}:{trace['agent_id']}:{trace['action']}:{trace['status']}:{trace['duration_ms']}:{trace['output_hash']}"
+
+
+@dataclass
+class BrowserActionTraceRecord:
+    trace_id: str
+    agent_id: str
+    action: str  # "click", "navigate", "type", "screenshot"
+    status: str
+    duration_ms: float
+    url: str
+    element_selector: str
+    dom_state_hash: str
+    screenshot_sha256: Optional[str] = None
+
+    def to_hash(self) -> str:
+        raw = f"{self.trace_id}:{self.agent_id}:{self.action}:{self.status}:{self.duration_ms}:{self.url}:{self.element_selector}:{self.dom_state_hash}:{self.screenshot_sha256 or ''}"
+        return merkle_leaf_digest(raw)
+
+
+def realistic_dom_fragment(i: int) -> str:
+    """A realistic DOM serialization sample: nested nodes, attributes, and
+    per-step dynamic content, mirroring what a browser agent would serialize.
+
+    Shared by the web/UI specimen (specimens/web_app_runner.py) and the
+    UI-attestation hashing benchmark so the measured cost reflects real DOM
+    content rather than a stub string (2026-08 adversarial review, N8)."""
+    return (
+        "<html><head><title>Release Control Plane</title></head>"
+        "<body><div id='app'><header class='navbar'><h1>Release Dashboard</h1>"
+        "<nav><a href='/releases' class='active'>Releases</a><a href='/agents'>Agents</a></nav>"
+        "</header><main><section class='panel' data-step='{i}'><div class='metric-card'>"
+        "<span class='label'>deploy-status</span><span class='value'>Ready</span></div>"
+        "<div class='metric-card'><span class='label'>build-id</span>"
+        "<span class='value'>bld-{i:04d}</span></div>"
+        "<form id='release-form' action='/api/release' method='POST' "
+        "data-agent='web-browser-agent-v1'><input type='hidden' name='csrf' "
+        "value='tok-{i:04d}'/><button id='deploy-release' type='submit'>Deploy</button>"
+        "</form></section></main><footer>EviAssure runtime 1.2.0</footer></div></body></html>"
+    ).format(i=i)
+
 
 
 _SENTINEL = object()
@@ -83,6 +146,13 @@ class EvidenceBundle:
     kms_key_arn: Optional[str] = None
     slsa_predicate: Optional[Dict[str, Any]] = None
     sparse_proofs: Optional[List[Dict[str, Any]]] = None
+    # Witnessed Trace Completeness (WTC). session_id scopes the witness
+    # attestations; receipts carry per-witness monotonic sequence numbers and
+    # closings commit to the served-action count. All three are covered by the
+    # bundle signature via witness_digest below.
+    session_id: Optional[str] = None
+    witness_receipts: List[Dict[str, Any]] = field(default_factory=list)
+    witness_closings: List[Dict[str, Any]] = field(default_factory=list)
     signed: bool = False
     signature: Optional[str] = None
     signatures: List[Dict[str, Any]] = field(default_factory=list)
@@ -99,10 +169,25 @@ class EvidenceBundle:
             "execution_traces_count": self.execution_traces_count,
             "merkle_root": self.merkle_root,
             "artifact_digests": self.artifact_digests,
+            "session_id": self.session_id,
+            "witness_digest": self.witness_digest(),
             "sig_alg": sig_alg_override if sig_alg_override is not _SENTINEL else self.sig_alg,
             "key_id": key_id_override if key_id_override is not _SENTINEL else self.key_id,
             "kms_key_arn": kms_arn_override if kms_arn_override is not _SENTINEL else self.kms_key_arn
         }
+
+    def witness_digest(self) -> str:
+        """Commitment to the witness attestation set.
+
+        Without this, a collector could strip receipts and closings from a
+        validly signed bundle and the signature would still verify -- which
+        would make witnessed completeness trivially defeatable by deletion.
+        The digest is order-independent (receipts are sorted) so transport
+        reordering is not an integrity failure.
+        """
+        items = sorted(canonical_json(r) for r in (self.witness_receipts or []))
+        items += sorted(canonical_json(c) for c in (self.witness_closings or []))
+        return hash_sha256("|".join(items)) if items else hash_sha256("NO_WITNESS")
 
     def sign_hmac(self, secret_key: str = DEFAULT_SECRET_KEY) -> None:
         self.sig_alg = "hmac-sha256"
@@ -111,7 +196,7 @@ class EvidenceBundle:
         self.signature = sign_payload_hmac(payload, secret_key)
         self.signed = True
 
-    def sign_ed25519(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:123456789:key/usenix-release-gate") -> None:
+    def sign_ed25519(self, private_key: "Ed25519PrivateKey" = DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:000000000000:key/usenix-release-gate") -> None:
         self.sig_alg = "ed25519"
         self.public_key = pub_key_b64
         self.key_id = compute_key_id(pub_key_b64)
@@ -132,7 +217,7 @@ class EvidenceBundle:
         })
         self.signed = True
 
-    def sign_ed25519_multi(self, private_key=DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:123456789:key/usenix-release-gate") -> None:
+    def sign_ed25519_multi(self, private_key: "Ed25519PrivateKey" = DEMO_PRIV_KEY, pub_key_b64: str = DEMO_PUB_KEY_B64, kms_arn: Optional[str] = "kms://aws/arn:aws:kms:us-east-1:000000000000:key/usenix-release-gate") -> None:
         """Append an Ed25519 signature to the signatures list."""
         k_id = compute_key_id(pub_key_b64)
         payload = self.payload_for_signing(sig_alg_override="ed25519", key_id_override=k_id, kms_arn_override=kms_arn)
@@ -165,10 +250,14 @@ class EvidenceBundle:
                 p_copy["kms_key_arn"] = sig_entry.get("kms_key_arn")
 
                 if alg == "ed25519" and pk:
-                    if verify_signature_ed25519(p_copy, s, pk):
+                    # Self-consistency only (does this signature match this
+                    # bundle's own key?). Authentication against the trusted
+                    # registry happens in ReleasePolicyEngine/ForensicAuditEngine.
+                    # nosemgrep: verifier-trusts-payload-supplied-key
+                    if s and verify_signature_ed25519(p_copy, s, pk):
                         valid_count += 1
                 else:
-                    if verify_signature_hmac(p_copy, s, secret_key):
+                    if s and verify_signature_hmac(p_copy, s, secret_key):
                         valid_count += 1
             return valid_count > 0
 
@@ -188,8 +277,7 @@ class EvidenceBundle:
             return []
         leaf_hashes = []
         for t in self.traces:
-            raw = f"{t.get('trace_id')}:{t.get('agent_id')}:{t.get('action')}:{t.get('status')}:{t.get('output_hash')}"
-            leaf_hashes.append(hash_sha256(raw))
+            leaf_hashes.append(merkle_leaf_digest(execution_trace_leaf_string(t)))
 
         _, levels = build_merkle_tree(leaf_hashes)
 
@@ -206,13 +294,13 @@ class EvidenceBundle:
         return proofs
 
     def generate_slsa_envelope(self) -> Dict[str, Any]:
-        """Wrap evidence into in-toto v0.2 / SLSA v1.0 Statement format."""
+        """Wrap evidence into an in-toto Statement (v0.1) / SLSA Provenance v1.0 envelope."""
         slsa_prov = format_slsa_provenance(
             builder_id=f"https://usenix.org/agent-builder/{self.agent_system_version}",
             build_type="https://usenix.org/AgenticReleasePolicy/v1",
             invocation_params={"evidence_id": self.evidence_id, "nonce": self.nonce},
             materials=[
-                {"uri": f"git+https://github.com/radanliev/demo-5-evidence-release-assurance-usenix@{self.agent_system_version}",
+                {"uri": f"git+https://github.com/anonymous-author/eviassure@{self.agent_system_version}",
                  "digest": {"sha256": self.artifact_digests.get("policy_definition", hash_sha256("DEFAULT"))}}
             ]
         )
@@ -226,8 +314,13 @@ class EvidenceBundle:
         return statement
 
     def to_dict(self) -> Dict[str, Any]:
-        res = asdict(self)
-        return res
+        # raw_payload must NEVER serialize: bundles carry digests only. A
+        # plain asdict() would leak collector-side PII if the field were set
+        # (2026-08 check: the Sec 3.2 exclusion claim was previously true only
+        # by accident of no caller setting it).
+        def _drop_raw_payload(pairs):
+            return {k: v for k, v in pairs if k != "raw_payload"}
+        return asdict(self, dict_factory=_drop_raw_payload)
 
 
 def create_evidence_pack(
@@ -240,9 +333,29 @@ def create_evidence_pack(
     use_ed25519: bool = True,
     blind_privacy: bool = False,
     privacy_salt: str = "usenix-privacy-salt-2027",
-    signed: bool = True
+    signed: bool = True,
+    witnessed: bool = False,
+    release_id: str = "release-demo",
+    session_credential: Optional[Any] = None,
 ) -> EvidenceBundle:
-    """Create a fully signed, Merkle-backed EvidenceBundle."""
+    """Create a fully signed, Merkle-backed EvidenceBundle.
+
+    ``witnessed=True`` runs every trace through the demo witnesses (static keys
+    pinned in governance/witness_registry.yaml) inside a session credentialed by
+    the demo orchestrator, so the bundle carries receipts, closings and a
+    session_id and reconciles under the shipped (witnessed) policy. The default
+    is unwitnessed because the mechanism-level evaluations -- tamper vectors,
+    corpus, timing benchmarks -- deliberately exercise the gate's other checks on
+    bundles that carry no witness attestations, and because witnessing a
+    million-trace scaling bundle would time a million signatures, not a Merkle
+    build. The shipped CLI and the packaging script use ``witnessed=True``.
+
+    ``session_credential`` lets a caller supply the credential the orchestrator
+    issued (e.g. the live agent harness); otherwise one is issued for
+    ``release_id``. In this demo the packager therefore also plays the
+    orchestrator; in a deployment the credential is issued by the trusted CI
+    controller before the run and the gate is given the session out of band.
+    """
     if traces is None:
         traces = [
             ExecutionTraceRecord(
@@ -274,7 +387,12 @@ def create_evidence_pack(
     if blind_privacy:
         traces = [t.blind_payload(privacy_salt) for t in traces]
 
-    trace_dicts = [asdict(t) for t in traces]
+    # Digests only: raw_payload must never enter the bundle (Sec 3.2).
+    # asdict's dict_factory does not reach plain dicts, so filter here.
+    trace_dicts = [
+        {k: v for k, v in asdict(t).items() if k != "raw_payload"}
+        for t in traces
+    ]
     leaf_hashes = [t.to_hash() for t in traces]
     merkle_root, _ = build_merkle_tree(leaf_hashes)
 
@@ -308,6 +426,23 @@ def create_evidence_pack(
     )
 
     bundle.generate_slsa_envelope()
+
+    if witnessed:
+        # Local import: witness.py imports crypto only, so there is no cycle,
+        # but keeping it here makes the dependency direction explicit.
+        from .witness import (demo_witnesses, issue_session_credential, witness_for)
+        cred = session_credential or issue_session_credential(release_id)
+        ws = demo_witnesses()
+        receipts = []
+        for t in traces:
+            w = witness_for(t.action, ws)
+            if w is not None:
+                receipts.append(w.observe(cred, t))
+        closings = [w.close(cred) for w in ws.values()]
+        bundle.session_id = (cred.session_id if hasattr(cred, "session_id")
+                             else cred["session_id"])
+        bundle.witness_receipts = [r.to_dict() for r in receipts]
+        bundle.witness_closings = [c.to_dict() for c in closings]
 
     if signed:
         if use_ed25519:

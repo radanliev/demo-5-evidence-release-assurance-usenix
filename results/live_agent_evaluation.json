@@ -1,0 +1,1135 @@
+{
+  "sessions": [
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "vector_search_policy_docs"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-646a18121355",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-63c456d58bd8",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 7,
+      "coverage": 0.8571,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-1d218c3e010a",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 7,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 6
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "collect_table_stats",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-92146deaf70e",
+      "statuses": [
+        "DENIED",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-0d4c6f61c4ff",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "collect_table_stats",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 3,
+      "coverage": 0.6667,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-95f86e3ffd4c",
+      "statuses": [
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 3,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 2
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "vector_search_policy_docs",
+        "emit_summary"
+      ],
+      "actions": 8,
+      "coverage": 0.875,
+      "model": "qwen/qwen3.6-27b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-c4e0d7792524",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 8,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 7
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 5,
+      "coverage": 0.8,
+      "model": "qwen/qwen3.6-27b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-d5cdb7954427",
+      "statuses": [
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 5,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 4
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 8,
+      "coverage": 0.875,
+      "model": "qwen/qwen3.6-27b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-cd36475ae8d3",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 8,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 7
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 8,
+      "coverage": 0.875,
+      "model": "qwen/qwen3.6-27b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-1c274c091eb3",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 8,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 7
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 7,
+      "coverage": 0.8571,
+      "model": "qwen/qwen3.6-27b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-36e60c761a5f",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 7,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 6
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "vector_search_policy_docs",
+        "emit_summary"
+      ],
+      "actions": 8,
+      "coverage": 0.875,
+      "model": "qwen/qwen3.6-27b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-e2d9a069f0f7",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 8,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_mode": "out-of-process",
+      "witnessed": 7
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "moonshotai/Kimi-K2-Instruct-0905",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "OC1_control_approved": true
+      },
+      "provider": "huggingface",
+      "session_id": "live-9258b75aaa18",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "collect_table_stats",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "vector_search_policy_docs",
+        "emit_summary"
+      ],
+      "actions": 6,
+      "coverage": 0.8333,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-e2ba43ba27ed",
+      "statuses": [
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 6,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 5
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "collect_table_stats",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "collect_table_stats",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-a773c46c0f8c",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-49b02d09dab4",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "collect_table_stats",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 3,
+      "coverage": 0.6667,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-755eb105c15f",
+      "statuses": [
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 3,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 2
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "openai/gpt-oss-120b",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "groq",
+      "session_id": "live-5221e03777fa",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 6,
+      "coverage": 0.8333,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-df967f4ae06f",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 6,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 5
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 7,
+      "coverage": 0.8571,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-8d2aa4c77da5",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 7,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 6
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "execute_read_only_query"
+      ],
+      "actions": 2,
+      "coverage": 1.0,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-72dfbe9abf8d",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "model returned no tool call",
+      "turns": 3,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 2
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-4a0b23dbdc1c",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "execute_read_only_query"
+      ],
+      "actions": 2,
+      "coverage": 1.0,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-e03fe3c8c63e",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "model returned no tool call",
+      "turns": 3,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 2
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 8,
+      "coverage": 0.875,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-307c23eca8fd",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 8,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 7
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "emit_summary"
+      ],
+      "actions": 7,
+      "coverage": 0.8571,
+      "model": "gemini-flash-latest",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "OC1_control_approved": true
+      },
+      "provider": "gemini",
+      "session_id": "live-16a953d04fbd",
+      "statuses": [
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 7,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 6
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-14f09865ef29",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "collect_table_stats",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-ff9062fc8b3c",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "execute_read_only_query"
+      ],
+      "actions": 2,
+      "coverage": 1.0,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-f2c9d67efaef",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "model returned no tool call",
+      "turns": 3,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 2
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query",
+        "execute_read_only_query"
+      ],
+      "actions": 8,
+      "coverage": 1.0,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-68e2884ae3e4",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "hit max_turns=8",
+      "turns": 8,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 8
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "execute_read_only_query"
+      ],
+      "actions": 2,
+      "coverage": 1.0,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-724292547898",
+      "statuses": [
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "model returned no tool call",
+      "turns": 3,
+      "unmediated_actions": [],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 2
+    },
+    {
+      "action_sequence": [
+        "authenticate_jwt_claims",
+        "vector_search_policy_docs",
+        "execute_read_only_query",
+        "collect_table_stats",
+        "emit_summary"
+      ],
+      "actions": 5,
+      "coverage": 0.8,
+      "model": "mistralai/mistral-small-3.2-24b-instruct",
+      "omission_vectors": {
+        "O1": true,
+        "O2": true,
+        "O3": true,
+        "O4": true,
+        "O6": true,
+        "O7": true,
+        "OC1_control_approved": true
+      },
+      "provider": "openrouter",
+      "session_id": "live-7610dc82fff9",
+      "statuses": [
+        "DENIED",
+        "ERROR",
+        "SUCCESS"
+      ],
+      "stopped_reason": "agent emitted summary",
+      "turns": 5,
+      "unmediated_actions": [
+        "emit_summary"
+      ],
+      "witness_isolation": "container",
+      "witness_mode": "out-of-process",
+      "witnessed": 4
+    }
+  ],
+  "summary": {
+    "actions_mean": 6.45,
+    "actions_stdev": 2.234,
+    "actions_total": 200,
+    "distinct_action_sequences": 22,
+    "model": "mistralai/mistral-small-3.2-24b-instruct",
+    "nondeterminism_ratio": 0.7097,
+    "omission_detection": {
+      "O1": {
+        "detected": 25,
+        "of": 25
+      },
+      "O2": {
+        "detected": 31,
+        "of": 31
+      },
+      "O3": {
+        "detected": 31,
+        "of": 31
+      },
+      "O4": {
+        "detected": 31,
+        "of": 31
+      },
+      "O6": {
+        "detected": 31,
+        "of": 31
+      },
+      "O7": {
+        "detected": 28,
+        "of": 28
+      },
+      "OC1_control_approved": {
+        "detected": 31,
+        "of": 31
+      }
+    },
+    "provider": "openrouter",
+    "session_failures": [],
+    "sessions_completed": 31,
+    "sessions_requested": 42,
+    "unmediated_actions_seen": [
+      "emit_summary"
+    ],
+    "witness_coverage_mean": 0.9162,
+    "witness_coverage_min": 0.6667
+  }
+}

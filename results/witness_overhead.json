@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-08-18T21:14:31Z",
+  "platform": {
+    "python_version": "3.14.7",
+    "logical_cores": 14,
+    "cpu_model": "Apple M4 Max"
+  },
+  "repeats": 5,
+  "note": "In-process reference witnesses (assurance.witness.Witness), three witnesses, actions round-robin over six mediated action types; receipt issuance is one Ed25519 signature, reconciliation verifies every receipt and closing under the registry-pinned keys (assurance.witness.reconcile). No network cost is modelled.",
+  "rows": [
+    {
+      "actions": 30,
+      "witnesses": 3,
+      "receipt_bytes": 320,
+      "closing_bytes": 175,
+      "issue_us_per_receipt": 230.071,
+      "issue_us_per_receipt_std": 4.454,
+      "close_us_per_witness": 226.886,
+      "close_us_per_witness_std": 2.245,
+      "reconcile_ms": 5.278,
+      "reconcile_ms_std": 0.023,
+      "reconcile_us_per_action": 175.941,
+      "reconcile_us_per_action_std": 0.752
+    },
+    {
+      "actions": 300,
+      "witnesses": 3,
+      "receipt_bytes": 327,
+      "closing_bytes": 177,
+      "issue_us_per_receipt": 233.285,
+      "issue_us_per_receipt_std": 2.812,
+      "close_us_per_witness": 229.095,
+      "close_us_per_witness_std": 1.742,
+      "reconcile_ms": 48.841,
+      "reconcile_ms_std": 0.434,
+      "reconcile_us_per_action": 162.803,
+      "reconcile_us_per_action_std": 1.447
+    },
+    {
+      "actions": 3000,
+      "witnesses": 3,
+      "receipt_bytes": 329,
+      "closing_bytes": 179,
+      "issue_us_per_receipt": 231.037,
+      "issue_us_per_receipt_std": 1.546,
+      "close_us_per_witness": 228.872,
+      "close_us_per_witness_std": 1.137,
+      "reconcile_ms": 497.719,
+      "reconcile_ms_std": 1.248,
+      "reconcile_us_per_action": 165.906,
+      "reconcile_us_per_action_std": 0.416
+    }
+  ]
+}

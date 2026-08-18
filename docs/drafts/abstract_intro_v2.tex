@@ -1,0 +1,182 @@
+% DRAFT — 18 Aug 2026 — proposed replacement for the abstract, the opening of
+% Section 1, the contribution list, and Figure 1. Not yet in the manuscript.
+% Every number is a macro from frozen_metrics.tex / security_metrics.tex; no
+% new number is introduced. Two [CITATION NEEDED] markers must be resolved
+% before this text is used. British English.
+%
+% Design goals (from the 18 Aug review):
+%   * paragraph 1 states the attack, not the product;
+%   * the witness mechanism is in the abstract's second sentence group and in
+%     intro paragraph 3, so the R4 reviewer meets the contribution before the
+%     contribution list;
+%   * no sentence refers to earlier drafts, earlier versions, or what was
+%     withdrawn;
+%   * no unprovable universal ("every deployed scheme");
+%   * the guarantee's boundary (witness set; semantics; session credential) is
+%     stated in the abstract, so no reviewer can say it was hidden.
+
+% ---------------------------------------------------------------------------
+\begin{abstract}
+Release pipelines for autonomous agents increasingly gate promotion on
+attested execution traces: signed records of what the agent did during its
+evaluation run. These attestations share an unaddressed weakness. The evidence
+collector is the only observer of the run, so an adversary who controls the
+agent and the collector need not forge or alter anything: it performs an action
+and does not record it. The resulting bundle is internally consistent, every
+signature verifies, and every integrity check passes, because nothing was
+tampered with.
+
+We define \emph{Witnessed Trace Completeness}, a completeness property stated
+relative to a declared set of \emph{witnesses} --- the tool endpoints, API
+gateways and sandbox brokers that actually serve agent actions. Each witness
+issues receipts carrying a monotonic per-session sequence number and, at
+session end, a signed commitment to how many actions it served. A stateful,
+fail-closed release gate then \emph{reconciles} the submitted trace set against
+those receipts and closings, rather than verifying a document. We prove that,
+under EUF-CMA security of the witness signatures and a session credential the
+adversary cannot mint, an adversary holding the agent and the collector but no
+witness key cannot omit or fabricate a witnessed action, and we show that no
+verifier whose verdict is a function of one submitted document can achieve
+witnessed completeness or replay-freedom, which places record-format standards
+on one side of a structural boundary and stateful reconciliation on the other.
+
+We implement the protocol in \textsc{EviAssure}, an evidence-bundle format that
+rides inside in-toto/SLSA envelopes with a domain-separated, depth-bound Merkle
+trace commitment, and evaluate it against executed in-toto/DSSE and TUF
+baselines and re-implemented receipt and hash-chain designs. Against
+\omVectors{} omission attacks and an honest control, reconciliation detects
+\omWtc/\omVectors{}, receipt-only verification \omReceipts/\omVectors{}, and
+per-issuer chaining \omChain/\omVectors{}; on the orthogonal tampering axis the
+gate blocks \eviBlocked/\eviTotal{} vectors (95\% CI [\eviCIlo, \eviCIhi]) and
+we report the one it does not. We state the guarantee's boundary as plainly as
+the guarantee: it is exactly as wide as the deployed witness set, it says
+nothing about actions no witness mediates, and it approves a semantically
+misbehaving trace that is honestly recorded --- held-out inspection recovers
+\insOvertK/\insOvertN{} structurally overt anomalies and \insStealthK/\insStealthN{}
+disguised ones.
+\end{abstract}
+
+% ---------------------------------------------------------------------------
+\section{Introduction}
+
+An autonomous agent is promoted to production --- a new checkpoint, a widened
+tool scope, a new pipeline stage --- on the strength of an evaluation run: a
+test suite, a red-team script, a canary task. Unlike a compiled artefact, whose
+behaviour is fixed by its code, the agent's behaviour during that run is a
+non-deterministic sequence of tool calls, and the security question at the gate
+is not \emph{what the agent is} but \emph{what it did}. Supply-chain provenance
+answers the first question well: in-toto, SLSA and Sigstore attest the origin
+and integrity of static artefacts, and their runtime-trace and agent-decision
+predicates, together with the 2026 agent-provenance drafts, extend the same
+record formats to execution traces~\cite{torres2019in-toto, slsa2023supply,
+intoto_runtime_trace, intoto2026agent-decision, apas2026agent-provenance,
+aas12026agent-audit}. Per-action receipts signed by the receiving service go
+one step further and give each recorded action an attestation from a party
+other than the agent~\cite{notarized2026agents}. % [CITATION NEEDED: a second
+% receipt scheme if "schemes" (plural) is kept, e.g. PipeLab -- verify it is a
+% citable specification, not a marketing page; otherwise write "receipt scheme".]
+
+All of these verify a \emph{document}. The document is produced by the evidence
+collector, and the collector is the sole observer of the run. Consider an
+execution $A \rightarrow B \rightarrow C \rightarrow D \rightarrow E$ in which
+$C$ is the action a reviewer would have blocked. An adversary who controls the
+agent and the collector --- a compromised runner, a poisoned build step, an
+agent that has been prompt-injected into rewriting its own log --- does not
+forge $C$'s absence. It performs $C$, and records
+$A \rightarrow B \rightarrow D \rightarrow E$. Every signature over that
+document verifies; the Merkle root, hash chain, or receipt set is consistent,
+because each was computed over what was recorded. A receipt proves an action
+happened; a set of receipts does not prove that no other action happened. We
+call this the \emph{omission} attack, to distinguish it from tampering, and we
+show (Section~\ref{sec:omission}) that executed in-toto/DSSE and TUF verifiers,
+per-issuer hash chains, and per-action receipts each fail it, for a reason that
+Theorem~\ref{thm:separation} makes structural rather than incidental.
+
+Our approach moves the observation out of the collector's trust domain. The
+components that already serve an agent's externally observable actions --- the
+database proxy, the API gateway, the sandbox broker --- become
+\emph{witnesses}: each holds a signing key the adversary does not control,
+keeps a monotonic counter per session, returns a signed receipt
+$(\mathit{sid}, \mathrm{seq}, H_{\mathrm{act}})$ with every action it serves,
+and at session end signs a \emph{closing} $(\mathit{sid}, n_j)$ committing to
+how many actions it served. The release gate holds state and
+\emph{reconciles}: every receipt authenticates under a registry-pinned witness
+key, every witness's receipts form exactly $1,\dots,n_j$, every receipt binds
+to a submitted trace, and every trace that claims a mediated action carries a
+receipt. Omitting a witnessed action now requires forging a witness signature
+(Theorem~\ref{thm:wtc}). The guarantee is stated \emph{relative to} the witness
+set: an action no witness mediates is outside it, and we say so, because a
+guarantee whose boundary is declared can be audited and one that assumes a
+perfect collector cannot.
+
+We implement the protocol in \textsc{EviAssure}: an evidence bundle that is an
+in-toto Statement carrying a domain-separated (RFC~6962), depth-bound Merkle
+commitment to the trace set, a signed trace count, the witness receipts and
+closings, and a nonce; and a fail-closed gate whose verdict is a deterministic
+function of the bundle, a pinned policy, a pinned key and witness registry, and
+replay state. The bundle rides inside existing SLSA/in-toto tooling
+unmodified; what the gate adds is the state and the second trust domain a
+document cannot carry.
+
+\subsection{Contributions}
+\begin{enumerate}
+  \item \textbf{Witnessed Trace Completeness} (Definition~\ref{def:wtc}): a
+  completeness property relative to a declared witness set, a protocol that
+  achieves it with sequence-bound receipts and signed closing counts, and a
+  proof (Theorem~\ref{thm:wtc}) that omission or fabrication of a witnessed
+  action requires a witness-key forgery, under a stated session-credential
+  assumption.
+  \item \textbf{A separation between document verification and stateful
+  reconciliation} (Theorem~\ref{thm:separation}): a verifier whose verdict is a
+  function of a single submitted document achieves neither witnessed
+  completeness nor replay-freedom. We use this to place in-toto/SLSA/TUF, the
+  agent-provenance drafts and receipt schemes on one side of the boundary and
+  the gate on the other, and to explain the omission results.
+  \item \textbf{An evidence-bound, fail-closed release gate}: a bundle format
+  compatible with in-toto v0.2 / SLSA v1.0 envelopes, a domain-separated,
+  depth-bound Merkle trace attestation with truncation-resistant count binding,
+  and a gate whose verdict is reproducible under a pinned policy version and
+  holds replay state.
+  \item \textbf{A falsifiable evaluation with executed baselines and disclosed
+  failures}: \omVectors{} omission attacks with an honest-execution control
+  against executed in-toto/DSSE and TUF and re-implemented receipt and
+  hash-chain designs; \scoredVectors{} tamper vectors, five of them authored
+  against the design rather than the check list, with clean negative controls;
+  a held-out inspection protocol; Wilson intervals on every rate; and an
+  explicit account of the vector the gate does not block, the anomaly class
+  inspection does not see, and the actions no witness covers.
+\end{enumerate}
+
+% ---------------------------------------------------------------------------
+% FIGURE 1 — specification for the redraw (TikZ to follow the existing style).
+%
+% Four zones, left to right, with the trust boundary drawn as ONE thick dashed
+% line separating zones 1 from zones 2–4:
+%
+%  Zone 1 "Adversary-controlled" (red): Autonomous Agent  and  Evidence
+%     Collector (holds collector key K_C).  Caption text: "A controls both,
+%     and K_C."
+%  Zone 2 "Witnesses" (amber): three boxes — DB proxy W_1, API gateway W_2,
+%     Sandbox broker W_3 — each labelled "own key K_Wj; counter per sid".
+%     Arrows: Agent → W_j  "action a";  W_j → Collector  "receipt
+%     Sign_Wj(sid, seq, H_act)";  W_j → Collector (dashed, at session end)
+%     "closing Sign_Wj(sid, n_j)".
+%  Zone 3 "Registry" (grey): Trusted keys K_C, Witness registry {W_j, med(W_j)},
+%     Policy P (pinned version), Revocations.
+%  Zone 4 "Release gate" (blue): "Verify: signature over canon(E); Merkle root
+%     + count + depth; freshness + nonce (STATE)".  Below it: "Reconcile: for
+%     each W_j: receipts = 1..n_j; each receipt ↔ one trace; every mediated
+%     action has a receipt".  Output arrow → Production: APPROVED / BLOCKED.
+%  Arrow Collector → Gate: "Evidence bundle E = (traces, root, N, receipts,
+%     closings, nonce, sid) signed under K_C".
+%  Small note under Zone 1: "session credential sid issued by the gate;
+%     witnesses serve only requests that carry it"  (only once row 3 of the
+%     risk register is implemented).
+%
+% Caption (draft): "EviAssure with witnesses. The adversary controls the agent,
+% the collector and the collector's key, but no witness key. Witnesses sign a
+% receipt for every action they serve and a closing count at session end; the
+% gate verifies the bundle and reconciles the trace set against receipts and
+% closings, so an omitted or fabricated witnessed action requires a witness-key
+% forgery. Actions outside every witness's mediated set are outside the
+% guarantee."

@@ -1,0 +1,39 @@
+# Witness registry for Witnessed Trace Completeness.
+#
+# A witness is the component that ACTUALLY SERVES an agent action -- a tool
+# endpoint, API gateway, or sandbox syscall broker. It is a separate trust
+# domain from the evidence collector: the collector holds a signing key, the
+# witnesses do not, and an adversary who owns the collector still cannot forge
+# or suppress a witness attestation. `mediates` is the set of action types the
+# witness is authoritative for: a trace claiming one of them must carry that
+# witness's receipt (fabrication check), and an action outside every witness's
+# set is outside the guarantee (the stated boundary).
+#
+# `orchestrator` is the key under which witnesses verify session credentials.
+# Witnesses serve only credentialed requests, so an adversary who owns the
+# agent and the collector cannot relabel actions into a session the gate will
+# never evaluate (vector O7).
+#
+# Written by scripts/provision_witnesses.py. The shipped file is the DEMO
+# profile (static test-only keys pinned in assurance/witness.py); run
+#   python3 scripts/provision_witnesses.py --fresh
+# to generate deployment keys.
+orchestrator:
+  key_id: KEY-cabf71205575
+  public_key: KEM2G535MYS6rXJbD5CMeSrL3yJ6FmQgE0reuUtYLoE=
+witnesses:
+  auth-gateway:
+    key_id: KEY-a348d7fddc1b
+    mediates:
+    - verify_user_token
+    public_key: mOaKNPRyM/pqydjVdqIHIkNT63MZ8Cq3OU93XVsE9qk=
+  db-gateway:
+    key_id: KEY-5257c934326e
+    mediates:
+    - execute_db_query
+    public_key: HuW3bxydLD0YDgyFkBfs3GQXUdSytmvzy2zgXFb+lmU=
+  policy-service:
+    key_id: KEY-b5afb2ca4e3f
+    mediates:
+    - evaluate_rbac
+    public_key: aNeEET3nOUlOvUSUUv3xl7xxG0SgzqCDFob59o+e134=

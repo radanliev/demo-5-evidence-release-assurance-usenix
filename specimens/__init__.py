@@ -1,5 +1,5 @@
 """
-Realistic Agentic Workflow Specimens for USENIX Security Demo 5.
+Realistic Agentic Workflow Specimens for USENIX Security EviAssure.
 """
 
 from .agent_runner import AgenticWorkflowSpecimen, run_sample_agentic_workflow

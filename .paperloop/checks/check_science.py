@@ -118,6 +118,23 @@ STRUCTURAL_CTX = re.compile(
     r"appendix|listing|line|step|phase|stage|rq|threat |tier |level |version|v\d)\s*$",
     re.IGNORECASE)
 
+# Standards and vulnerability identifiers are names that happen to be numerals.
+# "RFC 6962" was being matched against a throughput measurement of 7151.66 and
+# reported as a stale result; a domain-separation standard does not track the
+# benchmark.
+IDENTIFIER_CTX = re.compile(
+    r"\b(rfc|cve|cwe|capec|iso|iec|nist|sp|fips|ietf|draft|pep|ansi|ieee|"
+    r"cvss|owasp|bcp|std)\b[\s.-]*$", re.IGNORECASE)
+
+# A confidence LEVEL is a parameter of the analysis, not a result of it.
+# "95% CI [73.0, 99.0]" was being matched against the nearest recorded value
+# (94.1) and reported as a stale number, which is the opposite of true: 95 is
+# the one number in that sentence that must NOT track the data.
+CONFIDENCE_LEVEL_AFTER = re.compile(
+    r"^\s*\\?%?\s*(CI\b|confidence|interval|credible)", re.IGNORECASE)
+CONFIDENCE_LEVEL_BEFORE = re.compile(
+    r"(wilson|clopper|agresti|bootstrap|binomial|confidence|CI)\W*$", re.IGNORECASE)
+
 
 def _is_empirical(num_text: str, pct: bool, before: str, after: str) -> bool:
     raw = num_text.replace(",", "")
@@ -126,10 +143,17 @@ def _is_empirical(num_text: str, pct: bool, before: str, after: str) -> bool:
     except ValueError:
         return False
     if pct:
+        # 90/95/99 immediately adjacent to CI/confidence wording is the
+        # confidence level, not a measurement.
+        if val in (90.0, 95.0, 99.0) and (CONFIDENCE_LEVEL_AFTER.match(after or "")
+                                          or CONFIDENCE_LEVEL_BEFORE.search(before or "")):
+            return False
         return True
     if YEARISH.match(raw):
         return False
     if STRUCTURAL_CTX.search(before):
+        return False
+    if IDENTIFIER_CTX.search(before):
         return False
     # decimals and large counts are almost always measurements
     if "." in raw:

@@ -29,7 +29,7 @@ def main():
     parser.add_argument("--output", "-o", type=str, default=None, help="Output path for forensic audit report JSON")
     args = parser.parse_args()
 
-    policy_engine = ReleasePolicyEngine.from_yaml(args.policy)
+    policy_engine = ReleasePolicyEngine.from_yaml(args.policy, witnessed=False)
     audit_engine = ForensicAuditEngine(policy_engine=policy_engine)
 
     if args.evidence:
@@ -39,7 +39,7 @@ def main():
         # Default to fresh sample evidence bundle
         evidence_dict = create_evidence_pack(use_ed25519=True, signed=True).to_dict()
 
-    audit_res = audit_engine.audit_bundle(evidence_dict, secret_key=args.secret_key)
+    audit_res = audit_engine.audit_bundle(evidence_dict, secret_key=args.secret_key, seen_nonces=set())
 
     if args.output:
         out_p = Path(args.output)

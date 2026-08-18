@@ -1,0 +1,12 @@
+rules:
+  - id: verifier-trusts-payload-supplied-key
+    languages: [python]
+    message: >
+      Verification uses key material taken from the object being verified.
+      Pin trusted keys in a registry; attacker-supplied keys authenticate nothing.
+    severity: ERROR
+    patterns:
+      - pattern: verify_signature_ed25519($PAYLOAD, $SIG, $PUB)
+      - pattern-inside: |
+          $PUB = $BUNDLE.get("public_key")
+          ...

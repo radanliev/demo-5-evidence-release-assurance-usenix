@@ -1,0 +1,54 @@
+name: 'USENIX Security Evidence Release Gate'
+description: 'Evaluates cryptographically signed evidence bundles against fail-closed release policy gates.'
+inputs:
+  policy_path:
+    description: 'Path to governance release_policy.yaml file'
+    required: false
+    default: 'governance/release_policy.yaml'
+  evidence_path:
+    description: 'Path to sealed evidence_pack.json file'
+    required: false
+    default: 'evidence_pack.json'
+  release_request_path:
+    description: >-
+      Path to the release request JSON written by the orchestrator when it opened
+      the evaluation session ({"release_id", "session_id"}). The gate binds the
+      bundle to THIS session, never to the session the bundle declares. Defaults
+      to <evidence_path>.release_request.json, the sibling file
+      scripts/package_evidence.py writes.
+    required: false
+    default: ''
+  secret_key:
+    description: 'HMAC secret key or Ed25519 public key identifier'
+    required: false
+    default: 'usenix-security-2027-release-assurance-key'
+  format:
+    description: 'Output format (text or json)'
+    required: false
+    default: 'text'
+outputs:
+  passed:
+    description: 'Boolean release approval status (true or false)'
+  evidence_id:
+    description: 'Cryptographic evidence pack identifier'
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install PyYAML
+      shell: bash
+      run: python -m pip install pyyaml cryptography
+    - name: Evaluate Release Gate Policy
+      shell: bash
+      run: |
+        RR="${{ inputs.release_request_path }}"
+        if [ -z "$RR" ]; then RR="${{ inputs.evidence_path }}.release_request.json"; fi
+        python scripts/verify_release_gate.py \
+          --policy "${{ inputs.policy_path }}" \
+          --evidence "${{ inputs.evidence_path }}" \
+          --release-request "$RR" \
+          --secret-key "${{ inputs.secret_key }}" \
+          --format "${{ inputs.format }}"
