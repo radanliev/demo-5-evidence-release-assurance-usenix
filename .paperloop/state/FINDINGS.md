@@ -2,7 +2,7 @@
 
 **Venue:** USENIX Security 2027  
 **Manuscript:** `docs/usenix_paper_manuscript.tex`  
-**Run:** 2026-08-18 14:44
+**Run:** 2026-08-18 14:59
 
 | Severity | Count |
 |---|---|
